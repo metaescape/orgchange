@@ -1,0 +1,119 @@
+#+TITLE: Demo test for html export
+#+DATE: [2022-06-14]
+
+* 测试方法
+在 =~/codes/hugchangelife= 目录下执行 ~python -m http.server~ 快速启动一个 http 服务
+然后访问 http://0.0.0.0:8000/, *strong*
+
+
+
+
+* 代码块测试
+
+如果使用 elpy 开启了 ~highlight-indentation-mode~ ，那么使用默认的 org export 之后发现默认主题下就就会有褐色的空格：
+
+#+DOWNLOADED: screenshot @ 2022-06-14 11:08:37
+#+ATTR_HTML: :width 600 :align center
+#+CAPTION: python code highlight 
+[[file:imgs/20220614-110837_orgpublish_code_default.png]]
+
+
+#+begin_src python
+def make_segment(p1, p2):
+    return (p1, p2)
+def start_segment(s):
+    return s[0]
+def end_segment(s):
+    return s[1]
+#+end_src
+
+#+begin_src solidity
+contract DAO {
+    uint256 a = 1;
+}
+#+end_src
+
+#+RESULTS:
+
+发现用 C-' 进入代码编辑模式也会有这个褐色，确认是 elpy mode 缩进高亮导致的
+
+用 script 导出的时候，(setq org-html-htmlize-output-type 'css) 
+以上代码段导出的 html 是
+
+#+begin_src html
+<div class="org-src-container">
+<pre class="src src-python"><span class="org-py-def-class">def</span> <span class="org-py-def">make_segment</span>(p1, p2):
+    <span class="org-keyword">return</span> (p1, p2)
+<span class="org-py-def-class">def</span> <span class="org-py-def">start_segment</span>(s):
+    <span class="org-keyword">return</span> s[<span class="org-py-number">0</span>]
+<span class="org-py-def-class">def</span> <span class="org-py-def">end_segment</span>(s):
+    <span class="org-keyword">return</span> s[<span class="org-py-number">1</span>]
+</pre>
+</div>
+#+end_src
+
+* example block
+** 2nd level
+#+begin_example
+<div class="org-src-container">
+<pre class="src src-python"><span style="font-weight: bold;">def</span> <span style="font-weight: bold;">make_segment</span>(p1, p2):
+    <span style="font-weight: bold;">return</span> (p1, p2)
+<span style="font-weight: bold;">def</span> <span style="font-weight: bold;">start_segment</span>(s):
+    <span style="font-weight: bold;">return</span> s[0]
+<span style="font-weight: bold;">def</span> <span style="font-weight: bold;">end_segment</span>(s):
+    <span style="font-weight: bold;">return</span> s[1]
+</pre>
+</div>
+#+end_example
+
+*** 3rd level
+
+
+1. 这用的是类似递归的思路，首先假设 \(\vec{v}\) 是 normal 矩阵 \(A\) 的特征根，因此有 \[A\vec{v}=\lambda \vec{v}\]
+2. \[A^{\dagger }\vec{v}=A^{\dagger }\lambda \vec{v}\]
+3. 由于 normal 矩阵的性质 \[AA^{\dagger }\vec{v}=\lambda A^{\dagger }\vec{v}\]
+4. 这就说明 \(A^{\dagger }\vec{v}\) 也是 A 的特征根 \(\lambda \) 下的特征向量，即 \(A^{\dagger } \vec{v} \in E_{\lambda }\)
+5. 假设 \(\vec{x} \in E_{\lambda }^{\perp }\) 是垂直于子空间 \(E_{\lambda }\) 的向量，那么 \[\vec{x}(A\vec{v})=0\]
+
+
+
+
+  When \(a \ne 0\), there are two solutions to \(ax^2 + bx + c = 0\) and they are
+$$x = {-b \pm \sqrt{b^2-4ac} \over 2a}.$$
+
+
+* 表格测试
+
+org-table 表格
+
+#+CAPTION: org-html export variable 
+| variable                         | org option               |   |
+|----------------------------------+--------------------------+---|
+| ~org-export-with-toc~              | ~#+OPTIONS: toc:5~         |   |
+| ~org-html-doctype~                 | ~#+HTML_DOCTYPE: html5~    |   |
+| ~org-html-html5-fancy~             | ~#+OPTIONS: html5-fancy:t~ |   |
+|                                  | ~#+EXPORT_FILE_NAME: yy~   |   |
+| ~org-export-with-smart-quotes~     | ,:t                      |   |
+| ~org-export-with-emphasize~        | *:t                      |   |
+| ~org-export-with-special-strings~  | -:t                      |   |
+| ~org-export-with-fixed-width~      | ::t                      |   |
+| ~org-export-with-timestamps~       | <:t                      |   |
+| ~org-export-preserve-breaks~       | \n:nil                   |   |
+| ~org-export-with-sub-superscripts~ | ^:nil                    |   |
+| ~org-export-with-archived-trees~   | arch:nil                 |   |
+| ~org-export-with-author~  | arch:nil                 |   |
+
+
+
+
+
+
+
+* 其他测试   :tag1:tag2:
+- [ ] 1
+- [X] checked
+
+#+begin_quote
+keep hungry, keep foolish
+#+end_quote
+

@@ -1,0 +1,72 @@
+#+begin_src python
+import orgparse
+
+import os
+os.chdir("/home/pipz/codes/orgpost/tests")
+org = orgparse.load("index.org")
+# print(org[0])
+# print(org[1])
+for node in org:
+    if "post" in node.tags and node.level == 2:
+        print(node)
+# print(org[2].tags)
+# print(org[2].shallow_tags)
+# print(org[2].get_heading(format='raw'))
+# print(org[3].get_property("HTML_NAME"))
+print(org[3].get_property("t", "abc"))
+print(org[2].get_property("CATEGORIES"))
+#+end_src
+
+#+RESULTS:
+#+begin_example
+,** [[/home/pipz/codes/orgpost/tests/demo.org][demo]]                   :phd:
+:PROPERTIES:
+:THEME: darkfloat
+:HTML_NAME: test_demo
+:CATEGORIES: :sample:hele:
+:END:
+
+,** [[/home/pipz/codes/orgpost/tests/index.org][index]]
+:PROPERTIES:
+:THEME: darkfloat
+:END:
+abc
+:sample:hele:
+#+end_example
+
+
+#+begin_src python
+import re
+
+RE_LINK = re.compile(
+    r"""
+    (?:
+        \[ \[
+            (?P<desc0> [^\]]+)
+        \] \]
+    ) |
+    (?:
+        \[ \[
+            (?P<link1> [^\]]+)
+        \] \[
+            (?P<desc1> [^\]]+)
+        \] \]
+    )
+    """,
+    re.VERBOSE)
+org_text = org[2].get_heading(format='raw')
+
+RE_LINK.sub(
+        lambda m: m.group('link1') or m.group('link1'),
+        org_text)
+#+end_src
+
+#+RESULTS:
+: /home/pipz/codes/orgpost/tests/demo.org
+
+#+begin_src python
+{"posts": [{"path": "/home/pipz/codes/orgpost/tests/demo.org", "theme": "darkfloat", "categories": ["sample", "test"], "html_name": "test_demo"}, {"path": "/home/pipz/codes/orgpost/tests/index.org", "theme": "darkfloat", "categories": [''], "html_name": "index.html"}]} == 
+#+end_src
+
+#+RESULTS:
+: True
