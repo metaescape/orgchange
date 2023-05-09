@@ -351,25 +351,29 @@ blockquote p:first-of-type {
   gap: 1rem;
 }
 
-.paginav .prev {
+.paginav .prev,
+.paginav .next {
   width: 50%;
   margin-inline-end: auto;
-  text-align: left;
+
   padding: 1rem;
+  border-radius: 8px;
+}
+
+.paginav .prev {
+  text-align: left;
 }
 
 .paginav .next {
-  width: 50%;
-  margin-inline-start: auto;
   text-align: right;
-  padding: 1rem;
+}
+
+.paginav .prev:hover,
+.paginav .next:hover {
+  background-color: #3f3f3f;
 }
 
 .comment {
-  padding: 0.8rem 1.6rem;
-  border-radius: 8px;
-  background: #ffffff08;
-  border: 1px solid #ffffff08;
   /* box-shadow: 0 4px 8px 0 rgb(0 0 0 / 40%); */
   display: flex;
   flex-direction: column;
@@ -382,11 +386,15 @@ blockquote p:first-of-type {
   gap: 2rem;
   margin: 0 auto;
   text-decoration: none;
+  /* border-radius: 8px;2 */
+  /* border: 1px solid #ffffff08; */
+  padding: 0.8rem 1.6rem;
+  font-size: 1.2rem;
 }
 
 .comment a svg {
-  height: 2.4rem;
-  width: 2.4rem;
+  height: 2rem;
+  width: 2rem;
 }
 
 #postamble {

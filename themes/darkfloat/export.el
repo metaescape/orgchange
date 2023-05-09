@@ -83,7 +83,7 @@ holding export options."
      	 (format 
 		 	(read-file-content 
 		 		(expand-file-name "article_footer.html" orgchange-theme-dir )) 
-			prev-link prev-title next-link next-title git-issue-link)
+			prev-link prev-title next-link next-title github-issue-link)
    (format "</%s>\n" (nth 1 (assq 'content (plist-get info :html-divs))))
    ;; Postamble.
    (org-html--build-pre/postamble 'postamble info)

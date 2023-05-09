@@ -60,6 +60,7 @@ def export_to_html(orgfile, target_folder, theme, www_folder, **kwargs) -> str:
     test cmdline
     emacs --batch --chdir=/data/codes/hugchangelife/orgchange/themes/darkfloat --load export.el /home/pipz/org/design/web/posts/20211101_picture_language_matplotlib.org --eval '(progn (setq default-directory \"/home/pipz/codes/hugchangelife/posts\") (setq publish-directory \"/home/pipz/codes/hugchangelife\") (org-html-export-to-html))' --kill
     """
+    print(kwargs.get("prev_link", "#"))
     eval_elisp = f"""
     (progn 
         (setq default-directory "{target_folder}") 
@@ -68,7 +69,7 @@ def export_to_html(orgfile, target_folder, theme, www_folder, **kwargs) -> str:
         (setq prev-title "{kwargs.get('prev_title', '')}") 
         (setq next-link "{kwargs.get('next_link', '#')}") 
         (setq next-title "{kwargs.get('next_title', '')}") 
-        (setq git-issue-link "{kwargs.get('git_issue_link', '#')}") 
+        (setq github-issue-link "{kwargs.get('github_issue_link', '#')}") 
         (org-html-export-to-html)),
     """
 
@@ -148,9 +149,12 @@ def extract_meta_from_index_org(orgfile, default_theme="darkfloat"):
                     {
                         "path": os.path.abspath(path),
                         "theme": node.get_property(theme, default_theme),
-                        "categories": node.get_property(categories, "").split(
-                            ","
-                        ),
+                        "categories": [
+                            x.strip()
+                            for x in node.get_property(categories, "").split(
+                                ","
+                            )
+                        ],
                         "title": title,
                     }
                 )
@@ -276,24 +280,15 @@ def extract_suffix_from_prefix(file_path, prefix):
         )
 
 
-def publish_single_file(prefixes, publish_info, www_folder):
+def publish_single_file(target_file_path, publish_info, www_folder):
     """
     publish a single org file:
-    - get path suffix from filepath via prefix_folder
-    - generate target_file_path and target_folder from www_folder and suffix
+    - generate  target_folder from www_folder and target_file_path
     - call export_to_html to generate html file
     - call extract_links_from_html to get all images file path
     - call rsync_copy to copy all images to www_folder
     """
     filepath = publish_info["path"]
-
-    # e.g. ./posts/a.org
-    suffix = extract_suffix(filepath, prefixes)
-
-    # e.g. /www/posts/a.html
-    target_file_path = os.path.join(www_folder, suffix).replace(
-        ".org", ".html"
-    )
 
     # e.g. ~/org/posts/
     src_folder = os.path.dirname(filepath)
@@ -351,27 +346,53 @@ def publish_via_index(config, index_org, www_folder=None):
         index_org, config.get("default_theme", "darkfloat")
     )
 
-    info = {"index_template": config["index_template"], "posts": []}
+    meta["index_template"] = config["index_template"]
+
     if www_folder is None:
         www_folder = MAIN_DIR
 
+    # first pass on all posts, generate html relative path
     for i, post_info in enumerate(meta["posts"]):
+        # e.g. ./posts/a.org
+        suffix = extract_suffix(post_info["path"], prefixes)
+
+        # e.g. /www/posts/a.html
+        html_path = os.path.join(www_folder, suffix).replace(".org", ".html")
+        html_relative_path = extract_suffix_from_prefix(html_path, www_folder)
+
+        meta["posts"][i]["html_relative_path"] = html_relative_path
+
+    for i, post_info in enumerate(meta["posts"]):
+        post_info["context"] = {}
+        context = post_info.get("context")
         if i > 0:
-            post_info["prev"] = meta["posts"][i - 1]
-        path = publish_single_file(prefixes, post_info, www_folder)
-        info["posts"].append(
-            {
-                "path": extract_suffix_from_prefix(path, www_folder),
-                "title": post_info["title"],
-            }
-        )
+            context["prev_link"] = os.path.relpath(
+                meta["posts"][i - 1]["html_relative_path"],
+                os.path.dirname(post_info["html_relative_path"]),
+            )
+            context["prev_title"] = meta["posts"][i - 1]["title"]
+        if i < len(meta["posts"]) - 1:
+            context["next_link"] = os.path.relpath(
+                meta["posts"][i + 1]["html_relative_path"],
+                os.path.dirname(post_info["html_relative_path"]),
+            )
+            context["next_title"] = meta["posts"][i + 1]["title"]
+        if "site_repo" in config:
+            site_repo = config["site_repo"]
+            context["github_issue_link"] = os.path.join(
+                site_repo, "issues/new"
+            )
 
-        print("published to {}".format(path))
+        publish_single_file(html_path, post_info, www_folder)
+        print("published to {}".format(html_path))
 
-    generate_index_html(config, info, www_folder)
+    generate_index_html(config, meta, www_folder)
 
 
 def cmd_publish():
+    """
+    use argparse to parse command line arguments
+    """
     parser = argparse.ArgumentParser(description="Publish website")
     # Add arguments for index file and publish folder
     parser.add_argument(
