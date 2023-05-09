@@ -51,7 +51,7 @@ def change_dir(directory):
         os.chdir(old_dir)
 
 
-def export_to_html(orgfile, target_folder, theme, www_folder) -> str:
+def export_to_html(orgfile, target_folder, theme, www_folder, **kwargs) -> str:
     """
     call org-html-export-to-html on `orgfile`, gerenating html file in `target_folder` using `theme`
 
@@ -59,6 +59,17 @@ def export_to_html(orgfile, target_folder, theme, www_folder) -> str:
 
     test cmdline
     emacs --batch --chdir=/data/codes/hugchangelife/orgchange/themes/darkfloat --load export.el /home/pipz/org/design/web/posts/20211101_picture_language_matplotlib.org --eval '(progn (setq default-directory \"/home/pipz/codes/hugchangelife/posts\") (setq publish-directory \"/home/pipz/codes/hugchangelife\") (org-html-export-to-html))' --kill
+    """
+    eval_elisp = f"""
+    (progn 
+        (setq default-directory "{target_folder}") 
+        (setq publish-directory "{www_folder}") 
+        (setq prev-link "{kwargs.get('prev_link', '#')}") 
+        (setq prev-title "{kwargs.get('prev_title', '')}") 
+        (setq next-link "{kwargs.get('next_link', '#')}") 
+        (setq next-title "{kwargs.get('next_title', '')}") 
+        (setq git-issue-link "{kwargs.get('git_issue_link', '#')}") 
+        (org-html-export-to-html)),
     """
 
     cmd = [
@@ -69,9 +80,19 @@ def export_to_html(orgfile, target_folder, theme, www_folder) -> str:
         "export.el",
         orgfile,
         "--eval",
-        f'(progn (setq default-directory "{target_folder}") (setq publish-directory "{www_folder}") (org-html-export-to-html))',
+        eval_elisp,
         "--kill",
     ]
+
+    # f"(progn "
+    #     '(setq default-directory "{target_folder}") '
+    #     '(setq publish-directory "{www_folder}") '
+    #     '(setq prev-link "{prev_link}") '
+    #     '(setq prev-title "{prev_title}") '
+    #     '(setq next-link "{next_link}") '
+    #     '(setq next-title "{next_title}") '
+    #     '(setq git-issue-link "{git_issue_link}") '
+    #     "(org-html-export-to-html))",
     process = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
@@ -283,7 +304,13 @@ def publish_single_file(prefixes, publish_info, www_folder):
         os.makedirs(target_folder)
 
     theme = publish_info.get("theme")
-    export_to_html(filepath, target_folder, theme, www_folder)
+    export_to_html(
+        filepath,
+        target_folder,
+        theme,
+        www_folder,
+        **publish_info.get("context", {}),
+    )
     img_urls = extract_links_from_html(target_file_path)
     for img_url in img_urls:
         with change_dir(src_folder):
@@ -328,7 +355,9 @@ def publish_via_index(config, index_org, www_folder=None):
     if www_folder is None:
         www_folder = MAIN_DIR
 
-    for post_info in meta["posts"]:
+    for i, post_info in enumerate(meta["posts"]):
+        if i > 0:
+            post_info["prev"] = meta["posts"][i - 1]
         path = publish_single_file(prefixes, post_info, www_folder)
         info["posts"].append(
             {
@@ -336,6 +365,7 @@ def publish_via_index(config, index_org, www_folder=None):
                 "title": post_info["title"],
             }
         )
+
         print("published to {}".format(path))
 
     generate_index_html(config, info, www_folder)
