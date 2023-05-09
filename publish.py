@@ -1,3 +1,4 @@
+import datetime
 import subprocess
 import os
 import sys
@@ -6,7 +7,9 @@ import orgparse
 import re
 from bs4 import BeautifulSoup
 import json
+from jinja2 import Environment, FileSystemLoader
 import argparse
+from contextlib import contextmanager
 
 
 RE_LINK = re.compile(
@@ -27,43 +30,53 @@ RE_LINK = re.compile(
     re.VERBOSE,
 )
 
-current_file_dir = os.path.dirname(os.path.realpath(sys.argv[0]))
-MAIN_DIR = os.path.dirname(current_file_dir)
-
-DEFAULT_THEME = "darkfloat"
-CONFIG_FILE = os.path.join(current_file_dir, "config.json")
+MAIN_DIR = os.path.dirname(os.path.realpath(sys.argv[0]))
+os.chdir(MAIN_DIR)
+CONFIG_FILE = os.path.join(MAIN_DIR, "config.json")
 
 
 def read_config():
     with open(CONFIG_FILE, "r") as f:
-        return json.load(f)
+        config = json.load(f)
+    return {} if not os.path.exists(CONFIG_FILE) else config
 
 
-config = {} if not os.path.exists(CONFIG_FILE) else read_config()
+@contextmanager
+def change_dir(directory):
+    old_dir = os.getcwd()
+    os.chdir(directory)
+    try:
+        yield
+    finally:
+        os.chdir(old_dir)
 
 
-def export_to_html(orgfile, target_folder, theme) -> str:
+def export_to_html(orgfile, target_folder, theme, www_folder) -> str:
     """
     call org-html-export-to-html on `orgfile`, gerenating html file in `target_folder` using `theme`
 
     >>> export_to_html('../tests/demo.org', '/tmp', 'darkfloat')
+
+    test cmdline
+    emacs --batch --chdir=/data/codes/hugchangelife/orgchange/themes/darkfloat --load export.el /home/pipz/org/design/web/posts/20211101_picture_language_matplotlib.org --eval '(progn (setq default-directory \"/home/pipz/codes/hugchangelife/posts\") (setq publish-directory \"/home/pipz/codes/hugchangelife\") (org-html-export-to-html))' --kill
     """
 
     cmd = [
         "emacs",
         "--batch",
-        f"--chdir={current_file_dir}/themes/{theme}",
+        f"--chdir={MAIN_DIR}/themes/{theme}",
         "--load",
         "export.el",
         orgfile,
         "--eval",
-        f'(progn (setq default-directory "{target_folder}") (org-html-export-to-html))',
+        f'(progn (setq default-directory "{target_folder}") (setq publish-directory "{www_folder}") (org-html-export-to-html))',
         "--kill",
     ]
     process = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     output, error = process.communicate()
+    print(" ".join(cmd))
 
     html_path = orgfile.replace(".org", ".html")
     target_path = os.path.join(target_folder, os.path.basename(html_path))
@@ -85,18 +98,17 @@ def is_valid_orgpath(path):
     return os.path.exists(path) and path.endswith(".org")
 
 
-def extract_meta_from_index_org(orgfile):
+def extract_meta_from_index_org(orgfile, default_theme="darkfloat"):
     """
     extract metadata from index.org, return a dict
     get all child nodes from a level1 1 node with tag 'post'
 
     >>> extract_meta_from_index_org('tests/index.org')
-    {'posts': [{'path': '/home/pipz/codes/orgpost/tests/demo.org', 'theme': 'darkfloat', 'categories': ['sample', 'test'], 'html_name': 'test_demo'}, {'path': '/home/pipz/codes/orgpost/tests/index.org', 'theme': 'darkfloat', 'categories': [''], 'html_name': 'index.html'}]}
+    {'posts': [{'path': '/home/pipz/codes/orgpost/tests/demo.org', 'theme': 'darkfloat', 'categories': ['sample', 'test']}, {'path': '/home/pipz/codes/orgpost/tests/index.org', 'theme': 'darkfloat', 'categories': ['']}]}
     """
 
     org = orgparse.load(orgfile)
     theme = "THEME"
-    html_name = "HTML_NAME"
     categories = "CATEGORIES"
     posts = []
     base_dir = os.path.dirname(orgfile)
@@ -108,18 +120,17 @@ def extract_meta_from_index_org(orgfile):
             heading = node.get_heading(format="raw")
             path = get_path_from_orglink(heading)
             path = os.path.join(base_dir, path)
+            title = get_title_from_orglink(heading)
+
             if is_valid_orgpath(path):
                 posts.append(
                     {
                         "path": os.path.abspath(path),
-                        "theme": node.get_property(theme, DEFAULT_THEME),
+                        "theme": node.get_property(theme, default_theme),
                         "categories": node.get_property(categories, "").split(
                             ","
                         ),
-                        "html_name": node.get_property(
-                            html_name,
-                            os.path.basename(path).replace(".org", ".html"),
-                        ),
+                        "title": title,
                     }
                 )
 
@@ -137,8 +148,27 @@ def get_path_from_orglink(raw_link):
     >>> get_path_from_orglink('not a link')
     'not a link'
     """
-    return RE_LINK.sub(
+    path = RE_LINK.sub(
         lambda m: m.group("desc0") or m.group("link1"), raw_link
+    )
+    if path.startswith("file:"):
+        path = path[5:]
+    return path
+
+
+def get_title_from_orglink(raw_link):
+    """
+    extract path from org link
+
+    >>> get_path_from_orglink('[[/tmp/a.org][test demo]]')
+    'test demo'
+    >>> get_path_from_orglink('[[/tmp/a.org]]')
+    ''
+    >>> get_path_from_orglink('not a link')
+    'not a link'
+    """
+    return RE_LINK.sub(
+        lambda m: m.group("desc0") or m.group("desc1"), raw_link
     )
 
 
@@ -233,56 +263,86 @@ def publish_single_file(prefixes, publish_info, www_folder):
     - call export_to_html to generate html file
     - call extract_links_from_html to get all images file path
     - call rsync_copy to copy all images to www_folder
-    - rename html file to html_name if html_name is specified in index org_file
     """
     filepath = publish_info["path"]
+
+    # e.g. ./posts/a.org
     suffix = extract_suffix(filepath, prefixes)
 
+    # e.g. /www/posts/a.html
     target_file_path = os.path.join(www_folder, suffix).replace(
         ".org", ".html"
     )
+
+    # e.g. ~/org/posts/
     src_folder = os.path.dirname(filepath)
+
+    # e.g. /www/posts/
     target_folder = os.path.dirname(target_file_path)
     if not os.path.exists(target_folder):
         os.makedirs(target_folder)
 
-    export_to_html(filepath, target_folder, publish_info["theme"])
+    theme = publish_info.get("theme")
+    export_to_html(filepath, target_folder, theme, www_folder)
     img_urls = extract_links_from_html(target_file_path)
     for img_url in img_urls:
-        rsync_copy(os.path.join(src_folder, img_url), www_folder)
+        with change_dir(src_folder):
+            # mv url from ~/org/posts/imgs/... to /www/posts/imgs/...
+            rsync_copy(img_url, target_folder)
 
-    # rename html file to html_name if html_name is specified in publish_info
-    if "html_name" in publish_info:
-        html_name = publish_info["html_name"]
-        if not html_name.endswith(".html"):
-            html_name += ".html"
-        html_path = os.path.join(target_folder, html_name)
-        shutil.move(target_file_path, html_path)
-        return html_path
     return target_file_path
 
 
-def publish_via_index(index_org, www_folder=None):
+def generate_index_html(config, info, www_folder):
+    """
+    generate index.html from index.org
+    """
+    index = info["index_template"]
+    env = Environment(loader=FileSystemLoader("."))
+    template = env.get_template(index)
+    data = {
+        "year": datetime.datetime.now().year,
+        "posts": info["posts"],
+    }
+
+    for key in ["beian", "sitename", "github_url", "github_name"]:
+        if key in config:
+            data[key] = config[key]
+
+    rendered_template = template.render(data)
+    with open(os.path.join(www_folder, "index.html"), "w") as f:
+        f.write(rendered_template)
+
+
+def publish_via_index(config, index_org, www_folder=None):
     """
     publish all valid posts mentioned in index.org
     """
     prefixes = format_prefixes(config["org_prefixes"])
 
-    meta = extract_meta_from_index_org(index_org)
+    meta = extract_meta_from_index_org(
+        index_org, config.get("default_theme", "darkfloat")
+    )
+
+    info = {"index_template": config["index_template"], "posts": []}
     if www_folder is None:
         www_folder = MAIN_DIR
-    for post in meta["posts"]:
-        path = publish_single_file(prefixes, post, www_folder)
+
+    for post_info in meta["posts"]:
+        path = publish_single_file(prefixes, post_info, www_folder)
+        info["posts"].append(
+            {
+                "path": extract_suffix_from_prefix(path, www_folder),
+                "title": post_info["title"],
+            }
+        )
         print("published to {}".format(path))
 
+    generate_index_html(config, info, www_folder)
 
-if __name__ == "__main__":
-    import doctest
 
-    # doctest.testmod()
-
+def cmd_publish():
     parser = argparse.ArgumentParser(description="Publish website")
-
     # Add arguments for index file and publish folder
     parser.add_argument(
         "index",
@@ -307,4 +367,17 @@ if __name__ == "__main__":
     # Get the values of the index file and publish folder
     index_file = args.index
     publish_folder = args.publish
-    publish_via_index(index_file, publish_folder)
+    config = read_config()
+    publish_via_index(config, index_file, publish_folder)
+
+
+if __name__ == "__main__":
+    import doctest
+
+    # doctest.testmod()
+    config = read_config()
+    index_file = os.path.expanduser(config.get("index_org", "tests/index.org"))
+    publish_folder = os.path.expanduser(
+        config.get("publish_folder", "/tmp/www")
+    )
+    publish_via_index(config, index_file, publish_folder)
