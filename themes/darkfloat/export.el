@@ -80,10 +80,31 @@ holding export options."
    (org-html--build-pre/postamble 'preamble info)
    ;;    "<hr>" ;; add a horizontal line
    contents
-     	 (format 
-		 	(read-file-content 
-		 		(expand-file-name "article_footer.html" orgchange-theme-dir )) 
-			prev-link prev-title next-link next-title github-issue-link)
+
+   ;;categories, prev post, next post and comment link
+   (let* 
+   	((categories-list (split-string categories ","))
+     (categories-ele
+	   (mapconcat 
+	     'identity
+	  	  (mapcar 
+	   	    (lambda (x) 
+	   		  (format "<a href=\"%s\" target=\"_blank\">%s</a>" 
+			  	(file-relative-name 
+		   			(format "categories/%s.html" x)
+		   			default-directory)
+			    (string-trim x)))
+		 	categories-list) ",")
+		  ))
+	(format
+		(read-file-content 
+		(expand-file-name "article_footer.html" orgchange-theme-dir )) 
+			categories-ele prev-link prev-title next-link next-title github-issue-link)
+		  )
+			
+			
+   
+	;; close main
    (format "</%s>\n" (nth 1 (assq 'content (plist-get info :html-divs))))
    ;; Postamble.
    (org-html--build-pre/postamble 'postamble info)

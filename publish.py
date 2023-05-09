@@ -60,11 +60,11 @@ def export_to_html(orgfile, target_folder, theme, www_folder, **kwargs) -> str:
     test cmdline
     emacs --batch --chdir=/data/codes/hugchangelife/orgchange/themes/darkfloat --load export.el /home/pipz/org/design/web/posts/20211101_picture_language_matplotlib.org --eval '(progn (setq default-directory \"/home/pipz/codes/hugchangelife/posts\") (setq publish-directory \"/home/pipz/codes/hugchangelife\") (org-html-export-to-html))' --kill
     """
-    print(kwargs.get("prev_link", "#"))
     eval_elisp = f"""
     (progn 
         (setq default-directory "{target_folder}") 
         (setq publish-directory "{www_folder}") 
+        (setq categories "{kwargs.get('categories', '')}") 
         (setq prev-link "{kwargs.get('prev_link', '#')}") 
         (setq prev-title "{kwargs.get('prev_title', '')}") 
         (setq next-link "{kwargs.get('next_link', '#')}") 
@@ -85,20 +85,12 @@ def export_to_html(orgfile, target_folder, theme, www_folder, **kwargs) -> str:
         "--kill",
     ]
 
-    # f"(progn "
-    #     '(setq default-directory "{target_folder}") '
-    #     '(setq publish-directory "{www_folder}") '
-    #     '(setq prev-link "{prev_link}") '
-    #     '(setq prev-title "{prev_title}") '
-    #     '(setq next-link "{next_link}") '
-    #     '(setq next-title "{next_title}") '
-    #     '(setq git-issue-link "{git_issue_link}") '
-    #     "(org-html-export-to-html))",
     process = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     output, error = process.communicate()
     print(" ".join(cmd))
+    # print(error.decode("utf-8")) # for debug
 
     html_path = orgfile.replace(".org", ".html")
     target_path = os.path.join(target_folder, os.path.basename(html_path))
@@ -382,6 +374,7 @@ def publish_via_index(config, index_org, www_folder=None):
             context["github_issue_link"] = os.path.join(
                 site_repo, "issues/new"
             )
+        context["categories"] = ",".join(post_info["categories"])
 
         publish_single_file(html_path, post_info, www_folder)
         print("published to {}".format(html_path))
