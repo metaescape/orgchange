@@ -314,8 +314,8 @@ def generate_index_html(config, info, www_folder):
     generate index.html from index.org
     """
     index = info["index_template"]
-    env = Environment(loader=FileSystemLoader("."))
-    template = env.get_template(index)
+    env = Environment(loader=FileSystemLoader(os.path.dirname(index)))
+    template = env.get_template(os.path.basename(index))
     data = {
         "year": datetime.datetime.now().year,
         "posts": info["posts"],
@@ -335,9 +335,9 @@ def generate_category_html(config, info, www_folder):
     generate categories/tag.html from info
     """
     index = info["index_template"]
-    category_template = os.path.join(os.path.dirname(index), "category.html")
 
-    env = Environment(loader=FileSystemLoader("."))
+    env = Environment(loader=FileSystemLoader(os.path.dirname(index)))
+    category_template = "category.html"
     template = env.get_template(category_template)
     categories_dir = os.path.join(www_folder, "categories")
     if not os.path.exists(categories_dir):
@@ -403,15 +403,15 @@ def publish_via_index(config, index_org, www_folder=None):
         post_info["context"] = {}
         context = post_info.get("context")
         if i > 0:
-            context["prev_link"] = os.path.relpath(
+            context["prev_link"] = os.path.join(
+                "/",
                 meta["posts"][i - 1]["html_relative_path"],
-                os.path.dirname(post_info["html_relative_path"]),
             )
             context["prev_title"] = meta["posts"][i - 1]["title"]
         if i < len(meta["posts"]) - 1:
-            context["next_link"] = os.path.relpath(
+            context["next_link"] = os.path.join(
+                "/",
                 meta["posts"][i + 1]["html_relative_path"],
-                os.path.dirname(post_info["html_relative_path"]),
             )
             context["next_title"] = meta["posts"][i + 1]["title"]
         if "site_repo" in config:
