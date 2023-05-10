@@ -360,6 +360,17 @@ def generate_category_html(config, info, www_folder):
         ) as f:
             f.write(rendered_template)
 
+    template = env.get_template("categories.html")
+    data = {
+        "year": datetime.datetime.now().year,
+        "categories": [
+            (cate, len(lst)) for cate, lst in info["categories"].items()
+        ],
+    }
+    rendered_template = template.render(data)
+    with open(os.path.join(www_folder, "categories", "index.html"), "w") as f:
+        f.write(rendered_template)
+
 
 def publish_via_index(config, index_org, www_folder=None):
     """

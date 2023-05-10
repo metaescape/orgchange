@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+  {% block head %}
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -30,16 +31,18 @@
       src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML"
     ></script>
   </head>
+  {% endblock %}
   <body>
     <div class="container">
-      {% include 'header.html' %}
-      <div class="post-list">
+      {% include 'header.html' %} {% block content %}
+      <div class="post-list" id="content">
         {% for item in posts %}
         <p>
           <a href="{{ item['html_relative_path'] }}">{{ item["title"] }}</a>
         </p>
         {% endfor %}
       </div>
+      {% endblock %}
 
       <footer id="postamble" class="status">
         <span> © {{year}}</span

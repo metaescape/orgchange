@@ -1,0 +1,11 @@
+{% extends "base.html" %} {% block content %}
+<div class="categories" id="content">
+  {% for category, count in categories %}
+
+  <a href="/categories/{{category}}.html" target="_blank"
+    >{{category}}:{{count}}</a
+  >
+
+  {% endfor %}
+</div>
+{% endblock %}
