@@ -40,7 +40,8 @@ holding export options."
    (org-html--build-head info)
    (org-html--build-mathjax-config info)
    (let* ((relative-dir (file-relative-name publish-directory default-directory)))
-   	 (format (read-file-content (expand-file-name "head.html" orgchange-theme-dir )) relative-dir relative-dir)
+   	 (format (read-file-content (expand-file-name "head.html" orgchange-theme-dir ))
+	 		  relative-dir relative-dir)
      )
    "</head>\n"
    "<body>\n<div class=\"container\">\n"
@@ -91,11 +92,12 @@ holding export options."
 	   	    (lambda (x) 
 	   		  (format "<a href=\"%s\" target=\"_blank\">%s</a>" 
 			  	(file-relative-name 
-		   			(format "categories/%s.html" x)
+		   			(format "%s/categories/%s.html" publish-directory x)
 		   			default-directory)
 			    (string-trim x)))
 		 	categories-list) "")
 		  ))
+    
 	(format
 		(read-file-content 
 		(expand-file-name "article_footer.html" orgchange-theme-dir )) 

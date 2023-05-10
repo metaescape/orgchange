@@ -91,7 +91,8 @@ def export_to_html(orgfile, target_folder, theme, www_folder, **kwargs) -> str:
     )
     output, error = process.communicate()
     print(" ".join(cmd))
-    # print(error.decode("utf-8")) # for debug
+
+    # print(error.decode("utf-8"))  # for debug
 
     html_path = orgfile.replace(".org", ".html")
     target_path = os.path.join(target_folder, os.path.basename(html_path))
@@ -335,7 +336,7 @@ def generate_category_html(config, info, www_folder):
     """
     index = info["index_template"]
     category_template = os.path.join(os.path.dirname(index), "category.html")
-    category_template = index
+
     env = Environment(loader=FileSystemLoader("."))
     template = env.get_template(category_template)
     categories_dir = os.path.join(www_folder, "categories")
@@ -390,7 +391,12 @@ def publish_via_index(config, index_org, www_folder=None):
             if category == "":
                 continue
             meta["categories"][category].append(
-                {"path": html_relative_path, "title": post_info["title"]}
+                {
+                    "html_relative_path": os.path.relpath(
+                        html_relative_path, "categories"
+                    ),
+                    "title": post_info["title"],
+                }
             )
 
     for i, post_info in enumerate(meta["posts"]):
