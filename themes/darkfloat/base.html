@@ -34,9 +34,9 @@
   {% endblock %}
   <body>
     <div class="container">
-      {% include 'header.html' %}
+      {% include 'header.html' %} {% block content %}
       <div class="post-list" id="content">
-        {% block content %} {% if section %}
+        {% if section %}
         <h2>{{section}}</h2>
         {% endif %} {% for item in posts %}
         <p>
