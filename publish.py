@@ -346,6 +346,7 @@ def generate_category_html(config, info, www_folder):
     for category in info["categories"]:
         data = {
             "year": datetime.datetime.now().year,
+            "section": category,
             "posts": info["categories"][category],
         }
 

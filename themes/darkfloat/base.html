@@ -34,9 +34,11 @@
   {% endblock %}
   <body>
     <div class="container">
-      {% include 'header.html' %} {% block content %}
+      {% include 'header.html' %}
       <div class="post-list" id="content">
-        {% for item in posts %}
+        {% block content %} {% if section %}
+        <h2>{{section}}</h2>
+        {% endif %} {% for item in posts %}
         <p>
           <a href="{{ item['html_relative_path'] }}">{{ item["title"] }}</a>
         </p>
