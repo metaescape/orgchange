@@ -67,3 +67,22 @@ window.onload = function () {
   );
   obs.observe(toc);
 };
+
+window.addEventListener("load", function () {
+  const toggleSwitch = document.querySelector("#darkmode-toggle");
+  const html = document.documentElement;
+  let isLight = localStorage.getItem("isLight"); // 从本地存储中获取 isLight 变量
+  if (isLight) {
+    toggleSwitch.checked = true;
+    html.classList.add("light");
+  }
+  toggleSwitch.addEventListener("change", function () {
+    if (this.checked) {
+      html.classList.add("light");
+      localStorage.setItem("isLight", true); // 将 isLight 变量存储在本地存储中
+    } else {
+      html.classList.remove("light");
+      localStorage.removeItem("isLight"); // 从本地存储中删除 isLight 变量
+    }
+  });
+});
