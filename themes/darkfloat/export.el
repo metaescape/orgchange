@@ -39,10 +39,8 @@ holding export options."
    (org-html--build-meta-info info)
    (org-html--build-head info)
    (org-html--build-mathjax-config info)
-   (let* ((relative-dir (file-relative-name publish-directory default-directory)))
-   	 (format (read-file-content (expand-file-name "head.html" orgchange-theme-dir ))
-	 		  relative-dir relative-dir)
-     )
+   ;; add head
+   (read-file-content (expand-file-name "head.html" orgchange-theme-dir ))
    "</head>\n"
    "<body>\n<div class=\"container\">\n"
    (read-file-content (expand-file-name "header.html" orgchange-theme-dir))
@@ -85,17 +83,16 @@ holding export options."
    ;;categories, prev post, next post and comment link
    (let* 
    	((categories-list (split-string categories ","))
-     (categories-ele
+     (categories-ele 
+	  (if (not (equal categories ""))
 	   (mapconcat 
 	     'identity
 	  	  (mapcar 
 	   	    (lambda (x) 
 	   		  (format "<a href=\"%s\" target=\"_blank\">%s</a>" 
-			  	(file-relative-name 
-		   			(format "%s/categories/%s.html" publish-directory x)
-		   			default-directory)
+		   		(format "/categories/%s.html" x)
 			    (string-trim x)))
-		 	categories-list) "")
+		 	categories-list) "") "")
 		  ))
     
 	(format
