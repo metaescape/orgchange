@@ -38,45 +38,65 @@ document.addEventListener("DOMContentLoaded", function (event) {
 
 window.onload = function () {
   const toc = document.querySelector("#table-of-contents");
-  const h2 = toc.querySelector("h2");
+  if (toc) {
+    const h2 = toc.querySelector("h2");
 
-  h2.addEventListener("click", function () {
-    toc.classList.toggle("open");
-  });
+    h2.addEventListener("click", function () {
+      toc.classList.toggle("open");
+    });
 
-  var backTop = document.querySelector(".back-top");
+    var backTop = document.querySelector(".back-top");
 
-  const obs = new IntersectionObserver(
-    function (ents) {
-      const ent = ents[0];
+    const obs = new IntersectionObserver(
+      function (ents) {
+        const ent = ents[0];
 
-      if (ent.isIntersecting === false) {
-        backTop.style.display = "block";
+        if (ent.isIntersecting === false) {
+          backTop.style.display = "block";
+        }
+
+        if (ent.isIntersecting === true) {
+          backTop.style.display = "none";
+        }
+      },
+      {
+        // In the viewport
+        root: null,
+        threshold: 0,
+        rootMargin: "-80px",
       }
-
-      if (ent.isIntersecting === true) {
-        backTop.style.display = "none";
-      }
-    },
-    {
-      // In the viewport
-      root: null,
-      threshold: 0,
-      rootMargin: "-80px",
-    }
-  );
-  obs.observe(toc);
+    );
+    obs.observe(toc);
+  }
 };
 
 window.addEventListener("load", function () {
   const toggleSwitch = document.querySelector("#darkmode-toggle");
   const html = document.documentElement;
   let isLight = localStorage.getItem("isLight"); // 从本地存储中获取 isLight 变量
+  let nextStyle, currentStyle;
   if (isLight) {
-    toggleSwitch.checked = true;
     html.classList.add("light");
+    toggleSwitch.checked = true;
+    [nextStyle, currentStyle] = isLight ? ["light", "dark"] : ["dark", "light"];
+    document
+      .querySelector(`link[title="${nextStyle}"]`)
+      .removeAttribute("disabled");
+    document
+      .querySelector(`link[title="${currentStyle}"]`)
+      .setAttribute("disabled", "disabled");
   }
+
   toggleSwitch.addEventListener("change", function () {
+    [nextStyle, currentStyle] = this.checked
+      ? ["light", "dark"]
+      : ["dark", "light"];
+    document
+      .querySelector(`link[title="${nextStyle}"]`)
+      .removeAttribute("disabled");
+    document
+      .querySelector(`link[title="${currentStyle}"]`)
+      .setAttribute("disabled", "disabled");
     if (this.checked) {
       html.classList.add("light");
       localStorage.setItem("isLight", true); // 将 isLight 变量存储在本地存储中
