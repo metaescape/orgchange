@@ -10,6 +10,7 @@ import json
 from jinja2 import Environment, FileSystemLoader
 import argparse
 from contextlib import contextmanager
+from collections import defaultdict
 
 
 RE_LINK = re.compile(
@@ -328,6 +329,37 @@ def generate_index_html(config, info, www_folder):
         f.write(rendered_template)
 
 
+def generate_category_html(config, info, www_folder):
+    """
+    generate categories/tag.html from info
+    """
+    index = info["index_template"]
+    category_template = os.path.join(os.path.dirname(index), "category.html")
+    category_template = index
+    env = Environment(loader=FileSystemLoader("."))
+    template = env.get_template(category_template)
+    categories_dir = os.path.join(www_folder, "categories")
+    if not os.path.exists(categories_dir):
+        os.makedirs(categories_dir)
+
+    for category in info["categories"]:
+        data = {
+            "year": datetime.datetime.now().year,
+            "posts": info["categories"][category],
+        }
+
+        for key in ["beian", "sitename", "github_url", "github_name"]:
+            if key in config:
+                data[key] = config[key]
+
+        rendered_template = template.render(data)
+
+        with open(
+            os.path.join(www_folder, "categories", f"{category}.html"), "w"
+        ) as f:
+            f.write(rendered_template)
+
+
 def publish_via_index(config, index_org, www_folder=None):
     """
     publish all valid posts mentioned in index.org
@@ -339,6 +371,7 @@ def publish_via_index(config, index_org, www_folder=None):
     )
 
     meta["index_template"] = config["index_template"]
+    meta["categories"] = defaultdict(list)
 
     if www_folder is None:
         www_folder = MAIN_DIR
@@ -353,6 +386,12 @@ def publish_via_index(config, index_org, www_folder=None):
         html_relative_path = extract_suffix_from_prefix(html_path, www_folder)
 
         meta["posts"][i]["html_relative_path"] = html_relative_path
+        for category in post_info["categories"]:
+            if category == "":
+                continue
+            meta["categories"][category].append(
+                {"path": html_relative_path, "title": post_info["title"]}
+            )
 
     for i, post_info in enumerate(meta["posts"]):
         post_info["context"] = {}
@@ -380,6 +419,8 @@ def publish_via_index(config, index_org, www_folder=None):
         print("published to {}".format(html_path))
 
     generate_index_html(config, meta, www_folder)
+
+    generate_category_html(config, meta, www_folder)
 
 
 def cmd_publish():

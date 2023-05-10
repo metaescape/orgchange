@@ -94,7 +94,7 @@ holding export options."
 		   			(format "categories/%s.html" x)
 		   			default-directory)
 			    (string-trim x)))
-		 	categories-list) ",")
+		 	categories-list) "")
 		  ))
 	(format
 		(read-file-content 

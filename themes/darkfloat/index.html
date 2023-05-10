@@ -76,11 +76,13 @@
           </span>
         </span>
       </header>
-      <main class="landing">
+      <div class="post-list">
         {% for item in posts %}
-        <p><a href="{{ item['path'] }}">{{ item["title"] }}</a></p>
+        <p>
+          <a href="{{ item['html_relative_path'] }}">{{ item["title"] }}</a>
+        </p>
         {% endfor %}
-      </main>
+      </div>
 
       <footer id="postamble" class="status">
         <span> © {{year}}</span

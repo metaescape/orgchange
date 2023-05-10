@@ -347,15 +347,34 @@ blockquote p:first-of-type {
   background: #ffffff08;
   border: 1px solid #ffffff08;
   /* box-shadow: 0 4px 8px 0 rgb(0 0 0 / 40%); */
-
   gap: 1rem;
+}
+
+.categories {
+  display: flex;
+  gap: 1.6rem;
+}
+
+.categories a:link,
+.categories a:visited {
+  color: #d3d7da;
+  text-decoration: none;
+  padding-left: 1.2rem;
+  background-color: #ffffff08;
+  line-height: 3rem;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+}
+
+.categories a:hover,
+.categories a:active {
+  background-color: #3f3f3f;
 }
 
 .paginav .prev,
 .paginav .next {
   width: 50%;
   margin-inline-end: auto;
-
   padding: 1rem;
   border-radius: 8px;
 }
@@ -415,7 +434,7 @@ blockquote p:first-of-type {
   border-radius: 3px;
 }
 
-.landing {
+.post-list {
   margin: 0 auto;
   max-width: 820px;
   text-align: left;
@@ -426,23 +445,23 @@ blockquote p:first-of-type {
   box-shadow: 0 4px 8px 0 rgb(0 0 0 / 40%);
 }
 
-.landing p {
+.post-list p {
   text-align: left;
   font-size: 1.2rem;
   line-height: 1.6;
   margin: 1rem 2rem;
 }
 
-.landing a:link,
-.landing a:visited {
+.post-list a:link,
+.post-list a:visited {
   color: #d3d7da;
   text-decoration: none;
   padding-left: 1.2rem;
   border-left: 1px solid #09f8;
 }
 
-.landing a:hover,
-.landing a:active {
+.post-list a:hover,
+.post-list a:active {
   color: #09f8;
 }
 
