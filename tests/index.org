@@ -4,7 +4,6 @@ hello
 ** [[./demo.org][demo]]                   
 :PROPERTIES:
 :THEME: darkfloat
-:HTML_NAME: test_demo
 :CATEGORIES: sample,test
 :END:
 
