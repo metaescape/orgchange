@@ -33,13 +33,12 @@ RE_LINK = re.compile(
 
 MAIN_DIR = os.path.dirname(os.path.realpath(sys.argv[0]))
 os.chdir(MAIN_DIR)
-CONFIG_FILE = os.path.join(MAIN_DIR, "config.json")
 
 
-def read_config():
-    with open(CONFIG_FILE, "r") as f:
+def read_config(config_file):
+    with open(config_file, "r") as f:
         config = json.load(f)
-    return {} if not os.path.exists(CONFIG_FILE) else config
+    return {} if not os.path.exists(config_file) else config
 
 
 @contextmanager
@@ -52,7 +51,9 @@ def change_dir(directory):
         os.chdir(old_dir)
 
 
-def export_to_html(orgfile, target_folder, theme, www_folder, **kwargs) -> str:
+def export_to_html(
+    orgfile, target_folder, theme, www_folder, verbose, **kwargs
+) -> str:
     """
     call org-html-export-to-html on `orgfile`, gerenating html file in `target_folder` using `theme`
 
@@ -89,10 +90,17 @@ def export_to_html(orgfile, target_folder, theme, www_folder, **kwargs) -> str:
     process = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
-    output, error = process.communicate()
-    print(" ".join(cmd))
 
-    # print(error.decode("utf-8"))  # for debug
+    output, error = process.communicate()
+    if "Debugger" in error.decode("utf-8"):
+        print(" ".join(cmd))
+        print(output.decode("utf-8"))
+        print(error.decode("utf-8"))
+        raise Exception("Error Happened! Please check your elisp file")
+    if verbose:
+        print(" ".join(cmd))
+        print(output.decode("utf-8"))
+        print(error.decode("utf-8"))
 
     html_path = orgfile.replace(".org", ".html")
     target_path = os.path.join(target_folder, os.path.basename(html_path))
@@ -274,7 +282,9 @@ def extract_suffix_from_prefix(file_path, prefix):
         )
 
 
-def publish_single_file(target_file_path, publish_info, www_folder):
+def publish_single_file(
+    target_file_path, publish_info, www_folder, verbose=False
+):
     """
     publish a single org file:
     - generate  target_folder from www_folder and target_file_path
@@ -298,6 +308,7 @@ def publish_single_file(target_file_path, publish_info, www_folder):
         target_folder,
         theme,
         www_folder,
+        verbose,
         **publish_info.get("context", {}),
     )
     img_urls = extract_links_from_html(target_file_path)
@@ -326,8 +337,10 @@ def generate_index_html(config, info, www_folder):
             data[key] = config[key]
 
     rendered_template = template.render(data)
-    with open(os.path.join(www_folder, "index.html"), "w") as f:
+    index_html = os.path.join(www_folder, "index.html")
+    with open(index_html, "w") as f:
         f.write(rendered_template)
+        print(f"{index_html} generated")
 
 
 def generate_category_html(config, info, www_folder):
@@ -369,14 +382,20 @@ def generate_category_html(config, info, www_folder):
         ],
     }
     rendered_template = template.render(data)
-    with open(os.path.join(www_folder, "categories", "index.html"), "w") as f:
+    categories_index_html = os.path.join(
+        www_folder, "categories", "index.html"
+    )
+    with open(categories_index_html, "w") as f:
         f.write(rendered_template)
+        print(f"{categories_index_html} generated")
 
 
-def publish_via_index(config, index_org, www_folder=None):
+def publish_via_index(config, verbose=False):
     """
     publish all valid posts mentioned in index.org
     """
+    index_org = os.path.expanduser(config["index_org"])
+    www_folder = os.path.expanduser(config.get("publish_folder", "/tmp"))
     prefixes = format_prefixes(config["org_prefixes"])
 
     meta = extract_meta_from_index_org(
@@ -432,8 +451,9 @@ def publish_via_index(config, index_org, www_folder=None):
                 site_repo, "issues/new"
             )
         context["categories"] = ",".join(post_info["categories"])
+        html_path = os.path.join(www_folder, post_info["html_relative_path"])
 
-        publish_single_file(html_path, post_info, www_folder)
+        publish_single_file(html_path, post_info, www_folder, verbose)
         print("published to {}".format(html_path))
 
     generate_index_html(config, meta, www_folder)
@@ -441,46 +461,22 @@ def publish_via_index(config, index_org, www_folder=None):
     generate_category_html(config, meta, www_folder)
 
 
-def cmd_publish():
-    """
-    use argparse to parse command line arguments
-    """
-    parser = argparse.ArgumentParser(description="Publish website")
-    # Add arguments for index file and publish folder
-    parser.add_argument(
-        "index",
-        metavar="index_file",
-        nargs="?",
-        type=str,
-        default="tests/index.org",
-        help="path to the index org file",
-    )
-    parser.add_argument(
-        "publish",
-        metavar="publish_folder",
-        nargs="?",
-        type=str,
-        default="/tmp/www",
-        help="path to the folder to publish the website",
-    )
-
-    # Parse the command-line arguments
-    args = parser.parse_args()
-
-    # Get the values of the index file and publish folder
-    index_file = args.index
-    publish_folder = args.publish
-    config = read_config()
-    publish_via_index(config, index_file, publish_folder)
-
-
 if __name__ == "__main__":
     import doctest
 
     # doctest.testmod()
-    config = read_config()
-    index_file = os.path.expanduser(config.get("index_org", "tests/index.org"))
-    publish_folder = os.path.expanduser(
-        config.get("publish_folder", "/tmp/www")
+    parser = argparse.ArgumentParser(description="Publish website")
+    # Add arguments for index file and publish folder
+    parser.add_argument(
+        "--config",
+        type=str,
+        default="config.json",
+        help="path to json config file",
     )
-    publish_via_index(config, index_file, publish_folder)
+    parser.add_argument(
+        "--verbose", action="store_true", help="increase output verbosity"
+    )
+    args = parser.parse_args()
+
+    config = read_config(args.config)
+    publish_via_index(config, verbose=args.verbose)

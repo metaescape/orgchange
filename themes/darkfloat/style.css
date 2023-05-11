@@ -40,8 +40,7 @@ html {
   --heading-color: #0c0c0c;
   /* --main-background: #c7b28a; */
   --main-background: #c7b28a84 url(paperTexture.webp);
-  --header-background: #d2ba8e;
-
+  --header-background: #c8b185;
   --content-background: #c1ac86;
 
   --content-color: #131313;
@@ -231,7 +230,7 @@ h5 {
 }
 
 .header-right input:checked + label:after {
-  left: calc(100% - var(--toggle-height) * 1.1);
+  left: calc(100% - var(--toggle-height));
 }
 .header-right label:active:after {
   width: 3.6rem;
