@@ -49,3 +49,12 @@ preamble 充当文章的 header ，到目前位置没有与之对应的文章级
 第二种方式避免了对已导出的 html 的后处理，因此选择这种方式。
 
 添加 Categories 的方式，由于 org export 默认是不支持导出 filetags 的，filetags 的主要功能是方便本地 roam 搜索，因此可以是一些容易记住的关键词，而 blog 的 tags 或者说 categories 是为了展现不同视角的，是有展示页面的，因此功能上不太一样。这里完全采用解耦的方式，把 categories 都写在 index.org 的各个结点中。
+
+## 切换主题
+
+用 `localStorage` 保存一个全局的变量 theme，默认为空。
+在紧随 `<body>` 之后的 `<script>` 区需要根据 theme
+变量变换主题，这包括在 html 元素中添加 light 类名以及变更 highlightjs 主题，通过 `main.js` 中的 `setTheme` 来完成。由于在 body 刚加载的时候，切换主题的按钮还没有加载出来，因此这里不需要去调节按钮。
+一个特殊情况是，在第一次打开页面的时候， theme 变量没有被设置，因为为空，那么默认用 dark。
+
+在整个页面都加载完后, toggle 主题的按钮也出现了，因此可以在 `</body>` 前的 `<script>` 区中加入对按钮的监听以及根据主题对设置正确的按钮状态。通过 `main.js` 的 `themeBtnHandler` 函数来处理。

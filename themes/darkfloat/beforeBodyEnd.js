@@ -1,0 +1,1 @@
+themeBtnHandler(localStorage.getItem("theme"));

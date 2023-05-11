@@ -70,39 +70,32 @@ window.onload = function () {
   }
 };
 
-window.addEventListener("load", function () {
-  const toggleSwitch = document.querySelector("#darkmode-toggle");
+function setTheme(targetTheme) {
+  targetTheme = targetTheme || "dark";
+  let oppsiteTheme = targetTheme === "light" ? "dark" : "light";
+  document
+    .querySelector(`link[title="${targetTheme}"]`)
+    .removeAttribute("disabled");
+  document
+    .querySelector(`link[title="${oppsiteTheme}"]`)
+    .setAttribute("disabled", "disabled");
   const html = document.documentElement;
-  let isLight = localStorage.getItem("isLight"); // 从本地存储中获取 isLight 变量
-  let nextStyle, currentStyle;
-  if (isLight) {
+  if (targetTheme === "dark") {
+    html.classList.remove("light");
+  } else {
     html.classList.add("light");
-    toggleSwitch.checked = true;
-    [nextStyle, currentStyle] = isLight ? ["light", "dark"] : ["dark", "light"];
-    document
-      .querySelector(`link[title="${nextStyle}"]`)
-      .removeAttribute("disabled");
-    document
-      .querySelector(`link[title="${currentStyle}"]`)
-      .setAttribute("disabled", "disabled");
   }
+  localStorage.setItem("theme", targetTheme);
+}
 
-  toggleSwitch.addEventListener("change", function () {
-    [nextStyle, currentStyle] = this.checked
-      ? ["light", "dark"]
-      : ["dark", "light"];
-    document
-      .querySelector(`link[title="${nextStyle}"]`)
-      .removeAttribute("disabled");
-    document
-      .querySelector(`link[title="${currentStyle}"]`)
-      .setAttribute("disabled", "disabled");
-    if (this.checked) {
-      html.classList.add("light");
-      localStorage.setItem("isLight", true); // 将 isLight 变量存储在本地存储中
+function themeBtnHandler(targetTheme) {
+  const toggleBtn = document.getElementById("theme-toggle");
+  toggleBtn.addEventListener("change", () => {
+    if (toggleBtn.checked) {
+      setTheme("light");
     } else {
-      html.classList.remove("light");
-      localStorage.removeItem("isLight"); // 从本地存储中删除 isLight 变量
+      setTheme("dark");
     }
   });
-});
+  toggleBtn.checked = targetTheme === "light";
+}

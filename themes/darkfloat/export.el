@@ -40,9 +40,15 @@ holding export options."
    (org-html--build-head info)
    (org-html--build-mathjax-config info)
    ;; add head
+
    (read-file-content (expand-file-name "head.html" orgchange-theme-dir ))
    "</head>\n"
-   "<body>\n<div class=\"container\">\n"
+   "<body>\n"
+   "<script>\n"
+   (read-file-content 
+   	(expand-file-name "afterBodyBegin.js" orgchange-theme-dir )) 
+   "</script>\n"
+   "<div class=\"container\">\n"
    (read-file-content (expand-file-name "header.html" orgchange-theme-dir))
    (let ((link-up (org-trim (plist-get info :html-link-up)))
 	     (link-home (org-trim (plist-get info :html-link-home))))
@@ -101,8 +107,6 @@ holding export options."
 			categories-ele prev-link prev-title next-link next-title github-issue-link)
 		  )
 			
-			
-   
 	;; close main
    (format "</%s>\n" (nth 1 (assq 'content (plist-get info :html-divs))))
    ;; Postamble.
@@ -111,11 +115,15 @@ holding export options."
    "\n</div>"
    (when (plist-get info :html-klipsify-src)
      (concat "<script>" (plist-get info :html-klipse-selection-script)
-	         "</script><script src=\""
+	         "</.script><script src=\""
 	         org-html-klipse-js
-	         "\"></script><link rel=\"stylesheet\" type=\"text/css\" href=\""
+	         "\"></><link rel=\"stylesheet\" type=\"text/css\" href=\""
 	         org-html-klipse-css "\"/>"))
    ;; Closing document.
+   "<script>\n"
+   (read-file-content 
+		(expand-file-name "beforeBodyEnd.js" orgchange-theme-dir )) 
+	"</script>\n"
    "\n</body>\n</html>"))
 
 

@@ -33,6 +33,9 @@
   </head>
   {% endblock %}
   <body>
+    <script>
+      {% include 'afterBodyBegin.js' %}
+    </script>
     <div class="container">
       {% include 'header.html' %} {% block content %}
       <div class="post-list" id="content">
@@ -64,5 +67,8 @@
         {% endif %}
       </footer>
     </div>
+    <script>
+      {% include 'beforeBodyEnd.js' %}
+    </script>
   </body>
 </html>
