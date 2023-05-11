@@ -22,7 +22,7 @@ html {
   --heading-color: #dfdfdf;
   --toggle-width: 5rem;
   --toggle-height: 2rem;
-  --change-decorate: #09f;
+  --change-decorate: rgb(0, 86, 143);
   --change-decorate1: #09f1;
   --change-decorate8: #09f8;
   --main-background: #292a2d;
@@ -94,24 +94,87 @@ h5 {
   position: relative;
 }
 
-.logo {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 2px solid var(--change-decorate8);
-}
-
-.logo svg {
-  transform: translate(0%, 50%);
-  stroke: var(--heading-color);
-}
-
 .header-left {
   margin: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 2rem;
+}
+
+.header-left a {
+  position: relative;
+  padding: 0.4rem 0rem;
+  display: block;
+  text-decoration: none;
+  text-transform: uppercase;
+  width: 10rem;
+  overflow: hidden;
+  border-radius: 40px;
+}
+
+.header-left a span {
+  position: relative;
+  color: var(--heading-color);
+  font-size: 1rem;
+  font-family: Arial;
+  letter-spacing: 6px;
+  z-index: 1;
+  text-align: center;
+}
+
+.header-left a .liquid {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  width: 100px;
+  height: 100px;
+  /* background: #4973ff; */
+  background: var(--change-decorate);
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5);
+  transition: 0.5s;
+  opacity: 0;
+}
+
+.header-left a .liquid::after,
+.header-left a .liquid::before {
+  content: "";
+  width: 160%;
+  height: 160%;
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -75%);
+  background: #010101;
+  top: -30px;
+}
+
+.header-left a .liquid::before {
+  border-radius: 45%;
+  background: var(--main-background);
+  animation: animate 5s linear infinite;
+}
+
+.header-left a .liquid::after {
+  border-radius: 40%;
+  background: var(--header-background);
+  animation: animate 10s linear infinite;
+}
+
+.header-left a:hover .liquid {
+  opacity: 1;
+}
+
+.header-left a:hover {
+  opacity: 1;
+}
+
+@keyframes animate {
+  0% {
+    transform: translate(-50%, -75%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -75%) rotate(360deg);
+  }
 }
 
 .header-right {
@@ -571,8 +634,8 @@ footer .beian {
 }
 
 .back-top path {
-  fill: var(--hover-color);
-  opacity: 0.9;
+  fill: rgba(140, 141, 142, 0.831);
+  opacity: 0.4;
 }
 
 @keyframes typing {
