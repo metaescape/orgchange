@@ -27,7 +27,7 @@ html {
   --change-decorate8: #09f8;
   --main-background: #292a2d;
   --header-background: #252627;
-  --content-background: #ffffff08;
+  --content-background: #303134;
   --content-color: #a9a9b3;
   --hover-color: #3f3f3f;
   --secondary-text-color: #999;
@@ -38,9 +38,12 @@ html {
 
 :root.light {
   --heading-color: #0c0c0c;
-  --main-background: #c7b28a;
+  /* --main-background: #c7b28a; */
+  --main-background: #c7b28a84 url(paperTexture.webp);
   --header-background: #d2ba8e;
-  --content-background: #00000008;
+
+  --content-background: #c1ac86;
+
   --content-color: #131313;
   --secondary-text-color: #4e4e4e;
   --hover-color: #d7c9ac;
@@ -57,7 +60,8 @@ body {
   flex-direction: column;
   justify-content: center;
   text-align: center;
-  background-color: var(--main-background);
+  background: var(--main-background);
+  background-blend-mode: multiply;
 
   margin: 0;
   padding: 0;
@@ -78,6 +82,7 @@ h5 {
 
 .top-header {
   background: var(--header-background);
+
   display: flex;
   align-items: center;
   position: relative;
