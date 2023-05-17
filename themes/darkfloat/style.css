@@ -25,6 +25,7 @@ html {
   --change-decorate: rgb(0, 86, 143);
   --change-decorate1: #09f1;
   --change-decorate8: #09f8;
+  --change-decorate-table: #09f1;
   --main-background: #292a2d;
   --header-background: #252627;
   --content-background: #303134;
@@ -49,6 +50,7 @@ html {
   --change-decorate: #111314;
   --change-decorate1: #151718ec;
   --change-decorate8: #000000a2;
+  --change-decorate-table: #0001;
   --shadow: 4px;
   --pre-text: #363c69;
   --pre-background: #b7a68e;
@@ -418,7 +420,7 @@ tbody {
 }
 
 table tbody tr:nth-child(even) {
-  background-color: var(--change-decorate1);
+  background-color: var(--change-decorate-table);
 }
 
 table tbody td {

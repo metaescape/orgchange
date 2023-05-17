@@ -25,20 +25,23 @@ cd ~/mysite
 python orgchange/publish.py
 ```
 
+如果不修改 config_example, 以上命令执行后会将 `example` 目录中的所有 org 文件导出到 `example/www` 子目录中，可以用启动本地 web server 来查看样例。
+
 ## `config.json` 解释
 
 config_example.json 结构如下，发布前，需要把该文件复制或重命名为 `config.json` ,然后根据自己的实际情况修改其中的内容。
 
 ```json
 {
-  "org_prefixes": ["~/org/", "~/mysite/orgchange/tests"],
-  "publish_folder": "~/mysite",
-  "index_org": "~/org/web/mysite.org",
+  "org_prefixes": ["~/org/", "./example/"],
   "index_template": "./themes/darkfloat/index.html",
   "beian": "京ICP备2021000000号",
   "sitename": "Personal blog...",
+  "default_theme": "darkfloat",
   "github_url": "https://github.com/metaescape",
   "github_name": "metaescape",
+  "index_org": "./example/index.org",
+  "publish_folder": "./example/www",
   "site_repo": "https://github.com/metaescape/hugchangelife/"
 }
 ```

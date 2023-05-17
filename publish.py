@@ -208,7 +208,7 @@ def format_prefixes(prefixes):
     """
     formatted_prefixes = []
     for prefix in prefixes:
-        prefix = os.path.expanduser(prefix)
+        prefix = normalize_path(prefix)
         formatted_prefixes.append(os.path.realpath(prefix))
 
     return sorted(formatted_prefixes, key=len, reverse=True)
@@ -230,7 +230,6 @@ def extract_links_from_html(path):
 
 
 def rsync_copy(file_suffix, target_folder):
-
     target_file = os.path.join(target_folder, file_suffix)
 
     target_folder = os.path.dirname(target_file)
@@ -390,12 +389,21 @@ def generate_category_html(config, info, www_folder):
         print(f"{categories_index_html} generated")
 
 
+def normalize_path(path: str) -> str:
+    """
+    normalize path to absolute path
+    """
+    if path.startswith("~"):
+        path = os.path.expanduser(path)
+    return os.path.abspath(path)
+
+
 def publish_via_index(config, verbose=False):
     """
     publish all valid posts mentioned in index.org
     """
-    index_org = os.path.expanduser(config["index_org"])
-    www_folder = os.path.expanduser(config.get("publish_folder", "/tmp"))
+    index_org = normalize_path(config["index_org"])
+    www_folder = normalize_path(config.get("publish_folder", "/tmp"))
     prefixes = format_prefixes(config["org_prefixes"])
 
     meta = extract_meta_from_index_org(

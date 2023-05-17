@@ -1,12 +1,12 @@
 {
-  "org_prefixes": ["~/org/", "~/codes/orgchange/tests"],
+  "org_prefixes": ["~/org/", "./example/"],
   "index_template": "./themes/darkfloat/index.html",
   "beian": "京ICP备2021000000号",
   "sitename": "Personal blog...",
   "default_theme": "darkfloat",
   "github_url": "https://github.com/metaescape",
   "github_name": "metaescape",
-  "index_org": "~/org//posts/mysite.org",
-  "publish_folder": "~/codes/www",
+  "index_org": "./example/index.org",
+  "publish_folder": "./example/www",
   "site_repo": "https://github.com/metaescape/hugchangelife/"
 }
