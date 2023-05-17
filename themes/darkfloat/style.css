@@ -471,6 +471,52 @@ pre.example {
 }
 /* End of copy code */
 
+/* Start of dialogue block */
+.dialogue,
+.reply,
+.gpt {
+  display: inline-block;
+
+  display: flex;
+  align-items: center;
+
+  margin: 10px auto;
+  max-width: 96%;
+}
+
+.dialogue p,
+.reply p,
+.gpt p {
+  background: var(--pre-background);
+  margin: 0; /* 可选：移除段落的默认边距 */
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.gpt::before {
+  content: "AI:";
+  font-size: 1rem;
+  padding: 6px;
+  background-color: var(--pre-background);
+  border-radius: 100px;
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+.gpt,
+.reply {
+  color: var(--pre-text);
+}
+
+.dialogue {
+  /* 将文本右对齐 */
+  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* End of dialogue code */
+
 hr {
   background: #4a4b50;
 

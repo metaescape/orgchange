@@ -1,15 +1,14 @@
 #+TITLE: Demo test for html export
 #+DATE: [2022-06-14]
 
-* 测试方法
-在 =~/codes/hugchangelife= 目录下执行 ~python -m http.server~ 快速启动一个 http 服务
+* 如何查看本网页
+在 =example/www= 目录下执行 ~python -m http.server~ 快速启动一个 http 服务
 然后访问 http://0.0.0.0:8000/, *strong*
 
 
 
 
-* 代码块测试
-
+* 本节内容
 如果使用 elpy 开启了 ~highlight-indentation-mode~ ，那么使用默认的 org export 之后发现默认主题下就就会有褐色的空格：
 
 #+DOWNLOADED: screenshot @ 2022-06-14 11:08:37
@@ -52,8 +51,10 @@ contract DAO {
 </div>
 #+end_src
 
-* example block
+* example block 的展示
 ** 2nd level
+由于 example 一般不是代码块，因此不会被 highlightjs 高亮
+
 #+begin_example
 <div class="org-src-container">
 <pre class="src src-python"><span style="font-weight: bold;">def</span> <span style="font-weight: bold;">make_segment</span>(p1, p2):
@@ -66,7 +67,7 @@ contract DAO {
 </div>
 #+end_example
 
-*** 3rd level
+*** 3rd level Latex 公式展示
 
 
 1. 这用的是类似递归的思路，首先假设 \(\vec{v}\) 是 normal 矩阵 \(A\) 的特征根，因此有 \[A\vec{v}=\lambda \vec{v}\]
@@ -81,8 +82,28 @@ contract DAO {
   When \(a \ne 0\), there are two solutions to \(ax^2 + bx + c = 0\) and they are
 $$x = {-b \pm \sqrt{b^2-4ac} \over 2a}.$$
 
+* 对话 block 展示
+对话支持三个角色，分被是 ~#+begin_dialogue~, ~#+begin_reply~ 和 ~#+begin_gpt~, 前两个没有具体指代，最后一个主要是指 chatgpt 类的 ai
 
-* 表格测试
+dialogue 会默认显示靠右，reply 和 gpt 则靠左侧
+
+#+begin_dialogue
+今天天气不错
+#+end_dialogue
+
+
+#+begin_reply
+确实，您吃了吗
+#+end_reply
+
+这时候大模型莫名奇妙地回答：
+#+begin_gpt
+作为大语言模型
+#+end_gpt
+
+
+
+* 表格展示
 
 org-table 表格
 
@@ -110,9 +131,11 @@ org-table 表格
 
 
 * 其他测试   :tag1:tag2:
+** checkbox
 - [ ] 1
 - [X] checked
 
+** 引用/quote
 #+begin_quote
 keep hungry, keep foolish
 #+end_quote
