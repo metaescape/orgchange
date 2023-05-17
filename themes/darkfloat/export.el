@@ -1,4 +1,3 @@
-(load-file "../general.el")
 (setq orgchange-theme-dir default-directory)
 
 

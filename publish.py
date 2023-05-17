@@ -31,8 +31,8 @@ RE_LINK = re.compile(
     re.VERBOSE,
 )
 
-MAIN_DIR = os.path.dirname(os.path.realpath(sys.argv[0]))
-os.chdir(MAIN_DIR)
+ORG_CHANGE_DIR = os.path.dirname(os.path.realpath(sys.argv[0]))
+os.chdir(ORG_CHANGE_DIR)
 
 
 def read_config(config_file):
@@ -51,42 +51,23 @@ def change_dir(directory):
         os.chdir(old_dir)
 
 
-def export_to_html(
-    orgfile, target_folder, theme, www_folder, verbose, **kwargs
-) -> str:
+def _export_to_html(theme, orgfile, elisp_code, verbose=False):
     """
-    call org-html-export-to-html on `orgfile`, gerenating html file in `target_folder` using `theme`
-
-    >>> export_to_html('../tests/demo.org', '/tmp', 'darkfloat')
-
-    test cmdline
-    emacs --batch --chdir=/data/codes/hugchangelife/orgchange/themes/darkfloat --load export.el /home/pipz/org/design/web/posts/20211101_picture_language_matplotlib.org --eval '(progn (setq default-directory \"/home/pipz/codes/hugchangelife/posts\") (setq publish-directory \"/home/pipz/codes/hugchangelife\") (org-html-export-to-html))' --kill
+    a wrapper of org-html-export-to-html
     """
-    eval_elisp = f"""
-    (progn 
-        (setq default-directory "{target_folder}") 
-        (setq publish-directory "{www_folder}") 
-        (setq categories "{kwargs.get('categories', '')}") 
-        (setq prev-link "{kwargs.get('prev_link', '#')}") 
-        (setq prev-title "{kwargs.get('prev_title', '')}") 
-        (setq next-link "{kwargs.get('next_link', '#')}") 
-        (setq next-title "{kwargs.get('next_title', '')}") 
-        (setq github-issue-link "{kwargs.get('github_issue_link', '#')}") 
-        (org-html-export-to-html)),
-    """
-
     cmd = [
         "emacs",
         "--batch",
-        f"--chdir={MAIN_DIR}/themes/{theme}",
+        f"--chdir={ORG_CHANGE_DIR}/themes/{theme}",
+        "--load",
+        "../general.el",
         "--load",
         "export.el",
         orgfile,
         "--eval",
-        eval_elisp,
+        elisp_code,
         "--kill",
     ]
-
     process = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
@@ -102,11 +83,54 @@ def export_to_html(
         print(output.decode("utf-8"))
         print(error.decode("utf-8"))
 
-    html_path = orgfile.replace(".org", ".html")
-    target_path = os.path.join(target_folder, os.path.basename(html_path))
-    if not os.path.exists(target_path):
-        print(f'failed on\n{" ".join(cmd)}')
-    return target_path
+
+def export_to_multiple_htmls(
+    orgfile, target_folder, theme, www_folder, verbose, **kwargs
+):
+    """
+    export one org files to multiple html files, each heading is a html file
+    """
+    elisp_code = f"""
+    (progn 
+        (setq default-directory "{target_folder}") 
+        (setq publish-directory "{www_folder}") 
+        (setq categories "{kwargs.get('categories', '')}") 
+        (setq prev-link "{kwargs.get('prev_link', '#')}") 
+        (setq prev-title "{kwargs.get('prev_title', '')}") 
+        (setq next-link "{kwargs.get('next_link', '#')}") 
+        (setq next-title "{kwargs.get('next_title', '')}") 
+        (setq github-issue-link "{kwargs.get('github_issue_link', '#')}") 
+        (org-export-each-headline-to-html "{target_folder}")),
+    """
+
+    _export_to_html(theme, orgfile, elisp_code, verbose=verbose)
+
+
+def export_to_single_html(
+    orgfile, target_folder, theme, www_folder, verbose, **kwargs
+):
+    """
+    call org-html-export-to-html on `orgfile`, gerenating html file in `target_folder` using `theme`
+
+    >>> export_to_html('../tests/demo.org', '/tmp', 'darkfloat')
+
+    test cmdline
+    emacs --batch --chdir=/data/codes/hugchangelife/orgchange/themes/darkfloat --load export.el /home/pipz/org/design/web/posts/20211101_picture_language_matplotlib.org --eval '(progn (setq default-directory \"/home/pipz/codes/hugchangelife/posts\") (setq publish-directory \"/home/pipz/codes/hugchangelife\") (org-html-export-to-html))' --kill
+    """
+    elisp_code = f"""
+    (progn 
+        (setq default-directory "{target_folder}") 
+        (setq publish-directory "{www_folder}") 
+        (setq categories "{kwargs.get('categories', '')}") 
+        (setq prev-link "{kwargs.get('prev_link', '#')}") 
+        (setq prev-title "{kwargs.get('prev_title', '')}") 
+        (setq next-link "{kwargs.get('next_link', '#')}") 
+        (setq next-title "{kwargs.get('next_title', '')}") 
+        (setq github-issue-link "{kwargs.get('github_issue_link', '#')}") 
+        (org-html-export-to-html)),
+    """
+
+    _export_to_html(theme, orgfile, elisp_code, verbose=verbose)
 
 
 def is_valid_orgpath(path):
@@ -302,7 +326,7 @@ def publish_single_file(
         os.makedirs(target_folder)
 
     theme = publish_info.get("theme")
-    export_to_html(
+    export_to_single_html(
         filepath,
         target_folder,
         theme,
@@ -414,7 +438,7 @@ def publish_via_index(config, verbose=False):
     meta["categories"] = defaultdict(list)
 
     if www_folder is None:
-        www_folder = MAIN_DIR
+        www_folder = ORG_CHANGE_DIR
 
     # first pass on all posts, generate html relative path
     for i, post_info in enumerate(meta["posts"]):
