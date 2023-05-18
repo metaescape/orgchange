@@ -170,13 +170,15 @@ def extract_meta_from_index_org(orgfile, default_theme="darkfloat"):
             path = get_path_from_orglink(heading)
             path = normalize_path(path, base_dir)
             title = get_title_from_orglink(heading)
-
+            property_keys = list(node._properties.keys())
+            for key in property_keys:
+                node._properties[key.lower()] = node._properties[key]
             if is_valid_orgpath(path):
                 posts.append(
-                    {
+                    
                         "path": os.path.abspath(path),
                         "theme": node.get_property(theme, default_theme),
-                        "list_index": node.get_property("INDEX", False),
+                        "list_index": node.get_property("index", False),
                         "categories": [
                             x.strip()
                             for x in node.get_property(categories, "").split(
