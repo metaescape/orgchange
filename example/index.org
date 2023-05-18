@@ -3,11 +3,19 @@ hello
 * 文章列表                                                           :post:
 ** [[./demo.org][demo]]                   
 :PROPERTIES:
-:THEME: darkfloat
 :CATEGORIES: sample,test
 :END:
 
 ** [[./index.org][index]]
+
+
+** [[./multipage.org][multipage]]
 :PROPERTIES:
-:THEME: darkfloat
+:INDEX: default
+:DRAFT: True
 :END:
+
+INDEX: default 表示使用该文件中 index 标题作为索引页面
+如果是 INDEX: nil 或不存在 INDEX 属性则表示这是一个普通的文章
+
+DRAFT 不会显示在主页中，但还是会发布到网站上
