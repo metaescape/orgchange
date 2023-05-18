@@ -175,7 +175,7 @@ def extract_meta_from_index_org(orgfile, default_theme="darkfloat"):
                 node._properties[key.lower()] = node._properties[key]
             if is_valid_orgpath(path):
                 posts.append(
-                    
+                    {
                         "path": os.path.abspath(path),
                         "theme": node.get_property(theme, default_theme),
                         "list_index": node.get_property("index", False),
