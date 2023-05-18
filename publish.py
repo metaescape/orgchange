@@ -173,10 +173,7 @@ def export_to_multiple_htmls(
         (setq default-directory "{target_folder}") 
         (setq publish-directory "{www_folder}") 
         (setq categories "{kwargs.get('categories', '')}") 
-        (setq prev-link "{kwargs.get('prev_link', '#')}") 
-        (setq prev-title "{kwargs.get('prev_title', '')}") 
-        (setq next-link "{kwargs.get('next_link', '#')}") 
-        (setq next-title "{kwargs.get('next_title', '')}") 
+  
         (setq github-issue-link "{kwargs.get('github_issue_link', '#')}") 
         (org-export-each-headline-to-html "{target_folder}"))
     """
@@ -257,6 +254,7 @@ def extract_meta_from_index_org(orgfile, default_theme="darkfloat"):
                         "path": os.path.abspath(path),
                         "theme": node.get_property(theme, default_theme),
                         "list_index": node.get_property("index", False),
+                        "draft": node.get_property("draft", False),
                         "categories": [
                             x.strip()
                             for x in node.get_property(categories, "").split(
@@ -454,9 +452,10 @@ def generate_index_html(config, info, www_folder):
     index = info["index_template"]
     env = Environment(loader=FileSystemLoader(os.path.dirname(index)))
     template = env.get_template(os.path.basename(index))
+    visible_posts = [x for x in info["posts"] if not x.get("draft", False)]
     data = {
         "year": datetime.datetime.now().year,
-        "posts": info["posts"],
+        "posts": visible_posts,
     }
 
     for key in ["beian", "sitename", "github_url", "github_name"]:

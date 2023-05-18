@@ -1,5 +1,10 @@
-(setq orgchange-theme-dir default-directory)
-
+(setq orgchange-theme-dir default-directory
+	  prev-link "#"
+	  prev-title ""
+	  next-link "#"
+	  next-title ""
+	  github-issue-link "#"
+)
 
 ;; add placehoder for custom header
 ;; add an inner div with class "container" in <body>
