@@ -4,7 +4,7 @@
 
 ;; disable files end with ~
 (setq make-backup-files nil)
-
+(setq user-settings-blog-title nil)
 ;; disable default css, use html5 sematic tags
 (setq org-html-style-default ""
       org-html-html5-fancy 't
@@ -97,15 +97,23 @@ Already existing files are overwritten."
 			   	))
                (filename (concat dir "/" title ".html")))
           ;;Set the active region.
-          (set-mark (point))
+		  
+		  ;; 不显示一级标题
+          (set-mark (line-end-position)) 
+
+		;; 显示一级标题，会与 title 重复
+		;;   (set-mark (point))
 		;;   (outline-next-visible-heading 1)
 		 
         ;;   (outline-next-preface) ;; any level
 		  (if (not (search-forward-regexp "^* " nil t))
 				(goto-char (point-max))
-				(search-forward-regexp "^* " nil t))
+				(progn (search-forward-regexp "^* " nil t) 
+					 	(forward-char -1)))
+		  
           (activate-mark)
           ;;Export the region to a html file.
+		  (setq user-settings-blog-title title)
           (with-current-buffer (org-html-export-as-html)
             ;; Save the buffer to file and kill it.
             (write-file filename)

@@ -329,6 +329,10 @@ nav a:hover {
   text-decoration: underline;
 }
 
+h2 {
+  font-size: 2.8rem;
+}
+
 .open h2::before {
   content: "▼ ";
 }

@@ -62,24 +62,26 @@ holding export options."
      (format "<%s id=\"%s\">\n" (nth 1 div) (nth 2 div)))
    ;; Document title.
    (when (plist-get info :with-title)
-     (let ((title (and (plist-get info :with-title)
-		               (plist-get info :title)))
-	       (subtitle (plist-get info :subtitle))
-	       (html5-fancy (org-html--html5-fancy-p info)))
-       (when title
-	     (format
-	      (if html5-fancy
-	          "<header>\n<h1 class=\"title\">%s</h1>\n%s</header>"
-	        "<h1 class=\"title\">%s%s</h1>\n")
-	      (org-export-data title info)
-	      (if subtitle
-	          (format
-	           (if html5-fancy
-		           "<p class=\"subtitle\">%s</p>\n"
-		         (concat "\n" (org-html-close-tag "br" nil info) "\n"
-			             "<span class=\"subtitle\">%s</span>\n"))
-	           (org-export-data subtitle info))
-	        "")))))
+
+	(let ((title (and (plist-get info :with-title)
+					(plist-get info :title)
+					user-settings-blog-title))
+		(subtitle (plist-get info :subtitle))
+		(html5-fancy (org-html--html5-fancy-p info)))
+	(when title
+		(format
+		(if html5-fancy
+			"<header>\n<h1 class=\"title\">%s</h1>\n%s</header>"
+		"<h1 class=\"title\">%s%s</h1>\n")
+		(org-export-data title info)
+		(if subtitle
+			(format
+			(if html5-fancy
+				"<p class=\"subtitle\">%s</p>\n"
+				(concat "\n" (org-html-close-tag "br" nil info) "\n"
+						"<span class=\"subtitle\">%s</span>\n"))
+			(org-export-data subtitle info))
+		"")))))
    ;; Preamble.
    (org-html--build-pre/postamble 'preamble info)
    ;;    "<hr>" ;; add a horizontal line
