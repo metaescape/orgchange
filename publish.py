@@ -52,6 +52,77 @@ def change_dir(directory):
         os.chdir(old_dir)
 
 
+def new_soup(soup):
+    return BeautifulSoup(str(soup), "html.parser")
+
+
+def _merge_toc(html_files):
+    # 创建一个字典，用于存储每个文件的table of contents元素
+
+    tocs = []
+    soups = []
+
+    # 第一次遍历：获取每个文件的目录
+    for file in html_files:
+        # 打开文件并解析HTML
+        with open(file, "r") as f:
+            soup = BeautifulSoup(f, "html.parser")
+
+        title = soup.find("h1", {"class": "title"}).contents[0]
+        title_li_str = f'<li> <a href="{file}">{title}</a></li>'
+        title_li = new_soup(title_li_str)
+
+        local_toc = new_soup(title_li_str)
+
+        toc = soup.find("div", {"id": "text-table-of-contents"})
+        if toc:
+            local_toc.append(new_soup(toc.ul))
+
+        # print(local_toc.prettify(), title_li.prettify())
+        soups.append(soup)
+        tocs.append((local_toc, title_li))
+
+    global_tocs = []
+    for i, (local_toc, title_li) in enumerate(tocs):
+        global_toc_str = f"""
+        <nav id="global-toc">   
+            <ul>
+            </ul>
+        </nav>
+        """
+
+        global_toc = BeautifulSoup(global_toc_str, "html.parser")
+        global_toc.ul.extend([new_soup(x[-1]) for x in tocs[:i]])
+        global_toc.ul.append(local_toc)
+        global_toc.ul.extend([new_soup(x[-1]) for x in tocs[i + 1 :]])
+        global_tocs.append(global_toc)
+
+    for file, soup, global_toc in zip(html_files, soups, global_tocs):
+        # print(global_toc)
+
+        container = soup.find("div", {"class": "container"})
+
+        # if not container.find("nav", {"id": "global-toc"}):
+        container.insert(0, new_soup(global_toc))
+        # 如果不用 new_soup,  global_toc 会被清空，为什么？
+
+        with open(file, "w") as f:
+            f.write(soup.prettify())
+
+
+def merge_toc(orgfile, target_folder):
+    org = orgparse.load(orgfile)
+    html_files = []
+    for node in org:
+        if "noexport" in node.tags or node.level != 1:
+            continue
+        heading = node.get_heading(format="raw")
+        html_files.append(f"{heading.strip()}.html")
+
+    with change_dir(target_folder):
+        _merge_toc(html_files)
+
+
 def _export_to_html(theme, orgfile, elisp_code, verbose=False):
     """
     a wrapper of org-html-export-to-html
@@ -105,6 +176,7 @@ def export_to_multiple_htmls(
     """
 
     _export_to_html(theme, orgfile, elisp_code, verbose=verbose)
+    merge_toc(orgfile, target_folder)
 
 
 def export_to_single_html(
