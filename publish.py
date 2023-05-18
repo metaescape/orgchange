@@ -67,8 +67,14 @@ def _merge_toc(html_files):
         # 打开文件并解析HTML
         with open(file, "r") as f:
             soup = BeautifulSoup(f, "html.parser")
+        try:
+            title = soup.find("h1", {"class": "title"}).contents[0]
 
-        title = soup.find("h1", {"class": "title"}).contents[0]
+        except AttributeError:
+            print(
+                f"\n--> ERROR: you may need to add a #+title in your org file: {os.path.abspath( os.curdir)}.org\n"
+            )
+            raise AttributeError
         title_li_str = f'<li> <a href="{file}">{title}</a></li>'
         title_li = new_soup(title_li_str)
 
@@ -402,11 +408,6 @@ def publish_single_file(
 
     # e.g. /www/posts/
     target_folder = os.path.dirname(target_file_path)
-    if list_index:
-        # get all html fils under target_folder
-        target_file_pathes = glob.glob(os.path.join(target_folder, "*.html"))
-    else:
-        target_file_pathes = [target_file_path]
 
     if not os.path.exists(target_folder):
         os.makedirs(target_folder)
@@ -430,6 +431,12 @@ def publish_single_file(
             verbose,
             **publish_info.get("context", {}),
         )
+
+    if list_index:
+        # get all html fils under target_folder
+        target_file_pathes = glob.glob(os.path.join(target_folder, "*.html"))
+    else:
+        target_file_pathes = [target_file_path]
     img_urls = extract_links_from_html(target_file_pathes)
 
     for img_url in img_urls:

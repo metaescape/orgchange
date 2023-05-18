@@ -62,7 +62,6 @@ holding export options."
      (format "<%s id=\"%s\">\n" (nth 1 div) (nth 2 div)))
    ;; Document title.
    (when (plist-get info :with-title)
-
 	(let ((title (and (plist-get info :with-title)
 					(plist-get info :title)
 					user-settings-blog-title))

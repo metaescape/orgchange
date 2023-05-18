@@ -99,24 +99,24 @@ Already existing files are overwritten."
           ;;Set the active region.
 		  
 		  ;; 不显示一级标题
-          (set-mark (line-end-position)) 
+        (set-mark (line-end-position)) 
+        (forward-line 1)
 
 		;; 显示一级标题，会与 title 重复
 		;;   (set-mark (point))
 		;;   (outline-next-visible-heading 1)
-		 
         ;;   (outline-next-preface) ;; any level
-		  (if (not (search-forward-regexp "^* " nil t))
-				(goto-char (point-max))
-				(progn (search-forward-regexp "^* " nil t) 
-					 	(forward-char -1)))
-		  
-          (activate-mark)
+		  (if (search-forward-regexp "^* " nil t)
+        (forward-char -2)
+				  (goto-char (point-max))
+				)
+        
+        (activate-mark)
           ;;Export the region to a html file.
 		  (setq user-settings-blog-title title)
-          (with-current-buffer (org-html-export-as-html)
-            ;; Save the buffer to file and kill it.
-            (write-file filename)
-            (kill-current-buffer))
+      (with-current-buffer (org-html-export-as-html)
+        ;; Save the buffer to file and kill it.
+        (write-file filename)
+        (kill-current-buffer))
           ))
       "LEVEL=1" scope))))
