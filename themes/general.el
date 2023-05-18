@@ -96,14 +96,19 @@ Already existing files are overwritten."
                (dir (if dir dir	(file-name-directory buffer-file-name)
 			   	))
                (filename (concat dir "/" title ".html")))
-          ;; Set the active region.
+          ;;Set the active region.
           (set-mark (point))
-          (outline-next-preface)
+		;;   (outline-next-visible-heading 1)
+		 
+        ;;   (outline-next-preface) ;; any level
+		  (if (not (search-forward-regexp "^* " nil t))
+				(goto-char (point-max))
+				(search-forward-regexp "^* " nil t))
           (activate-mark)
-          ;; Export the region to a markdown file.
+          ;;Export the region to a html file.
           (with-current-buffer (org-html-export-as-html)
             ;; Save the buffer to file and kill it.
             (write-file filename)
             (kill-current-buffer))
           ))
-      nil scope))))
+      "LEVEL=1" scope))))

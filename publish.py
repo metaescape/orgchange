@@ -11,6 +11,7 @@ from jinja2 import Environment, FileSystemLoader
 import argparse
 from contextlib import contextmanager
 from collections import defaultdict
+import glob
 
 
 RE_LINK = re.compile(
@@ -100,7 +101,7 @@ def export_to_multiple_htmls(
         (setq next-link "{kwargs.get('next_link', '#')}") 
         (setq next-title "{kwargs.get('next_title', '')}") 
         (setq github-issue-link "{kwargs.get('github_issue_link', '#')}") 
-        (org-export-each-headline-to-html "{target_folder}")),
+        (org-export-each-headline-to-html "{target_folder}"))
     """
 
     _export_to_html(theme, orgfile, elisp_code, verbose=verbose)
@@ -127,7 +128,7 @@ def export_to_single_html(
         (setq next-link "{kwargs.get('next_link', '#')}") 
         (setq next-title "{kwargs.get('next_title', '')}") 
         (setq github-issue-link "{kwargs.get('github_issue_link', '#')}") 
-        (org-html-export-to-html)),
+        (org-html-export-to-html))
     """
 
     _export_to_html(theme, orgfile, elisp_code, verbose=verbose)
@@ -167,7 +168,7 @@ def extract_meta_from_index_org(orgfile, default_theme="darkfloat"):
         if "post" in node.tags and node.level == 2:
             heading = node.get_heading(format="raw")
             path = get_path_from_orglink(heading)
-            path = os.path.join(base_dir, path)
+            path = normalize_path(path, base_dir)
             title = get_title_from_orglink(heading)
 
             if is_valid_orgpath(path):
@@ -175,6 +176,7 @@ def extract_meta_from_index_org(orgfile, default_theme="darkfloat"):
                     {
                         "path": os.path.abspath(path),
                         "theme": node.get_property(theme, default_theme),
+                        "list_index": node.get_property("INDEX", False),
                         "categories": [
                             x.strip()
                             for x in node.get_property(categories, "").split(
@@ -238,18 +240,20 @@ def format_prefixes(prefixes):
     return sorted(formatted_prefixes, key=len, reverse=True)
 
 
-def extract_links_from_html(path):
-    with open(path, "r") as f:
-        html_content = f.read()
+def extract_links_from_html(pathes):
+    img_urls = []
+    for path in pathes:
+        with open(path, "r") as f:
+            html_content = f.read()
 
-    # Parse the HTML content using BeautifulSoup
-    soup = BeautifulSoup(html_content, "html.parser")
+        # Parse the HTML content using BeautifulSoup
+        soup = BeautifulSoup(html_content, "html.parser")
 
-    # Find all image tags in the HTML document
-    img_tags = soup.find_all("img")
+        # Find all image tags in the HTML document
+        img_tags = soup.find_all("img")
 
-    # Extract the image URLs from the image tags using regular expressions
-    img_urls = [img["src"] for img in img_tags if "src" in img.attrs]
+        # Extract the image URLs from the image tags using regular expressions
+        img_urls.extend([img["src"] for img in img_tags if "src" in img.attrs])
     return img_urls
 
 
@@ -315,6 +319,8 @@ def publish_single_file(
     - call extract_links_from_html to get all images file path
     - call rsync_copy to copy all images to www_folder
     """
+    list_index = publish_info.get("list_index", False)
+    list_index = False if list_index == "nil" else list_index
     filepath = publish_info["path"]
 
     # e.g. ~/org/posts/
@@ -322,19 +328,36 @@ def publish_single_file(
 
     # e.g. /www/posts/
     target_folder = os.path.dirname(target_file_path)
+    if list_index:
+        # get all html fils under target_folder
+        target_file_pathes = glob.glob(os.path.join(target_folder, "*.html"))
+    else:
+        target_file_pathes = [target_file_path]
+
     if not os.path.exists(target_folder):
         os.makedirs(target_folder)
 
     theme = publish_info.get("theme")
-    export_to_single_html(
-        filepath,
-        target_folder,
-        theme,
-        www_folder,
-        verbose,
-        **publish_info.get("context", {}),
-    )
-    img_urls = extract_links_from_html(target_file_path)
+    if list_index:
+        export_to_multiple_htmls(
+            filepath,
+            target_folder,
+            theme,
+            www_folder,
+            verbose,
+            **publish_info.get("context", {}),
+        )
+    else:
+        export_to_single_html(
+            filepath,
+            target_folder,
+            theme,
+            www_folder,
+            verbose,
+            **publish_info.get("context", {}),
+        )
+    img_urls = extract_links_from_html(target_file_pathes)
+
     for img_url in img_urls:
         with change_dir(src_folder):
             # mv url from ~/org/posts/imgs/... to /www/posts/imgs/...
@@ -413,12 +436,16 @@ def generate_category_html(config, info, www_folder):
         print(f"{categories_index_html} generated")
 
 
-def normalize_path(path: str) -> str:
+def normalize_path(path: str, folder=None) -> str:
     """
     normalize path to absolute path
     """
     if path.startswith("~"):
         path = os.path.expanduser(path)
+    if path.startswith("/"):
+        return path
+    if folder:
+        return os.path.abspath(os.path.join(folder, path))
     return os.path.abspath(path)
 
 
@@ -444,9 +471,15 @@ def publish_via_index(config, verbose=False):
     for i, post_info in enumerate(meta["posts"]):
         # e.g. ./posts/a.org
         suffix = extract_suffix(post_info["path"], prefixes)
-
-        # e.g. /www/posts/a.html
-        html_path = os.path.join(www_folder, suffix).replace(".org", ".html")
+        if post_info["list_index"]:
+            # e.g. /www/posts/a.html
+            html_path = os.path.join(www_folder, suffix).replace(
+                ".org", "/index.html"
+            )
+        else:
+            html_path = os.path.join(www_folder, suffix).replace(
+                ".org", ".html"
+            )
         html_relative_path = extract_suffix_from_prefix(html_path, www_folder)
 
         meta["posts"][i]["html_relative_path"] = html_relative_path
