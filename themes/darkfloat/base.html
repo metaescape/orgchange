@@ -43,7 +43,7 @@
         <h2>{{section}}</h2>
         {% endif %} {% for item in posts %}
         <p>
-          <a href="{{ item['html_relative_path'] }}">{{ item["title"] }}</a>
+          <a href="{{ item['html_path_abs2www'] }}">{{ item["title"] }}</a>
         </p>
         {% endfor %}
       </div>

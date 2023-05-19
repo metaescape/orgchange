@@ -12,7 +12,7 @@ pip install orgparse jinja2 bs4
 
 ## 使用方法
 
-假设个人网页目录是 `~/mysite`, 首先把 orgchange 作为其子目录, 路径为 `~/mysite/orgchange`
+假设个人网页发布的目录是 `~/mysite`, 那么首先把 orgchange 移动到该目录下, 路径为 `~/mysite/orgchange`. (后文出现的相对目录，都是相对 `~/mysite` 而言的)
 
 接着进入到 `~/mysite` 中, 配置好 `orgchange/config.json` 后执行 `python orgchange/publish.py`
 
@@ -27,7 +27,7 @@ cd ~/mysite
 python orgchange/publish.py
 ```
 
-如果不修改 config_example, 以上命令执行后会将 `example` 目录中的所有 org 文件导出到 `example/www` 子目录中，可以启动本地 web server 来查看样例。
+如果不修改 `config_exampl`e, 以上命令执行后会将 `example` 目录中的所有 org 文件导出到 `~/mysite/example/www` 子目录中，可以在 `~/mysite` 中启动本地 web server 来查看网页导出效果。
 
 ## `config.json` 解释
 
@@ -50,9 +50,9 @@ config_example.json 结构如下，发布前，需要把该文件复制或重命
 
 接下来是对各个关键词的解释:
 
-- `org_prefixes`: 这是一个保存路径的列表，记录的是源 org 文件所在的目录名. 也就是说，在这些目录下的 org 文件才有可能被导出成 html。 由于是列表，这意味着可以从多个不同的目录下导出 org 到同一个网页。
-- `publish_folder`: 个人网站发布的主目录，org 文件导出成 html 后的去处。
-- `index_org`: 该 org 文件中记录需要发布的所有 blog 的文章的路径.
+- `org_prefixes`: 这是一个保存路径的列表，记录的是源 org 文件所在的目录名. 也就是说，在这些目录下的 org 文件才有可能被导出成 html。 由于是列表，这意味着可以从多个不同的目录下导出 org 到同一个发布目录下。
+- `publish_folder`: 个人网站发布的主目录，org 文件导出成 html 后的去处。注意这个目录必须是 `~/mysite` 的子目录（理论上也可以是其他路径，例如 /tmp, 但这会导致页面寻找 css，js 等静态文件时出现混乱，导致样式失效, 因此如果要测试，可以指定 `~/mysite/test_www` 或 `./example/www` 格式的路径）
+- `index_org`: 该 org 文件中记录需要发布的所有 blog 的文章的路径。也是相对 `orgchange`
 
   结合以上三个属性，用一个具体的例子来简单说明发布的流程：
 
