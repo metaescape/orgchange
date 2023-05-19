@@ -3,7 +3,7 @@
   <div class="categories">
     {% for category, count in categories %}
 
-    <a href="/categories/{{category}}.html" target="_blank"
+    <a href="{{publish_offset}}/categories/{{category}}.html" target="_blank"
       >{{category}}:{{count}}</a
     >
     {% endfor %}

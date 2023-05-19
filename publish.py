@@ -219,12 +219,11 @@ def index_node_process(node, publish_folder, prefixes, theme):
     html_path_rel2publish = org_path_rel2prefix.replace(".org", ".html")
 
     html_path_abs2sys = os.path.join(publish_folder, html_path_rel2publish)
-
-    html_path_rel2www = extract_suffix_from_prefix(html_path_abs2sys, WWW)
-    html_path_abs2www = "/" + html_path_rel2www
     if list_index:
         # e.g. ~/www/posts/book/index.html
         html_path_abs2sys = html_path_abs2sys.replace(".html", "/index.html")
+    html_path_rel2www = extract_suffix_from_prefix(html_path_abs2sys, WWW)
+    html_path_abs2www = "/" + html_path_rel2www
 
     return {
         "theme": node.get_property("theme", theme),
@@ -388,15 +387,15 @@ def single_page_postprocessing(meta):
     html_files = [
         post["html_path_abs2www"]
         for post in meta["posts"]
-        if not post["list_index"] or not post["draft"]
+        if not (post["list_index"] or post["draft"])
     ]
     titles = [
         post["title"]
         for post in meta["posts"]
-        if not post["list_index"] or not post["draft"]
+        if not (post["list_index"] or post["draft"])
     ]
     soups = []
-
+    print(html_files)
     with change_dir(WWW):
         for html in html_files:
             with open(html[1:], "r") as f:
@@ -429,7 +428,7 @@ def export_to_multiple_htmls(
 
 
 def export_to_single_html(
-    orgfile, target_folder, theme, www_folder, verbose, **kwargs
+    orgfile, target_folder, theme, publish_folder, verbose, **kwargs
 ):
     """
     call org-html-export-to-html on `orgfile`, gerenating html file in `target_folder` using `theme`
@@ -442,7 +441,7 @@ def export_to_single_html(
     elisp_code = f"""
     (progn 
         (setq default-directory "{target_folder}") 
-        (setq publish-directory "{www_folder}") 
+        (setq publish-directory "{publish_folder}") 
         (setq categories "{kwargs.get('categories', '')}") 
         (setq github-issue-link "{kwargs.get('github_issue_link', '#')}") 
         (org-html-export-to-html))
@@ -483,10 +482,10 @@ def extract_meta_from_index_org(orgfile, publish_folder, prefixes, theme):
 def publish_single_file(publish_info, publish_folder, verbose=False):
     """
     publish a single org file:
-    - generate  target_folder from www_folder and target_file_path
+    - generate  target_folder from publish_folder and target_file_path
     - call export_to_html to generate html file
     - call extract_links_from_html to get all images file path
-    - call rsync_copy to copy all images to www_folder
+    - call rsync_copy to copy all images to publish_folder
     """
     list_index = publish_info.get("list_index", False)
 
@@ -529,7 +528,7 @@ def publish_single_file(publish_info, publish_folder, verbose=False):
     print("published to {}".format(html_path_abs2sys))
 
 
-def generate_index_html(config, info, www_folder):
+def generate_index_html(config, info, publish_folder):
     """
     generate index.html from index.org
     """
@@ -547,13 +546,13 @@ def generate_index_html(config, info, www_folder):
             data[key] = config[key]
 
     rendered_template = template.render(data)
-    index_html = os.path.join(www_folder, "index.html")
+    index_html = os.path.join(publish_folder, "index.html")
     with open(index_html, "w") as f:
         f.write(rendered_template)
         print(f"{index_html} generated")
 
 
-def generate_category_html(config, info, www_folder):
+def generate_category_html(config, info, publish_folder):
     """
     generate categories/tag.html from info
     """
@@ -562,12 +561,13 @@ def generate_category_html(config, info, www_folder):
     env = Environment(loader=FileSystemLoader(os.path.dirname(index)))
     category_template = "category.html"
     template = env.get_template(category_template)
-    categories_dir = os.path.join(www_folder, "categories")
+    categories_dir = os.path.join(publish_folder, "categories")
     if not os.path.exists(categories_dir):
         os.makedirs(categories_dir)
 
     for category in info["categories"]:
         data = {
+            "publish_offset": os.path.relpath(publish_folder, WWW),
             "year": datetime.datetime.now().year,
             "section": category,
             "posts": info["categories"][category],
@@ -580,12 +580,13 @@ def generate_category_html(config, info, www_folder):
         rendered_template = template.render(data)
 
         with open(
-            os.path.join(www_folder, "categories", f"{category}.html"), "w"
+            os.path.join(publish_folder, "categories", f"{category}.html"), "w"
         ) as f:
             f.write(rendered_template)
 
     template = env.get_template("categories.html")
     data = {
+
         "year": datetime.datetime.now().year,
         "categories": [
             (cate, len(lst)) for cate, lst in info["categories"].items()
@@ -593,7 +594,7 @@ def generate_category_html(config, info, www_folder):
     }
     rendered_template = template.render(data)
     categories_index_html = os.path.join(
-        www_folder, "categories", "index.html"
+        publish_folder, "categories", "index.html"
     )
     with open(categories_index_html, "w") as f:
         f.write(rendered_template)
