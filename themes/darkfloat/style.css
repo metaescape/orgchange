@@ -523,6 +523,7 @@ pre.example {
   margin: 0; /* 可选：移除段落的默认边距 */
   padding: 10px;
   border-radius: 5px;
+  text-indent: 0em;
 }
 
 .gpt::before {
@@ -576,6 +577,11 @@ blockquote {
   border-left: 2px solid;
   margin: 40px;
   padding: 10px 20px;
+}
+
+blockquote p {
+  text-indent: 0;
+  margin: 0em 0 0.2em 0;
 }
 
 blockquote p:last-of-type {
@@ -679,11 +685,16 @@ blockquote p:first-of-type {
   border-radius: 3px;
 }
 
+p {
+  text-indent: 0em;
+}
+
 .post-list p {
   text-align: left;
   font-size: 1.2rem;
   line-height: 1.6;
   margin: 1rem 2rem;
+  text-indent: 0em;
 }
 
 .post-list a:link,
