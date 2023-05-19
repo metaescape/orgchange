@@ -52,163 +52,6 @@ def change_dir(directory):
         os.chdir(old_dir)
 
 
-def new_soup(soup):
-    return BeautifulSoup(str(soup), "html.parser")
-
-
-def _merge_toc(html_files):
-    # 创建一个字典，用于存储每个文件的table of contents元素
-
-    tocs = []
-    soups = []
-
-    # 第一次遍历：获取每个文件的目录
-    for file in html_files:
-        # 打开文件并解析HTML
-        with open(file, "r") as f:
-            soup = BeautifulSoup(f, "html.parser")
-        try:
-            title = soup.find("h1", {"class": "title"}).contents[0]
-
-        except AttributeError:
-            print(
-                f"\n--> ERROR: you may need to add a #+title in your org file: {os.path.abspath( os.curdir)}.org\n"
-            )
-            raise AttributeError
-        title_li_str = f'<li> <a href="{file}">{title}</a></li>'
-        title_li = new_soup(title_li_str)
-
-        local_toc = new_soup(title_li_str)
-
-        toc = soup.find("div", {"id": "text-table-of-contents"})
-        if toc:
-            local_toc.append(new_soup(toc.ul))
-
-        # print(local_toc.prettify(), title_li.prettify())
-        soups.append(soup)
-        tocs.append((local_toc, title_li))
-
-    global_tocs = []
-    for i, (local_toc, title_li) in enumerate(tocs):
-        global_toc_str = f"""
-        <nav id="global-toc">   
-            <ul>
-            </ul>
-        </nav>
-        """
-
-        global_toc = BeautifulSoup(global_toc_str, "html.parser")
-        global_toc.ul.extend([new_soup(x[-1]) for x in tocs[:i]])
-        global_toc.ul.append(local_toc)
-        global_toc.ul.extend([new_soup(x[-1]) for x in tocs[i + 1 :]])
-        global_tocs.append(global_toc)
-
-    for file, soup, global_toc in zip(html_files, soups, global_tocs):
-        # print(global_toc)
-
-        container = soup.find("div", {"class": "container"})
-
-        # if not container.find("nav", {"id": "global-toc"}):
-        container.insert(0, new_soup(global_toc))
-        # 如果不用 new_soup,  global_toc 会被清空，为什么？
-
-        with open(file, "w") as f:
-            f.write(soup.prettify())
-
-
-def merge_toc(orgfile, target_folder):
-    org = orgparse.load(orgfile)
-    html_files = []
-    for node in org:
-        if "noexport" in node.tags or node.level != 1:
-            continue
-        heading = node.get_heading(format="raw")
-        html_files.append(f"{heading.strip()}.html")
-
-    with change_dir(target_folder):
-        _merge_toc(html_files)
-
-
-def _export_to_html(theme, orgfile, elisp_code, verbose=False):
-    """
-    a wrapper of org-html-export-to-html
-    """
-    cmd = [
-        "emacs",
-        "--batch",
-        f"--chdir={ORG_CHANGE_DIR}/themes/{theme}",
-        "--load",
-        "../general.el",
-        "--load",
-        "export.el",
-        orgfile,
-        "--eval",
-        elisp_code,
-        "--kill",
-    ]
-    process = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
-
-    output, error = process.communicate()
-    if "Debugger" in error.decode("utf-8"):
-        print(" ".join(cmd))
-        print(output.decode("utf-8"))
-        print(error.decode("utf-8"))
-        raise Exception("Error Happened! Please check your elisp file")
-    if verbose:
-        print(" ".join(cmd))
-        print(output.decode("utf-8"))
-        print(error.decode("utf-8"))
-
-
-def export_to_multiple_htmls(
-    orgfile, target_folder, theme, www_folder, verbose, **kwargs
-):
-    """
-    export one org files to multiple html files, each heading is a html file
-    """
-    elisp_code = f"""
-    (progn 
-        (setq default-directory "{target_folder}") 
-        (setq publish-directory "{www_folder}") 
-        (setq categories "{kwargs.get('categories', '')}") 
-  
-        (setq github-issue-link "{kwargs.get('github_issue_link', '#')}") 
-        (org-export-each-headline-to-html "{target_folder}"))
-    """
-
-    _export_to_html(theme, orgfile, elisp_code, verbose=verbose)
-    merge_toc(orgfile, target_folder)
-
-
-def export_to_single_html(
-    orgfile, target_folder, theme, www_folder, verbose, **kwargs
-):
-    """
-    call org-html-export-to-html on `orgfile`, gerenating html file in `target_folder` using `theme`
-
-    >>> export_to_html('../tests/demo.org', '/tmp', 'darkfloat')
-
-    test cmdline
-    emacs --batch --chdir=/data/codes/hugchangelife/orgchange/themes/darkfloat --load export.el /home/pipz/org/design/web/posts/20211101_picture_language_matplotlib.org --eval '(progn (setq default-directory \"/home/pipz/codes/hugchangelife/posts\") (setq publish-directory \"/home/pipz/codes/hugchangelife\") (org-html-export-to-html))' --kill
-    """
-    elisp_code = f"""
-    (progn 
-        (setq default-directory "{target_folder}") 
-        (setq publish-directory "{www_folder}") 
-        (setq categories "{kwargs.get('categories', '')}") 
-        (setq prev-link "{kwargs.get('prev_link', '#')}") 
-        (setq prev-title "{kwargs.get('prev_title', '')}") 
-        (setq next-link "{kwargs.get('next_link', '#')}") 
-        (setq next-title "{kwargs.get('next_title', '')}") 
-        (setq github-issue-link "{kwargs.get('github_issue_link', '#')}") 
-        (org-html-export-to-html))
-    """
-
-    _export_to_html(theme, orgfile, elisp_code, verbose=verbose)
-
-
 def is_valid_orgpath(path):
     """
     check if path is valid
@@ -220,52 +63,6 @@ def is_valid_orgpath(path):
     """
 
     return os.path.exists(path) and path.endswith(".org")
-
-
-def extract_meta_from_index_org(orgfile, default_theme="darkfloat"):
-    """
-    extract metadata from index.org, return a dict
-    get all child nodes from a level1 1 node with tag 'post'
-
-    >>> extract_meta_from_index_org('tests/index.org')
-    {'posts': [{'path': '/home/pipz/codes/orgpost/tests/demo.org', 'theme': 'darkfloat', 'categories': ['sample', 'test']}, {'path': '/home/pipz/codes/orgpost/tests/index.org', 'theme': 'darkfloat', 'categories': ['']}]}
-    """
-
-    org = orgparse.load(orgfile)
-    theme = "THEME"
-    categories = "CATEGORIES"
-    posts = []
-    base_dir = os.path.dirname(orgfile)
-    for node in org:
-        # ignore nodes with noexport tag
-        if "noexport" in node.tags:
-            continue
-        if "post" in node.tags and node.level == 2:
-            heading = node.get_heading(format="raw")
-            path = get_path_from_orglink(heading)
-            path = normalize_path(path, base_dir)
-            title = get_title_from_orglink(heading)
-            property_keys = list(node._properties.keys())
-            for key in property_keys:
-                node._properties[key.lower()] = node._properties[key]
-            if is_valid_orgpath(path):
-                posts.append(
-                    {
-                        "path": os.path.abspath(path),
-                        "theme": node.get_property(theme, default_theme),
-                        "list_index": node.get_property("index", False),
-                        "draft": node.get_property("draft", False),
-                        "categories": [
-                            x.strip()
-                            for x in node.get_property(categories, "").split(
-                                ","
-                            )
-                        ],
-                        "title": title,
-                    }
-                )
-
-    return {"posts": posts}
 
 
 def get_path_from_orglink(raw_link):
@@ -301,6 +98,19 @@ def get_title_from_orglink(raw_link):
     return RE_LINK.sub(
         lambda m: m.group("desc0") or m.group("desc1"), raw_link
     )
+
+
+def normalize_path(path: str, folder=None) -> str:
+    """
+    normalize path to absolute path
+    """
+    if path.startswith("~"):
+        path = os.path.expanduser(path)
+    if path.startswith("/"):
+        return path
+    if folder:
+        return os.path.abspath(os.path.join(folder, path))
+    return os.path.abspath(path)
 
 
 def format_prefixes(prefixes):
@@ -385,6 +195,238 @@ def extract_suffix_from_prefix(file_path, prefix):
         raise ValueError(
             "The file path does not start with the prefix folder."
         )
+
+
+def new_soup(soup):
+    return BeautifulSoup(str(soup), "html.parser")
+
+
+# utils end, workflow begin:
+
+
+def _export_to_html(theme, orgfile, elisp_code, verbose=False):
+    """
+    a wrapper of org-html-export-to-html
+    """
+    cmd = [
+        "emacs",
+        "--batch",
+        f"--chdir={ORG_CHANGE_DIR}/themes/{theme}",
+        "--load",
+        "../general.el",
+        "--load",
+        "export.el",
+        orgfile,
+        "--eval",
+        elisp_code,
+        "--kill",
+    ]
+    process = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+
+    output, error = process.communicate()
+    if "Debugger" in error.decode("utf-8"):
+        print(" ".join(cmd))
+        print(output.decode("utf-8"))
+        print(error.decode("utf-8"))
+        raise Exception("Error Happened! Please check your elisp file")
+    if verbose:
+        print(" ".join(cmd))
+        print(output.decode("utf-8"))
+        print(error.decode("utf-8"))
+
+
+def _merge_toc(html_files):
+    # 创建一个字典，用于存储每个文件的table of contents元素
+
+    tocs = []
+    soups = []
+
+    # 第一次遍历：获取每个文件的目录
+    for file in html_files:
+        # 打开文件并解析HTML
+        with open(file, "r") as f:
+            soup = BeautifulSoup(f, "html.parser")
+        try:
+            title = soup.find("h1", {"class": "title"}).contents[0]
+
+        except AttributeError:
+            print(
+                f"\n--> ERROR: you may need to add a #+title in your org file: {os.path.abspath( os.curdir)}.org\n"
+            )
+            raise AttributeError
+        title_li_str = f'<li> <a href="{file}">{title}</a></li>'
+        title_li = new_soup(title_li_str)
+
+        local_toc = new_soup(title_li_str)
+
+        toc = soup.find("div", {"id": "text-table-of-contents"})
+        if toc:
+            local_toc.append(new_soup(toc.ul))
+
+        # print(local_toc.prettify(), title_li.prettify())
+        soups.append(soup)
+        tocs.append((local_toc, title_li))
+
+    global_tocs = []
+    for i, (local_toc, title_li) in enumerate(tocs):
+        global_toc_str = f"""
+        <nav id="global-toc">   
+            <ul>
+            </ul>
+        </nav>
+        """
+
+        global_toc = BeautifulSoup(global_toc_str, "html.parser")
+        global_toc.ul.extend([new_soup(x[-1]) for x in tocs[:i]])
+        global_toc.ul.append(local_toc)
+        global_toc.ul.extend([new_soup(x[-1]) for x in tocs[i + 1 :]])
+        global_tocs.append(global_toc)
+
+    for file, soup, global_toc in zip(html_files, soups, global_tocs):
+        # print(global_toc)
+
+        container = soup.find("div", {"class": "container"})
+
+        # if not container.find("nav", {"id": "global-toc"}):
+        container.insert(0, new_soup(global_toc))
+        # 如果不用 new_soup,  global_toc 会被清空，为什么？
+
+    return soups
+
+
+def _add_articl_footer(html_files, soups):
+    """
+    add article footer to each html file
+    """
+    n = len(html_files)
+    for i in range(n):
+        html, soup = html_files[i], soups[i]
+        paginav = soup.find("nav", {"class": "paginav"})
+        prev = paginav.find("a", {"class": "prev"})
+        prev_title = prev.find_all("span")[1]
+        next = paginav.find("a", {"class": "next"})
+        next_title = next.find_all("span")[0]
+
+        prev_html = "index.html" if i == 0 else html_files[i - 1]
+        prev_string = os.path.splitext(prev_html)[0].capitalize()
+        prev["href"] = prev_html
+        prev_title.string = prev_string
+
+        next_html = "index.html" if i == n - 1 else html_files[i + 1]
+        next_string = os.path.splitext(next_html)[0].capitalize()
+        next["href"] = next_html
+        next_title.string = next_string
+
+
+def postprocessing(orgfile, target_folder):
+    org = orgparse.load(orgfile)
+    html_files = []
+    for node in org:
+        if "noexport" in node.tags or node.level != 1:
+            continue
+        heading = node.get_heading(format="raw")
+        html_files.append(f"{heading.strip()}.html")
+
+    with change_dir(target_folder):
+        soups = _merge_toc(html_files)
+        _add_articl_footer(html_files, soups)
+        for file, soup in zip(html_files, soups):
+            with open(file, "w") as f:
+                f.write(soup.prettify())
+
+
+def export_to_multiple_htmls(
+    orgfile, target_folder, theme, www_folder, verbose, **kwargs
+):
+    """
+    export one org files to multiple html files, each heading is a html file
+    """
+    elisp_code = f"""
+    (progn 
+        (setq default-directory "{target_folder}") 
+        (setq publish-directory "{www_folder}") 
+        (setq categories "{kwargs.get('categories', '')}") 
+  
+        (setq github-issue-link "{kwargs.get('github_issue_link', '#')}") 
+        (org-export-each-headline-to-html "{target_folder}"))
+    """
+
+    _export_to_html(theme, orgfile, elisp_code, verbose=verbose)
+    postprocessing(orgfile, target_folder)
+
+
+def export_to_single_html(
+    orgfile, target_folder, theme, www_folder, verbose, **kwargs
+):
+    """
+    call org-html-export-to-html on `orgfile`, gerenating html file in `target_folder` using `theme`
+
+    >>> export_to_html('../tests/demo.org', '/tmp', 'darkfloat')
+
+    test cmdline
+    emacs --batch --chdir=/data/codes/hugchangelife/orgchange/themes/darkfloat --load export.el /home/pipz/org/design/web/posts/20211101_picture_language_matplotlib.org --eval '(progn (setq default-directory \"/home/pipz/codes/hugchangelife/posts\") (setq publish-directory \"/home/pipz/codes/hugchangelife\") (org-html-export-to-html))' --kill
+    """
+    elisp_code = f"""
+    (progn 
+        (setq default-directory "{target_folder}") 
+        (setq publish-directory "{www_folder}") 
+        (setq categories "{kwargs.get('categories', '')}") 
+        (setq prev-link "{kwargs.get('prev_link', '#')}") 
+        (setq prev-title "{kwargs.get('prev_title', '')}") 
+        (setq next-link "{kwargs.get('next_link', '#')}") 
+        (setq next-title "{kwargs.get('next_title', '')}") 
+        (setq github-issue-link "{kwargs.get('github_issue_link', '#')}") 
+        (org-html-export-to-html))
+    """
+
+    _export_to_html(theme, orgfile, elisp_code, verbose=verbose)
+
+
+def extract_meta_from_index_org(orgfile, default_theme="darkfloat"):
+    """
+    extract metadata from index.org, return a dict
+    get all child nodes from a level1 1 node with tag 'post'
+
+    >>> extract_meta_from_index_org('tests/index.org')
+    {'posts': [{'path': '/home/pipz/codes/orgpost/tests/demo.org', 'theme': 'darkfloat', 'categories': ['sample', 'test']}, {'path': '/home/pipz/codes/orgpost/tests/index.org', 'theme': 'darkfloat', 'categories': ['']}]}
+    """
+
+    org = orgparse.load(orgfile)
+    theme = "THEME"
+    categories = "CATEGORIES"
+    posts = []
+    base_dir = os.path.dirname(orgfile)
+    for node in org:
+        # ignore nodes with noexport tag
+        if "noexport" in node.tags:
+            continue
+        if "post" in node.tags and node.level == 2:
+            heading = node.get_heading(format="raw")
+            path = normalize_path(get_path_from_orglink(heading), base_dir)
+            title = get_title_from_orglink(heading)
+            property_keys = list(node._properties.keys())
+            for key in property_keys:
+                node._properties[key.lower()] = node._properties[key]
+            if is_valid_orgpath(path):
+                posts.append(
+                    {
+                        "path": os.path.abspath(path),
+                        "theme": node.get_property(theme, default_theme),
+                        "list_index": node.get_property("index", False),
+                        "draft": node.get_property("draft", False),
+                        "categories": [
+                            x.strip()
+                            for x in node.get_property(categories, "").split(
+                                ","
+                            )
+                        ],
+                        "title": title,
+                    }
+                )
+
+    return {"posts": posts}
 
 
 def publish_single_file(
@@ -514,19 +556,6 @@ def generate_category_html(config, info, www_folder):
     with open(categories_index_html, "w") as f:
         f.write(rendered_template)
         print(f"{categories_index_html} generated")
-
-
-def normalize_path(path: str, folder=None) -> str:
-    """
-    normalize path to absolute path
-    """
-    if path.startswith("~"):
-        path = os.path.expanduser(path)
-    if path.startswith("/"):
-        return path
-    if folder:
-        return os.path.abspath(os.path.join(folder, path))
-    return os.path.abspath(path)
 
 
 def publish_via_index(config, verbose=False):
