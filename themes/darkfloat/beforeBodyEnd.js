@@ -6,8 +6,10 @@ if (global_toc) {
     if (event.target !== global_toc && !global_toc.contains(event.target)) {
       // 判断点击的元素是否是按钮元素或者按钮元素的子元素
       global_toc.style.transform = "translate(-90%, 0)";
+      global_toc.style.maxHeight = "12vh";
     } else {
       global_toc.style.transform = "translate(0, 0)";
+      global_toc.style.maxHeight = "50vh";
     }
   });
 }
