@@ -383,7 +383,7 @@ def multipage_postprocessing(orgfile, html_folder):
                 f.write(soup.prettify())
 
 
-def single_page_postprocessing(meta):
+def get_visible_posts(meta):
     html_files = [
         post["html_path_abs2www"]
         for post in meta["posts"]
@@ -394,8 +394,12 @@ def single_page_postprocessing(meta):
         for post in meta["posts"]
         if not (post["list_index"] or post["draft"])
     ]
+    return html_files, titles
+
+
+def single_page_postprocessing(html_files, titles=[]):
     soups = []
-    print(html_files)
+
     with change_dir(WWW):
         for html in html_files:
             with open(html[1:], "r") as f:
@@ -536,12 +540,32 @@ def generate_index_html(config, info, publish_folder):
     env = Environment(loader=FileSystemLoader(os.path.dirname(index)))
     template = env.get_template(os.path.basename(index))
     visible_posts = [x for x in info["posts"] if not x.get("draft", False)]
+    for post in visible_posts:
+        with open(post["html_path_abs2sys"], "r") as f:
+            soup = BeautifulSoup(f, "html.parser")
+
+        post["created"] = (
+            soup.find("span", {"id": "created-timestamp"})
+            .text.strip()
+            .split(" ")[0]
+        )
+        post["last_modify"] = (
+            soup.find("span", {"id": "last-modify-timestamp"})
+            .text.strip()
+            .split(" ")[0]
+        )
+
     data = {
         "year": datetime.datetime.now().year,
         "posts": visible_posts,
     }
 
-    for key in ["beian", "sitename", "github_url", "github_name"]:
+    for key in [
+        "beian",
+        "sitename",
+        "github_url",
+        "github_name",
+    ]:
         if key in config:
             data[key] = config[key]
 
@@ -586,7 +610,6 @@ def generate_category_html(config, info, publish_folder):
 
     template = env.get_template("categories.html")
     data = {
-
         "year": datetime.datetime.now().year,
         "categories": [
             (cate, len(lst)) for cate, lst in info["categories"].items()
@@ -647,7 +670,9 @@ def publish_via_index(config, verbose=False):
 
         publish_single_file(post_info, publish_folder, verbose)
 
-    single_page_postprocessing(meta)
+    visible_htmls, visible_titles = get_visible_posts(meta)
+
+    single_page_postprocessing(visible_htmls, visible_titles)
 
     generate_index_html(config, meta, publish_folder)
 

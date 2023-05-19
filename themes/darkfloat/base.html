@@ -42,9 +42,19 @@
         {% if section %}
         <h2>{{section}}</h2>
         {% endif %} {% for item in posts %}
-        <p>
+
+        <p class="post-line">
           <a href="{{ item['html_path_abs2www'] }}">{{ item["title"] }}</a>
+          <span class="timestamp-block">
+            <span class="timestamp index-created">
+              {{ item["created"] }}-></span
+            >
+            <span class="timestamp index-last-modify"
+              >{{ item["last_modify"] }}</span
+            >
+          </span>
         </p>
+
         {% endfor %}
       </div>
       {% endblock %}

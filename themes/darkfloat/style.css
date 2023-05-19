@@ -689,12 +689,15 @@ p {
   text-indent: 0em;
 }
 
-.post-list p {
-  text-align: left;
+.post-list .post-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   font-size: 1.2rem;
   line-height: 1.6;
-  margin: 1rem 2rem;
+  margin: 1rem 1rem;
   text-indent: 0em;
+  gap: 1rem;
 }
 
 .post-list a:link,
@@ -708,6 +711,11 @@ p {
 .post-list a:hover,
 .post-list a:active {
   color: var(--change-decorate8);
+}
+
+.timestamp-block {
+  font-size: 1rem;
+  right: 0%;
 }
 
 footer .beian {

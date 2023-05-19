@@ -1,10 +1,5 @@
 (setq orgchange-theme-dir default-directory
-	  prev-link "#"
-	  prev-title ""
-	  next-link "#"
-	  next-title ""
-	  github-issue-link "#"
-)
+	  github-issue-link "#")
 
 ;; add placehoder for custom header
 ;; add an inner div with class "container" in <body>
@@ -67,25 +62,25 @@ holding export options."
      (format "<%s id=\"%s\">\n" (nth 1 div) (nth 2 div)))
    ;; Document title.
    (when (plist-get info :with-title)
-	(let ((title (and (plist-get info :with-title)
-					(or user-settings-blog-title (plist-get info :title))
-					))
-		(subtitle (plist-get info :subtitle))
-		(html5-fancy (org-html--html5-fancy-p info)))
-	(when title
-		(format
-		(if html5-fancy
-			"<header>\n<h1 class=\"title\">%s</h1>\n%s</header>"
-		"<h1 class=\"title\">%s%s</h1>\n")
-		(org-export-data title info)
-		(if subtitle
-			(format
-			(if html5-fancy
-				"<p class=\"subtitle\">%s</p>\n"
-				(concat "\n" (org-html-close-tag "br" nil info) "\n"
-						"<span class=\"subtitle\">%s</span>\n"))
-			(org-export-data subtitle info))
-		"")))))
+	 (let ((title (and (plist-get info :with-title)
+                       (or user-settings-blog-title (plist-get info :title))
+					   ))
+		   (subtitle (plist-get info :subtitle))
+		   (html5-fancy (org-html--html5-fancy-p info)))
+	   (when title
+		 (format
+		  (if html5-fancy
+			  "<header>\n<h1 class=\"title\">%s</h1>\n%s</header>"
+		    "<h1 class=\"title\">%s%s</h1>\n")
+		  (org-export-data title info)
+		  (if subtitle
+			  (format
+			   (if html5-fancy
+				   "<p class=\"subtitle\">%s</p>\n"
+				 (concat "\n" (org-html-close-tag "br" nil info) "\n"
+						 "<span class=\"subtitle\">%s</span>\n"))
+			   (org-export-data subtitle info))
+		    "")))))
    ;; Preamble.
    (org-html--build-pre/postamble 'preamble info)
    ;;    "<hr>" ;; add a horizontal line
@@ -93,26 +88,26 @@ holding export options."
 
    ;;categories, prev post, next post and comment link
    (let* 
-   	((categories-list (split-string categories ","))
-     (categories-ele 
-	  (if (not (equal categories ""))
-	   (mapconcat 
-	     'identity
-	  	  (mapcar 
-	   	    (lambda (x) 
-	   		  (format "<a href=\"%s\" target=\"_blank\">%s</a>" 
-		   		(format "/categories/%s.html" x)
-			    (string-trim x)))
-		 	categories-list) "") "")
-		  ))
-    
-	(format
-		(read-file-content 
-		(expand-file-name "article_footer.html" orgchange-theme-dir )) 
-			categories-ele prev-link prev-title next-link next-title github-issue-link)
-		  )
-			
-	;; close main
+   	   ((categories-list (split-string categories ","))
+        (categories-ele 
+	     (if (not (equal categories ""))
+	         (mapconcat 
+	          'identity
+	  	      (mapcar 
+	   	       (lambda (x) 
+	   		     (format "<a href=\"%s\" target=\"_blank\">%s</a>" 
+		   		         (format "/categories/%s.html" x)
+			             (string-trim x)))
+		 	   categories-list) "") "")
+		 ))
+     
+	 (format
+	  (read-file-content 
+	   (expand-file-name "article_footer.html" orgchange-theme-dir )) 
+	  categories-ele github-issue-link)
+	 )
+   
+   ;; close main
    (format "</%s>\n" (nth 1 (assq 'content (plist-get info :html-divs))))
    ;; Postamble.
    (org-html--build-pre/postamble 'postamble info)
@@ -127,8 +122,8 @@ holding export options."
    ;; Closing document.
    "<script>\n"
    (read-file-content 
-		(expand-file-name "beforeBodyEnd.js" orgchange-theme-dir )) 
-	"</script>\n"
+	(expand-file-name "beforeBodyEnd.js" orgchange-theme-dir )) 
+   "</script>\n"
    "\n</body>\n</html>"))
 
 
@@ -140,9 +135,11 @@ holding export options."
 
 (setq org-html-preamble t)
 (setq org-html-postamble t)
-(setq org-html-preamble-format `(("en" ,(read-file-content "preamble.html"))))
-(setq org-html-postamble-format `(("en"
-                                   ,(concat (format-time-string "<span> © %G</span>")
-                                            (read-file-content "postamble.html")))))
+(setq org-html-preamble-format
+      `(("en" ,(read-file-content "preamble.html"))))
+(setq org-html-postamble-format
+      `(("en"
+         ,(concat (format-time-string "<span> © %G</span>")
+                  (read-file-content "postamble.html")))))
 
 ;; (prin1 "Ok , this publish system don't need htmlize.el\n")
