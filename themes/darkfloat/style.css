@@ -537,13 +537,13 @@ pre.example {
 
 .gpt::before {
   position: absolute;
-  left: -1.2rem;
+  left: 0rem;
   top: -1.2rem;
   content: "AI";
   font-size: 1rem;
+  border-radius: 6px;
   padding: 4px 7px;
   background-color: var(--pre-background);
-  border-radius: 100px;
   font-weight: bold;
   margin-right: 8px;
 }
