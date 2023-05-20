@@ -769,7 +769,7 @@ footer .beian {
   animation: typing 3s steps(30, end);
 }
 
-@media (max-width: 700px) {
+@media (max-width: 600px) {
   .back-top svg {
     width: 4.8rem;
     height: 4.8rem;
@@ -806,5 +806,10 @@ footer .beian {
 
   #preamble span {
     font-size: 1rem;
+  }
+
+  .post-list a:link,
+  .post-list a:visited {
+    max-width: 20rem;
   }
 }
