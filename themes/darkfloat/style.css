@@ -728,6 +728,7 @@ p {
 .timestamp-block {
   font-size: 1rem;
   right: 0%;
+  opacity: 0.5;
 }
 
 footer .beian {
