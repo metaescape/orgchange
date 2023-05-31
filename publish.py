@@ -241,12 +241,44 @@ def index_node_process(node, publish_folder, prefixes, theme):
     }
 
 
+def get_latest_timestamp(directory, ignore=None, includes=None):
+    latest_timestamp = None
+
+    for root, dirs, files in os.walk(directory):
+        # 如果 ignore 参数不为 None，则将需要忽略的文件从 files 列表中移除
+        if ignore is not None:
+            files = [
+                file
+                for file in files
+                if not any(
+                    glob.fnmatch.fnmatch(file, pattern) for pattern in ignore
+                )
+            ]
+
+        for file in files:
+            file_path = os.path.join(root, file)
+            timestamp = os.path.getmtime(file_path)
+
+            if latest_timestamp is None or timestamp > latest_timestamp:
+                latest_timestamp = timestamp
+
+    # 如果 includes 参数不为 None，则检查额外要考虑的文件路径，并更新最新修改时间戳
+    if includes is not None:
+        for include in includes:
+            timestamp = os.path.getmtime(include)
+
+            if latest_timestamp is None or timestamp > latest_timestamp:
+                latest_timestamp = timestamp
+
+    return latest_timestamp
+
+
 def cache(html="index.html"):
     def decorator(func):
         @functools.wraps(func)  # 保留被装饰函数的元数据
         def wrapper(*args, **kwargs):
             # 在被装饰函数执行前的操作
-            orgfile, html_folder = args[0], args[1]
+            orgfile, html_folder, theme = args[:3]
             if html:
                 html_file = os.path.join(html_folder, f"{html}")
             else:
@@ -255,10 +287,21 @@ def cache(html="index.html"):
                     os.path.basename(orgfile).replace(".org", ".html"),
                 )
             # if the timestamp of html_file is newer than orgfile, skip
-
-            if os.path.exists(html_file) and os.path.getmtime(
-                html_file
-            ) > os.path.getmtime(orgfile):
+            latest_timestamp = max(
+                get_latest_timestamp(
+                    theme,
+                    ignore=["style.css"],
+                    includes=[
+                        f"{ORG_CHANGE_DIR}/themes/general.el",
+                        f"{ORG_CHANGE_DIR}/publish.py",
+                    ],
+                ),
+                os.path.getmtime(orgfile),
+            )
+            if (
+                os.path.exists(html_file)
+                and os.path.getmtime(html_file) > latest_timestamp
+            ):
                 print_green(f"html is newer than {orgfile}, skip")
                 return
 
@@ -289,7 +332,7 @@ def _export_to_html(theme, orgfile, elisp_code, verbose=False):
     cmd = [
         "emacs",
         "--batch",
-        f"--chdir={ORG_CHANGE_DIR}/themes/{theme}",
+        f"--chdir={theme}",
         "--load",
         "../general.el",
         "--load",
@@ -547,6 +590,8 @@ def publish_single_file(publish_info, publish_folder, verbose=False):
         os.makedirs(html_folder)
 
     theme = publish_info.get("theme")
+    theme_path = f"{ORG_CHANGE_DIR}/themes/{theme}"
+
     export_func = export_to_single_html
     target_file_pathes = [html_path_abs2sys]
     if list_index:
@@ -557,7 +602,7 @@ def publish_single_file(publish_info, publish_folder, verbose=False):
     export_func(
         org_path_abs2sys,
         html_folder,
-        theme,
+        theme_path,
         publish_folder,
         verbose,
         **publish_info.get("context", {}),
