@@ -12,6 +12,7 @@ import argparse
 from contextlib import contextmanager
 from collections import defaultdict
 import glob
+import functools
 
 
 RE_LINK = re.compile(
@@ -240,6 +241,44 @@ def index_node_process(node, publish_folder, prefixes, theme):
     }
 
 
+def cache(html="index.html"):
+    def decorator(func):
+        @functools.wraps(func)  # 保留被装饰函数的元数据
+        def wrapper(*args, **kwargs):
+            # 在被装饰函数执行前的操作
+            orgfile, html_folder = args[0], args[1]
+            if html:
+                html_file = os.path.join(html_folder, f"{html}")
+            else:
+                html_file = os.path.join(
+                    html_folder,
+                    os.path.basename(orgfile).replace(".org", ".html"),
+                )
+            # if the timestamp of html_file is newer than orgfile, skip
+
+            if os.path.exists(html_file) and os.path.getmtime(
+                html_file
+            ) > os.path.getmtime(orgfile):
+                print_green(f"html is newer than {orgfile}, skip")
+                return
+
+            # 执行被装饰函数
+            result = func(*args, **kwargs)
+
+            # 返回被装饰函数的结果
+            return result
+
+        return wrapper
+
+    return decorator
+
+
+def print_green(text):
+    green = "\033[32m"
+    reset = "\033[0m"
+    print(f"{green}{text}{reset}")
+
+
 # utils end, workflow begin:
 
 
@@ -412,6 +451,7 @@ def single_page_postprocessing(html_files, titles=[]):
                 f.write(soup.prettify())
 
 
+@cache("index.html")
 def export_to_multiple_htmls(
     orgfile, html_folder, theme, publish_folder, verbose, **kwargs
 ):
@@ -431,11 +471,12 @@ def export_to_multiple_htmls(
     multipage_postprocessing(orgfile, html_folder)
 
 
+@cache("")
 def export_to_single_html(
-    orgfile, target_folder, theme, publish_folder, verbose, **kwargs
+    orgfile, html_folder, theme, publish_folder, verbose, **kwargs
 ):
     """
-    call org-html-export-to-html on `orgfile`, gerenating html file in `target_folder` using `theme`
+    call org-html-export-to-html on `orgfile`, gerenating html file in `html_folder` using `theme`
 
     >>> export_to_html('../tests/demo.org', '/tmp', 'darkfloat')
 
@@ -444,7 +485,7 @@ def export_to_single_html(
     """
     elisp_code = f"""
     (progn 
-        (setq default-directory "{target_folder}") 
+        (setq default-directory "{html_folder}") 
         (setq publish-directory "{publish_folder}") 
         (setq categories "{kwargs.get('categories', '')}") 
         (setq github-issue-link "{kwargs.get('github_issue_link', '#')}") 
