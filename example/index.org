@@ -12,7 +12,7 @@ hello
 ** [[./multipage.org][multipage]]
 :PROPERTIES:
 :INDEX: default
-:DRAFT: True
+
 :END:
 
 INDEX: default 表示使用该文件中 index 标题作为索引页面

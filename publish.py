@@ -680,7 +680,7 @@ def publish_via_index(config, verbose=False):
 
 
 if __name__ == "__main__":
-    import doctest
+    # import doctest
 
     # doctest.testmod()
     parser = argparse.ArgumentParser(description="Publish website")

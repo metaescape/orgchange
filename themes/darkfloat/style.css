@@ -296,6 +296,7 @@ body a {
   border-bottom: 1px solid #4a4b50;
   padding-bottom: 1rem;
   border-radius: 4px;
+  margin-bottom: 3rem;
 }
 
 #text-table-of-contents {
@@ -379,13 +380,13 @@ h2 {
 
 p {
   display: block;
-  margin: 0em 0 1.4em 0;
+  margin: 1em 0.6em 0;
 }
 
 h2,
 h3,
 h4 {
-  margin: 1.4em 0 0.6em 0;
+  margin: 1em 0 0.6em 0;
   font-weight: bold;
 }
 
@@ -417,7 +418,7 @@ img {
 
 ul,
 ol {
-  margin-left: 1.6rem;
+  margin-left: 2rem;
   padding: 0;
 }
 
@@ -434,6 +435,10 @@ ul ul {
 
 ul ul ul {
   list-style-type: square;
+}
+
+li {
+  padding: 0.4rem 0;
 }
 
 table {
@@ -507,6 +512,8 @@ code {
 
 pre.example {
   padding: 1rem;
+  border-radius: 0;
+  margin-top: 0;
 }
 
 .org-src-container:hover button {
@@ -541,7 +548,7 @@ pre.example {
   top: -1.2rem;
   content: "AI";
   font-size: 1rem;
-  border-radius: 6px;
+  border-radius: 6BBBBBpx;
   padding: 4px 7px;
   background-color: var(--pre-background);
   font-weight: bold;
@@ -559,6 +566,13 @@ pre.example {
   align-self: flex-end;
 }
 
+details {
+  border-radius: 1rem;
+  border: 0.2px inset var(--heading-color);
+  padding: 5px;
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+}
 /* End of dialogue code */
 
 hr {

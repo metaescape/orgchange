@@ -67,6 +67,19 @@ contract DAO {
 </div>
 #+end_example
 
+#+begin_center
+org center
+#+end_center
+
+#+begin_dynamic
+org dynamic
+#+end_dynamic
+
+#+begin_verse
+org verse
+#+end_verse
+
+
 *** 3rd level Latex 公式展示
 
 
