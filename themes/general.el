@@ -1,4 +1,5 @@
 (require 'ox-html)
+(require 'org-id)
 
 (prin1 (format "load package %s \n" (locate-library "ox-html")) )
 
@@ -12,6 +13,7 @@
       org-export-use-babel nil
       org-export-with-sub-superscripts nil
       org-html-container-element "section"
+      org-export-with-broken-links t
       )
 
 (setq org-html-divs

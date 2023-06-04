@@ -507,6 +507,7 @@ def export_to_multiple_htmls(
         (setq publish-directory "{publish_folder}") 
         (setq categories "{kwargs.get('categories', '')}") 
         (setq github-issue-link "{kwargs.get('github_issue_link', '#')}") 
+        {kwargs.get('setq')}
         (org-export-each-headline-to-html "{html_folder}"))
     """
 
@@ -743,7 +744,13 @@ def publish_via_index(config, verbose=False):
                     "title": post_info["title"],
                 }
             )
-
+    setq = ""
+    for var, value in config.get("setq", {}).items():
+        # 只支持从外部设置 string 变量
+        if value == "nil" or type(value) != str:
+            setq += f"""(setq {var} {value})"""
+        else:
+            setq += f"""(setq {var} "{value}")"""
     for i, post_info in enumerate(meta["posts"]):
         post_info["context"] = {}
         context = post_info.get("context")
@@ -753,6 +760,7 @@ def publish_via_index(config, verbose=False):
                 site_repo, "issues/new"
             )
         context["categories"] = ",".join(post_info["categories"])
+        context["setq"] = setq
 
         publish_single_file(post_info, publish_folder, verbose)
 
