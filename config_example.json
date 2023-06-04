@@ -8,5 +8,8 @@
   "github_name": "metaescape",
   "index_org": "./example/index.org",
   "publish_folder": "./example/www",
-  "site_repo": "https://github.com/metaescape/hugchange.life/"
+  "site_repo": "https://github.com/metaescape/hugchange.life/",
+  "setq": {
+    "org-id-locations-file": "~/.emacs.d/.org-id-locations"
+  }
 }
