@@ -139,6 +139,7 @@ def single_page_postprocessing(html_files, titles=[]):
             with open(html[1:], "r") as f:
                 soup = BeautifulSoup(f, "html.parser")
                 soup = pygment_and_paren_match_all(soup)  # code highlight
+
                 soups.append(soup)
 
         _add_article_footer(html_files, soups, titles)

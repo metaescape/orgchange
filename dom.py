@@ -12,9 +12,11 @@ def pygment_and_paren_match_all(soup, class_filters=[]):
         if not pre.code:
             continue
 
-        lang = pre.code["class"][0]
-
-        lexer = get_lexer_by_name(lang)
+        try:
+            lang = pre.code["class"][0]
+            lexer = get_lexer_by_name(lang)
+        except:
+            continue
         formatter = HtmlFormatter()
 
         code = pre.get_text()
@@ -24,10 +26,8 @@ def pygment_and_paren_match_all(soup, class_filters=[]):
         highlighted_code = highlight(escaped_code, lexer, formatter)
 
         soup_code = BeautifulSoup(highlighted_code, "html.parser")
-        pre.replace_with(soup_code)
 
-    for pre in list(soup.find_all("pre")):
-        normalize_pre = normalize_span(pre)
+        normalize_pre = normalize_span(soup_code)
         pre.replace_with(paren_match(normalize_pre))
 
     return soup

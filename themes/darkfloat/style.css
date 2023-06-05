@@ -312,6 +312,10 @@ body a {
   margin-left: 1.6rem;
 }
 
+#table-of-contents li {
+  padding: 0;
+}
+
 #table-of-contents h2 {
   margin: 0rem 1rem;
 }
@@ -478,17 +482,19 @@ table tbody td {
 pre {
   color: var(--pre-text);
   background: var(--pre-background);
-  margin: 0.5em 0;
+  margin: 1em 0 0.5em 0;
   overflow: auto;
-  border-radius: 8px;
   position: relative;
+  display: block;
+  overflow-x: auto;
+  padding: 0.5em;
 }
 
 code {
   font-family: Consolas, Monaco, Andale Mono, Ubuntu Mono, monospace;
   font-display: auto;
   font-feature-settings: normal;
-  padding: 1px 6px;
+  padding: 5px;
   border-radius: 5px;
   font-size: 1.3rem;
 }
@@ -513,7 +519,10 @@ code {
 pre.example {
   padding: 1rem;
   border-radius: 0;
+  margin: 0 auto;
   margin-top: 0;
+  margin-bottom: 1rem;
+  width: 99%;
 }
 
 .org-src-container:hover button {
@@ -527,7 +536,7 @@ pre.example {
 .gpt {
   display: inline-block;
   padding: 0.4rem;
-  margin-bottom: 1.6rem;
+  margin: 1.4rem 0.6rem;
   max-width: 90%;
   position: relative;
   background: var(--pre-background);
@@ -537,7 +546,7 @@ pre.example {
 .dialogue p,
 .reply p,
 .gpt p {
-  margin: 0;
+  margin: 0rem;
   padding: 1rem;
   text-indent: 0em;
 }
