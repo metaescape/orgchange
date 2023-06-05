@@ -1,0 +1,274 @@
+from contextlib import contextmanager
+import functools
+import glob
+import json
+import os
+import re
+import shutil
+
+from bs4 import BeautifulSoup
+
+# get path of current file
+ORG_CHANGE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+RE_LINK = re.compile(
+    r"""
+    (?:
+        \[ \[
+            (?P<desc0> [^\]]+)
+        \] \]
+    ) |
+    (?:
+        \[ \[
+            (?P<link1> [^\]]+)
+        \] \[
+            (?P<desc1> [^\]]+)
+        \] \]
+    )
+    """,
+    re.VERBOSE,
+)
+
+
+def read_config(config_file):
+    with open(config_file, "r") as f:
+        config = json.load(f)
+
+    return {} if not os.path.exists(config_file) else config
+
+
+@contextmanager
+def change_dir(directory):
+    old_dir = os.getcwd()
+    os.chdir(directory)
+    try:
+        yield
+    finally:
+        os.chdir(old_dir)
+
+
+def is_valid_orgpath(path):
+    """
+    check if path is valid
+    >>> is_valid_orgpath('/usr/bin/python')
+    False
+    >>> is_valid_orgpath('/tmp/a')
+    False
+    """
+
+    return os.path.exists(path) and path.endswith(".org")
+
+
+def get_title_from_orglink(raw_link):
+    """
+    extract path from org link
+    >>> get_path_from_orglink('[[/tmp/a.org][test demo]]')
+    'test demo'
+    >>> get_path_from_orglink('[[/tmp/a.org]]')
+    ''
+    >>> get_path_from_orglink('not a link')
+    'not a link'
+    """
+    return RE_LINK.sub(
+        lambda m: m.group("desc0") or m.group("desc1"), raw_link
+    )
+
+
+def normalize_path(path: str, folder=None) -> str:
+    """
+    normalize path to absolute path
+    """
+    if path.startswith("~"):
+        path = os.path.realpath(os.path.expanduser(path))
+    if path.startswith("/"):
+        return os.path.realpath(path)
+    if folder:
+        return os.path.abspath(os.path.realpath(os.path.join(folder, path)))
+    return os.path.abspath(path)
+
+
+def get_path_from_orglink(raw_link):
+    """
+    extract path from org link
+    >>> get_path_from_orglink('[[/tmp/a.org][test demo]]')
+    '/tmp/a.org'
+    >>> get_path_from_orglink('[[/tmp/a.org]]')
+    '/tmp/a.org'
+    >>> get_path_from_orglink('not a link')
+    'not a link'
+    """
+    path = RE_LINK.sub(
+        lambda m: m.group("desc0") or m.group("link1"), raw_link
+    )
+    if path.startswith("file:"):
+        path = path[5:]
+    return path
+
+
+def format_prefixes(prefixes):
+    """
+    org_prefix is a list of prefixes that are used to identify which org files
+    will be published. For example, if the org_prefix is ["~/post"], then only
+    org file such as `~/post/blog/2020-01-01.org` will be published to `web/blog/2020-01-01.html`
+    `web/` is the main folder for all published files.
+    """
+    formatted_prefixes = []
+    for prefix in prefixes:
+        prefix = normalize_path(prefix)
+        formatted_prefixes.append(os.path.realpath(prefix))
+
+    return sorted(formatted_prefixes, key=len, reverse=True)
+
+
+def extract_links_from_html(pathes):
+    img_urls = []
+    for path in pathes:
+        with open(path, "r") as f:
+            html_content = f.read()
+
+        # Parse the HTML content using BeautifulSoup
+        soup = BeautifulSoup(html_content, "html.parser")
+
+        # Find all image tags in the HTML document
+        img_tags = soup.find_all("img")
+
+        # Extract the image URLs from the image tags using regular expressions
+        img_urls.extend([img["src"] for img in img_tags if "src" in img.attrs])
+    return img_urls
+
+
+def check_modified_time_hook(file1, file2, f):
+    """
+    check if file1 is modified after file2, if so, call f(file1, file2)
+    """
+    if not os.path.exists(file2) or os.path.getmtime(file1) > os.path.getmtime(
+        file2
+    ):
+        f(file1, file2)
+
+
+def rsync_copy(file_suffix, target_folder):
+    target_file = os.path.join(target_folder, file_suffix)
+
+    target_folder = os.path.dirname(target_file)
+
+    # Create the folder if it doesn't exist
+    if not os.path.exists(target_folder):
+        os.makedirs(target_folder)
+
+    # Copy the source file to the target file only if it has been modified
+    check_modified_time_hook(file_suffix, target_file, shutil.copy2)
+
+
+def extract_suffix_from_prefix(file_path, prefix):
+    """
+    extract file suffix from file_path if file_path starts with prefix
+    """
+    if not prefix.endswith(os.sep):
+        prefix += os.sep
+
+    if file_path.startswith(prefix):
+        suffix = file_path[len(prefix) :]
+        return suffix
+    else:
+        raise ValueError(
+            "The file path does not start with the prefix folder."
+        )
+
+
+def extract_suffix(file_path, prefixes):
+    """
+    extract file suffix from file_path if file_path starts with any prefix in prefixes
+    return the first match
+    """
+    for prefix in prefixes:
+        try:
+            suffix = extract_suffix_from_prefix(file_path, prefix)
+            return suffix
+        except ValueError:
+            continue
+    raise ValueError("No prefix matches the file path.")
+
+
+def get_latest_timestamp(directory, ignore=None, includes=None):
+    latest_timestamp = None
+
+    for root, dirs, files in os.walk(directory):
+        # 如果 ignore 参数不为 None，则将需要忽略的文件从 files 列表中移除
+        if ignore is not None:
+            files = [
+                file
+                for file in files
+                if not any(
+                    glob.fnmatch.fnmatch(file, pattern) for pattern in ignore
+                )
+            ]
+
+        for file in files:
+            file_path = os.path.join(root, file)
+            timestamp = os.path.getmtime(file_path)
+
+            if latest_timestamp is None or timestamp > latest_timestamp:
+                latest_timestamp = timestamp
+
+    # 如果 includes 参数不为 None，则检查额外要考虑的文件路径，并更新最新修改时间戳
+    if includes is not None:
+        for include in includes:
+            timestamp = os.path.getmtime(include)
+
+            if latest_timestamp is None or timestamp > latest_timestamp:
+                latest_timestamp = timestamp
+
+    return latest_timestamp
+
+
+def print_green(text):
+    green = "\033[32m"
+    reset = "\033[0m"
+    print(f"{green}{text}{reset}")
+
+
+def cache(html="index.html"):
+    def decorator(func):
+        @functools.wraps(func)  # 保留被装饰函数的元数据
+        def wrapper(*args, **kwargs):
+            # 在被装饰函数执行前的操作
+            orgfile, html_folder, theme = args[:3]
+            if html:
+                html_file = os.path.join(html_folder, f"{html}")
+            else:
+                html_file = os.path.join(
+                    html_folder,
+                    os.path.basename(orgfile).replace(".org", ".html"),
+                )
+            # if the timestamp of html_file is newer than orgfile, skip
+            latest_timestamp = max(
+                get_latest_timestamp(
+                    theme,
+                    ignore=["style.css"],
+                    includes=[
+                        f"{ORG_CHANGE_DIR}/themes/general.el",
+                        f"{ORG_CHANGE_DIR}/publish.py",
+                        f"{ORG_CHANGE_DIR}/utils.py",
+                        f"{ORG_CHANGE_DIR}/dom.py",
+                    ],
+                ),
+                os.path.getmtime(orgfile),
+            )
+            if (
+                os.path.exists(html_file)
+                and os.path.getmtime(html_file) > latest_timestamp
+            ):
+                print_green(f"html is newer than {orgfile}, skip")
+                return
+
+            # 执行被装饰函数
+            result = func(*args, **kwargs)
+
+            # 返回被装饰函数的结果
+            return result
+
+        return wrapper
+
+    return decorator
