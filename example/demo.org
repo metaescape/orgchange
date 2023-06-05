@@ -1,4 +1,4 @@
-#+TITLE: Demo test for html export
+#+TITLE: Demo test for Org Change
 #+DATE: [2022-06-14]
 
 * 如何查看本网页
@@ -7,14 +7,28 @@
 
 
 
+* 图片和代码块
+Racket 代码块
+#+begin_src racket
+(define rempick
+  (lambda (n lat)
+    (cond
+      ((zero? (sub1 n)) (cdr lat))
+      (else (cons (car lat)
+                  (rempick (sub1 n) (cdr lat)))))))
+(rempick 3 '(potato and tomato salad))
+#+end_src
 
-* 本节内容
+#+RESULTS:
+: '(potato and salad)
+
 如果使用 elpy 开启了 ~highlight-indentation-mode~ ，那么使用默认的 org export 之后发现默认主题下就就会有褐色的空格：
 
 #+DOWNLOADED: screenshot @ 2022-06-14 11:08:37
 #+ATTR_HTML: :width 600 :align center
 #+CAPTION: python code highlight 
 [[file:imgs/20220614-110837_orgpublish_code_default.png]]
+
 
 
 #+begin_src python
@@ -50,6 +64,9 @@ contract DAO {
 </pre>
 </div>
 #+end_src
+
+
+
 
 * example block 的展示
 ** 2nd level

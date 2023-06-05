@@ -26,3 +26,8 @@ soup = BeautifulSoup(html_doc, "html.parser")
 
 
 print(pygment_and_paren_match_all(soup).prettify())
+
+from pygments.styles import get_all_styles
+
+styles = list(get_all_styles())
+print(styles)

@@ -77,6 +77,7 @@ contextual information."
 				                " data-editor-type=\"html\""
 			                  "")
 			                code)
+                  ;; code add
                   (format "<pre><code class=\"%s\"%s>%s</code></pre>"
                           lang label code)))))))
 
