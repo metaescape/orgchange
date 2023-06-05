@@ -480,6 +480,9 @@ table tbody td {
 }
 
 pre {
+  font-family: Consolas, Monaco, Andale Mono, Ubuntu Mono, monospace;
+  font-display: auto;
+  font-feature-settings: normal;
   color: var(--pre-text);
   background: var(--pre-background);
   margin: 1em 0 0.5em 0;
@@ -487,14 +490,16 @@ pre {
   position: relative;
   display: block;
   overflow-x: auto;
-  padding: 0.5em;
+  padding: 2rem;
+  border-radius: 1rem;
+  line-height: 1.4;
+}
+
+.highlight {
+  background-color: inherit;
 }
 
 code {
-  font-family: Consolas, Monaco, Andale Mono, Ubuntu Mono, monospace;
-  font-display: auto;
-  font-feature-settings: normal;
-  padding: 5px;
   border-radius: 5px;
   font-size: 1.3rem;
 }

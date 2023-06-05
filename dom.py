@@ -5,18 +5,21 @@ from pygments.formatters import HtmlFormatter
 from bs4 import BeautifulSoup, NavigableString
 import html
 
+lisp_family = ["scheme", "lisp", "racket", "elisp", "emacs-lisp", "elisp"]
+
 
 def pygment_and_paren_match_all(soup, class_filters=[]):
     for pre in list(soup.find_all("pre")):
         # if div has a <code> child
         if not pre.code:
             continue
-
+        lang = "example"
         try:
             lang = pre.code["class"][0]
             lexer = get_lexer_by_name(lang)
         except:
             continue
+
         formatter = HtmlFormatter()
 
         code = pre.get_text()
@@ -26,9 +29,12 @@ def pygment_and_paren_match_all(soup, class_filters=[]):
         highlighted_code = highlight(escaped_code, lexer, formatter)
 
         soup_code = BeautifulSoup(highlighted_code, "html.parser")
-
-        normalize_pre = normalize_span(soup_code)
-        pre.replace_with(paren_match(normalize_pre))
+        if lang in lisp_family:
+            normalize_pre = normalize_span(soup_code.pre)
+            paren_matched_pre = paren_match(normalize_pre)
+            soup_code.pre.replace_with(paren_matched_pre)
+        soup_code.pre["class"] = [lang]
+        pre.replace_with(soup_code)
 
     return soup
 
@@ -61,7 +67,10 @@ def paren_match(pre):
                 open_index = open_index_stack.pop()
 
                 wrapper = soup.new_tag("span")
-                wrapper["class"] = "paren"
+                wrapper["class"] = [
+                    "paren",
+                    f"plevel-{len(open_index_stack) + 1}",
+                ]
                 temp = stack[open_index:]
                 for span in temp:
                     wrapper.append(span.extract())  # extract 会删除原来的标签
@@ -71,6 +80,7 @@ def paren_match(pre):
 
                 stack = stack[:open_index]
                 stack.append(wrapper)
+
     return pre
 
 
