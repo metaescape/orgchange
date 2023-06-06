@@ -11,7 +11,7 @@ html {
   /* Percentage of user's browser font-size setting */
   font-size: 62.5%;
   overflow-x: hidden;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.06rem;
   scroll-behavior: smooth;
 
   /* Does NOT work on Safari */
@@ -382,16 +382,22 @@ h2 {
   box-shadow: 0 calc(var(--shadow) / 2) var(--shadow) 0 rgb(0 0 0 / 40%);
 }
 
-p {
-  display: block;
-  margin: 1em 0.6em 0;
+p,
+ul,
+ol {
+  margin-bottom: 0.75rem;
 }
 
-h2,
-h3,
-h4 {
-  margin: 1em 0 0.6em 0;
+main h1,
+main h2,
+main h3,
+main h4,
+main h5,
+main h6 {
+  font-family: "Montserrat", sans-serif;
   font-weight: bold;
+  margin-bottom: 0.5rem;
+  margin-top: 1.5rem;
 }
 
 .outline-2,
@@ -429,8 +435,7 @@ ol {
 ul {
   display: block;
   list-style-type: disc;
-  /* margin-block-start: 1.6em;
-  margin-block-end: 1.6em; */
+  margin-left: 2rem;
 }
 
 ul ul {
@@ -479,13 +484,23 @@ table tbody td {
   padding: 10px 20px;
 }
 
+p code,
+li code {
+  display: inline-block;
+  white-space: no-wrap;
+  background-color: var(--content-background);
+  line-height: 1.5rem;
+  border: 0.5px solid var(--change-decorate8);
+  padding: 2px 4px;
+  margin: -1px 0px;
+}
+
 pre {
   font-family: Consolas, Monaco, Andale Mono, Ubuntu Mono, monospace;
   font-display: auto;
   font-feature-settings: normal;
   color: var(--pre-text);
   background: var(--pre-background);
-  margin: 1em 0 0.5em 0;
   overflow: auto;
   position: relative;
   display: block;
@@ -493,6 +508,7 @@ pre {
   padding: 2rem;
   border-radius: 1rem;
   line-height: 1.4;
+  margin-top: 1rem;
 }
 
 .highlight {
@@ -513,8 +529,8 @@ code {
 .org-src-container button {
   display: none;
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 2rem;
+  right: 1.2rem;
   background-color: #0000;
   border: none;
   border-radius: 5px;
@@ -525,7 +541,7 @@ pre.example {
   padding: 1rem;
   border-radius: 0;
   margin: 0 auto;
-  margin-top: 0;
+  margin-top: 0.5rem;
   margin-bottom: 1rem;
   width: 99%;
 }
@@ -553,7 +569,7 @@ pre.example {
 .gpt p {
   margin: 0rem;
   padding: 1rem;
-  text-indent: 0em;
+  text-indent: 0rem;
 }
 
 .gpt::before {
@@ -606,21 +622,22 @@ hr {
 
 .feather {
   display: inline-block;
-  vertical-align: -0.125em;
-  width: 1em;
-  height: 1em;
-  margin-right: 0.6em;
+  vertical-align: -0.125rem;
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.6rem;
 }
 
 blockquote {
-  border-left: 2px solid;
-  margin: 40px;
-  padding: 10px 20px;
+  border-left: 3px solid;
+  padding-left: 1rem;
+  font-style: italic;
+  margin: 2rem 4rem;
 }
 
 blockquote p {
   text-indent: 0;
-  margin: 0em 0 0.2em 0;
+  margin: 0rem 0 0.2rem 0;
 }
 
 blockquote p:last-of-type {
@@ -730,7 +747,7 @@ blockquote p:first-of-type {
 }
 
 p {
-  text-indent: 0em;
+  text-indent: 0rem;
 }
 
 .post-list .post-line {
@@ -740,7 +757,7 @@ p {
   font-size: 1.2rem;
   line-height: 1.6;
   margin: 1rem 1rem;
-  text-indent: 0em;
+  text-indent: 0rem;
   gap: 1rem;
 }
 
@@ -844,5 +861,9 @@ footer .beian {
   .post-list a:link,
   .post-list a:visited {
     max-width: 20rem;
+  }
+
+  blockquote {
+    margin: 0.4rem 1rem;
   }
 }
