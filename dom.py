@@ -108,17 +108,22 @@ def new_soup(soup):
     return BeautifulSoup(str(soup), "html.parser")
 
 
-def _merge_toc(html_files):
+def get_soups(html_files):
+    soups = []
+    for file in html_files:
+        with open(file, "r") as f:
+            soup = BeautifulSoup(f.read(), "html.parser")
+            soups.append(soup)
+    return soups
+
+
+def _merge_toc(html_files, soups):
     # 创建一个字典，用于存储每个文件的table of contents元素
 
     tocs = []
-    soups = []
 
     # 第一次遍历：获取每个文件的目录
-    for file in html_files:
-        # 打开文件并解析HTML
-        with open(file, "r") as f:
-            soup = BeautifulSoup(f, "html.parser")
+    for file, soup in zip(html_files, soups):
         try:
             title = soup.find("h1", {"class": "title"}).contents[0]
 
@@ -136,7 +141,6 @@ def _merge_toc(html_files):
             local_toc.append(new_soup(toc.ul))
 
         # print(local_toc.prettify(), title_li.prettify())
-        soups.append(soup)
         tocs.append((local_toc, title_li))
 
     global_tocs = []

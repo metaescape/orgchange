@@ -338,9 +338,9 @@ nav a:hover {
 }
 
 #global-toc {
-  padding: 1rem 5rem 1rem 2rem;
+  padding: 1rem 3rem 1rem 1rem;
   box-sizing: border-box;
-  transform: translate(-90%, 0);
+  transform: translate(calc(-100% + 1.5rem), 0);
   position: fixed;
   bottom: 2%;
   background-color: var(--content-background);
@@ -359,6 +359,10 @@ nav a:hover {
 
 #global-toc::-webkit-scrollbar {
   display: none;
+}
+
+#global-toc li {
+  padding: 0;
 }
 
 h2 {
@@ -490,7 +494,8 @@ li code {
   white-space: no-wrap;
   background-color: var(--content-background);
   line-height: 1.5rem;
-  border: 0.5px solid var(--change-decorate8);
+  font-size: inherit;
+  border: 0.5px solid var(--hover-color);
   padding: 2px 4px;
   margin: -1px 0px;
 }

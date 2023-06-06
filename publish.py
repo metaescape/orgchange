@@ -8,7 +8,12 @@ from jinja2 import Environment, FileSystemLoader
 import argparse
 from collections import defaultdict
 import glob
-from dom import _add_article_footer, _merge_toc, pygment_and_paren_match_all
+from dom import (
+    _add_article_footer,
+    _merge_toc,
+    pygment_and_paren_match_all,
+    get_soups,
+)
 
 from utils import (
     cache,
@@ -110,7 +115,10 @@ def multipage_postprocessing(orgfile, html_folder):
         html_files.append(f"{heading.strip()}.html")
 
     with change_dir(html_folder):
-        soups = _merge_toc(html_files)
+        soups = get_soups(html_files)
+        soups = _merge_toc(html_files, soups)
+        for soup in soups:
+            soup = pygment_and_paren_match_all(soup)
         _add_article_footer(html_files, soups)
         for file, soup in zip(html_files, soups):
             with open(file, "w") as f:
@@ -138,8 +146,8 @@ def single_page_postprocessing(html_files, titles=[]):
         for html in html_files:
             with open(html[1:], "r") as f:
                 soup = BeautifulSoup(f, "html.parser")
+                soup = _merge_toc(html_files, [soup])[0]
                 soup = pygment_and_paren_match_all(soup)  # code highlight
-
                 soups.append(soup)
 
         _add_article_footer(html_files, soups, titles)
