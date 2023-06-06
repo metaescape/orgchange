@@ -1,13 +1,15 @@
 # orgpost
 
-`orgpost` 是个人使用的 org mode 的 blog 发布工具和主题集合。
+`orgpost` 是专为个人博客设计的 org mode 发布工具和主题集合。
+
+页面展示： [hugchange](www.hugchange.life)
 
 ## 依赖
 
 需要提前安装 python 包
 
 ```bash
-pip install orgparse jinja2 bs4
+pip install orgparse jinja2 bs4 pygments
 ```
 
 ## 使用方法
@@ -27,7 +29,9 @@ cd ~/mysite
 python orgchange/publish.py
 ```
 
-如果不修改 `config_exampl`e, 以上命令执行后会将 `example` 目录中的所有 org 文件导出到 `~/mysite/example/www` 子目录中，可以在 `~/mysite` 中启动本地 web server 来查看网页导出效果。
+如果不修改 `config_example。json` 文件, 以上命令执行后会将 `example` 目录中的所有 org 文件导出到 `~/mysite/example/www` 子目录中，可以在 `~/mysite` 中启动本地 web server 来查看网页导出效果。
+
+个人测试的时候，也可以执行： `python orgchange/publish.py --config config_example.json` 只导出 example 目录里的文件。
 
 ## `config.json` 解释
 
@@ -91,11 +95,22 @@ config_example.json 结构如下，发布前，需要把该文件复制或重命
 - `index_template`: 主页的模板，在 `index_org` 中的文章列表会添加到该模板的指定位置中, 使用 jinja 渲染。
 - `beian`, `sitename`, `github_url`, `github_name`: 这些是可选的，它属于网站的 meta 信息，一般放置在主页的 footer 中
 
-## 原则
+## 设计原则
 
-独立于个人 emacs 配置，也就是说，只需要下载 orgchange 后，所有的 blog 发布需要的工具和依赖都在 orgchange 中包含和配置，而不需要依赖自己的 emacs 配置。emacs 配置和 blog 发布配置并不互相影响。
+- 独立于个人 emacs 配置，也就是说，下载 orgchange 后，所有的 blog 发布需要的工具和依赖都在 orgchange 中包含和配置，不依赖自己的 emacs 配置。
 
-blog 发布目录独立于 org 文件目录，并且不对 org 文件的组织有固定要求。这意味着可以将分散在不同位置的 org 文件都导入到同一个 web 页面下。
+- blog 发布目录独立于 org 文件目录，并且不对 org 文件的组织有固定要求。这意味着可以将分散在不同位置的 org 文件都导入到同一个 web 页面下。
+
+- 更现代的默认导出设置： html5 标准，黑白主题切换
+
+- 统一的全局配置，通过 config.json 设置网站的全局属性，同时又可以在 index.org 中用 org property 的方式对每一篇导出的文章进行设置，尽可能避免在原始的 org 文件添加 blog 导出元属性。
+
+## 特色功能
+
+- 单个文件按一级标题导出成多个 html, 每个 html 共享整个 org 文件的全局目录（类似 readthedocs 的全局目录）。
+- 可以在 index_org 中为为每篇文章单独设置 tags（独立于 org 的 filetag），并且自动生成 tags 页面。
+- 代码高亮：基于 pygments 进行代码高亮,从 https://pygments.org/styles/# 选择不同的代码主题
+- 专为 lisp 系列语言提供 rainbow 括号高亮以及动态的括号内背景颜色高亮
 
 ## 局限
 
