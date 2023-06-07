@@ -1,0 +1,156 @@
+:root {
+  --paren-background1: #27374d;
+  --paren-background2: #321e1e;
+  --paren-background3: #5f264a;
+  --paren-background4: #27374d;
+  --paren-background5: #0c134f;
+  --paren-background6: #393646;
+  --paren-background7: #0b2447;
+  --paren-background8: #02185a;
+  --paren-background9: #540404;
+  --paren-background10: #025402;
+  --paren-color1: #ffffff;
+  --paren-color2: #e69f00;
+  --paren-color3: #56b4e9;
+  --paren-color4: #009e73;
+  --paren-color5: #f0e442;
+  --paren-color6: #0072b2;
+  --paren-color7: #d55e00;
+}
+
+:root.light {
+  --paren-background1: #ead4b4;
+  --paren-background2: #cfffff;
+  --paren-background3: #ffcfff;
+  --paren-background4: #ffffcf;
+  --paren-background5: #bdeab4;
+  --paren-background6: #ead4b4;
+  --paren-background7: #f4d0ec;
+  --paren-background8: #d0d9f4;
+  --paren-background9: #ffcfcf;
+  --paren-background10: #cfffcf;
+  --paren-color1: #000000;
+  --paren-color2: #b46d02;
+  --paren-color3: #60690e;
+  --paren-color4: #009e73;
+  --paren-color5: #73240c;
+  --paren-color6: #644c02;
+  --paren-color7: #4d0659;
+}
+
+/*
+.plevel-1:hover {
+  background-color: var(--paren-background1);
+}
+
+.plevel-2:hover {
+  background-color: var(--paren-background2);
+}
+
+.plevel-3:hover {
+  background-color: var(--paren-background3);
+}
+
+.plevel-4:hover {
+  background-color: var(--paren-background4);
+}
+
+.plevel-5:hover {
+  background-color: var(--paren-background5);
+}
+
+.plevel-6:hover {
+  background-color: var(--paren-background6);
+}
+
+.plevel-7:hover {
+  background-color: var(--paren-background7);
+}
+.plevel-8:hover {
+  background-color: var(--paren-background8);
+}
+
+.plevel-9:hover {
+  background-color: var(--paren-background8);
+}
+
+.plevel-10:hover {
+  background-color: var(--paren-background10);
+}
+
+.plevel-11:hover {
+  background-color: var(--paren-background1);
+}
+
+.plevel-12:hover {
+  background-color: var(--paren-background2);
+}
+*/
+
+.plevel-1 .p {
+  color: var(--paren-color1);
+}
+
+.plevel-2 .p {
+  color: var(--paren-color2);
+  font-size: 90%;
+  letter-spacing: +0.1em;
+  vertical-align: -1%;
+}
+
+.plevel-3 .p {
+  color: var(--paren-color3);
+  font-size: 80%;
+  letter-spacing: +0.12em;
+  vertical-align: -2%;
+}
+
+.plevel-4 .p {
+  color: var(--paren-color4);
+  font-size: 110%;
+  letter-spacing: -0.06em;
+  vertical-align: top;
+}
+
+.plevel-5 .p {
+  color: var(--paren-color5);
+  font-size: 95%;
+  letter-spacing: +0.05em;
+  vertical-align: -6%;
+}
+
+.plevel-6 .p {
+  color: var(--paren-color6);
+
+  font-size: 90%;
+  letter-spacing: +0.1em;
+  vertical-align: -5%;
+}
+
+.plevel-7 .p {
+  color: var(--paren-color7);
+  font-size: 80%;
+  letter-spacing: +0.12em;
+  vertical-align: -4.5%;
+}
+
+.plevel-8 .p {
+  color: var(--paren-color2);
+  font-size: 90%;
+  letter-spacing: +0.1em;
+  vertical-align: -1%;
+}
+
+.plevel-9 .p {
+  color: var(--paren-color3);
+  font-size: 80%;
+  letter-spacing: +0.12em;
+  vertical-align: -2%;
+}
+
+.plevel-10 .p {
+  color: var(--paren-color4);
+  font-size: 110%;
+  letter-spacing: -0.06em;
+  vertical-align: top;
+}

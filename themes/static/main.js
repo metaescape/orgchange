@@ -65,3 +65,31 @@ function themeBtnHandler(targetTheme) {
   });
   toggleBtn.checked = targetTheme === "light";
 }
+
+let last_paren;
+let current_paren;
+
+document.addEventListener("DOMContentLoaded", function (e) {
+  let rootStyle = getComputedStyle(document.documentElement);
+
+  let mainFontSize = rootStyle.getPropertyValue("----main-font-size").trim();
+
+  document.querySelector("#content").addEventListener("click", function (e) {
+    let parenBackground = rootStyle
+      .getPropertyValue("--paren-background1")
+      .trim();
+    let current_paren = e.target.closest(".paren");
+    // clear last_pare style
+    if (last_paren) {
+      // last_paren.style.backgroundColor = preBackground;
+      // last_paren.style.fontSize = mainFontSize;
+      last_paren.style = "";
+    }
+    if (current_paren) {
+      current_paren.style.backgroundColor = parenBackground;
+      current_paren.style.fontSize = "1.8rem";
+    }
+    console.log(current_paren, last_paren);
+    last_paren = current_paren;
+  });
+});
