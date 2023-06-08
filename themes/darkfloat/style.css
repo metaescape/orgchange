@@ -29,7 +29,7 @@ html {
   --main-background: #292a2d;
   --header-background: #252627;
   --content-background: #303134;
-  --content-color: #a9a9b3;
+  --content-color: #c7c7d3;
   --hover-color: #3f3f3f;
   --secondary-text-color: #999;
   --shadow: 8px;
@@ -71,7 +71,7 @@ body {
     "Segoe UI", Helvetica, Arial, sans-serif;
 
   font-size: var(--main-font-size);
-  line-height: 1.8;
+  line-height: 1.6;
 }
 
 h1,
@@ -355,7 +355,7 @@ nav a:hover {
   max-height: 12vh;
   z-index: 10;
   margin: 0;
-  font-size: 1rem;
+  font-size: 1.2rem;
 }
 
 #global-toc::-webkit-scrollbar {
@@ -390,7 +390,7 @@ h2 {
 p,
 ul,
 ol {
-  margin-bottom: 0.75rem;
+  margin-bottom: 1.2rem;
 }
 
 main h1,
@@ -452,7 +452,7 @@ ul ul ul {
 }
 
 li {
-  padding: 0.4rem 0;
+  padding: 0.2rem 0;
 }
 
 table {
@@ -503,7 +503,7 @@ li code {
 
 pre {
   font-family: Consolas, Monaco, Andale Mono, Ubuntu Mono, monospace;
-  letter-spacing: -0.5px;
+
   font-feature-settings: normal;
   color: var(--pre-text);
   background: var(--pre-background);
@@ -872,5 +872,10 @@ footer .beian {
 
   blockquote {
     margin: 0.4rem 1rem;
+  }
+
+  .highlight {
+    letter-spacing: -0.1px;
+    word-spacing: -1px;
   }
 }
