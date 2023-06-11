@@ -14,7 +14,6 @@
 ;; (setq org-cite-export-processors '((t csl)))
 
 (prin1 (format "load package %s \n" (locate-library "ox-html")) )
-
 ;; disable files end with ~
 (setq make-backup-files nil)
 (setq user-settings-blog-title nil)

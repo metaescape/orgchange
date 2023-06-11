@@ -5,7 +5,14 @@ from pygments.formatters import HtmlFormatter
 from bs4 import BeautifulSoup, NavigableString
 import html
 
-lisp_family = ["scheme", "lisp", "racket", "elisp", "emacs-lisp", "elisp"]
+lisp_family = [
+    "scheme",
+    "lisp",
+    "racket",
+    "elisp",
+    "emacs-lisp",
+    "elisp",
+]
 
 
 def pygment_and_paren_match_all(soup, class_filters=[]):
@@ -14,8 +21,12 @@ def pygment_and_paren_match_all(soup, class_filters=[]):
         if not pre.code:
             continue
         lang = "example"
+        jupyter_python = False
         try:
             lang = pre.code["class"][0]
+            if lang == "jupyter-python":
+                jupyter_python = True
+                lang = "python"
             lexer = get_lexer_by_name(lang)
         except:
             continue
@@ -29,17 +40,19 @@ def pygment_and_paren_match_all(soup, class_filters=[]):
         highlighted_code = highlight(escaped_code, lexer, formatter)
 
         soup_code = BeautifulSoup(highlighted_code, "html.parser")
-        if lang in lisp_family:
+        if lang in lisp_family or jupyter_python:
             normalize_pre = normalize_span(soup_code.pre)
-            paren_matched_pre = paren_match(normalize_pre)
+            paren = "[]" if jupyter_python else "()"
+            paren_matched_pre = paren_match(normalize_pre, paren=paren)
             soup_code.pre.replace_with(paren_matched_pre)
+
         soup_code.pre["class"] = [lang]
         pre.replace_with(soup_code)
 
     return soup
 
 
-def paren_match(pre):
+def paren_match(pre, paren="()"):
     """
     div is a <pre> tag, and we want to wrap parentheses in spans
     all children of div are <span> tags thanks to pygments
@@ -54,15 +67,16 @@ def paren_match(pre):
         # Check if both parentheses are in the same tag
 
         stack.append(child)
-        if child.string in ["()", "():"]:
-            wrapper = soup.new_tag("span")
-            wrapper["class"] = "paren"
-            child.wrap(wrapper)
-        elif child.string == "(":
+        # 不考虑 （）或 [] 情况
+        # if child.string in [paren, paren+":"]:
+        #     wrapper = soup.new_tag("span")
+        #     wrapper["class"] = "paren"
+        #     child.wrap(wrapper)
+        if child.string == paren[0]:
             # push the span tag onto the stack
             open_index_stack.append(len(stack) - 1)
 
-        elif child.string == ")":
+        elif child.string == paren[1]:
             if open_index_stack:
                 open_index = open_index_stack.pop()
 

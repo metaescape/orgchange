@@ -2,6 +2,7 @@
 // based on https://www.roboleary.net/2022/01/13/copy-code-to-clipboard-blog.html
 const copyLabel = "Copy";
 let parenBackground;
+let rootStyle;
 
 async function copyCode(block, button) {
   let code = block.querySelector("pre");
@@ -53,7 +54,9 @@ function setTheme(targetTheme) {
     html.classList.add("light");
   }
   localStorage.setItem("theme", targetTheme);
-  parenBackground = rootStyle.getPropertyValue("--paren-background1").trim();
+  if (rootStyle) {
+    parenBackground = rootStyle.getPropertyValue("--paren-background1").trim();
+  }
 }
 
 function themeBtnHandler(targetTheme) {
@@ -99,7 +102,7 @@ document.addEventListener("DOMContentLoaded", function (e) {
       current_paren = e.target.closest(".paren");
       if (current_paren) {
         current_paren.style.backgroundColor = parenBackground;
-        current_paren.style.fontSize = "1.8rem";
+        current_paren.style.fontSize = "1.7rem";
       }
     });
 
