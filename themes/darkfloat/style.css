@@ -19,7 +19,7 @@ html {
 }
 
 :root {
-  --heading-color: #dfdfdf;
+  --heading-color: #e8e8e8;
   --toggle-width: 5rem;
   --toggle-height: 2rem;
   --change-decorate: rgb(0, 86, 143);
@@ -83,6 +83,18 @@ h3,
 h4,
 h5 {
   color: var(--heading-color);
+}
+
+h2 {
+  font-size: 2.6rem;
+}
+
+h3 {
+  font-size: 2.4rem;
+}
+
+h3 {
+  font-size: 2.2rem;
 }
 
 .top-header {
@@ -300,7 +312,7 @@ body a {
   border-bottom: 1px solid #4a4b50;
   padding-bottom: 1rem;
   border-radius: 4px;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
 }
 
 #text-table-of-contents {
@@ -370,10 +382,6 @@ nav a:hover {
   padding: 0;
 }
 
-h2 {
-  font-size: 2.4rem;
-}
-
 .open h2::before {
   content: "▼ ";
 }
@@ -397,15 +405,13 @@ ol {
   margin-bottom: 1.2rem;
 }
 
-main h1,
 main h2,
 main h3,
 main h4,
 main h5,
 main h6 {
-  font-family: "Montserrat", sans-serif;
   font-weight: bold;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.8rem;
   margin-top: 1.5rem;
 }
 
@@ -846,7 +852,7 @@ footer .beian {
     font-size: 2.8rem;
   }
   h2 {
-    font-size: 2.2rem;
+    font-size: 2.4rem;
   }
   h3 {
     font-size: 2rem;
