@@ -107,13 +107,15 @@ config_example.json 结构如下，发布前，需要把该文件复制或重命
 
 ## 特色功能
 
-- 单个文件按一级标题导出成多个 html, 每个 html 共享整个 org 文件的全局目录（类似 readthedocs 的全局目录）。
+- 支持单个文件按一级标题导出成多个 html, 每个 html 共享整个 org 文件的全局目录（类似 readthedocs 的全局目录）。
 - 可以在 index_org 中为为每篇文章单独设置 tags（独立于 org 的 filetag），并且自动生成 tags 页面。
 - 代码高亮：基于 pygments 进行代码高亮,从 https://pygments.org/styles/# 选择不同的代码主题
 - 专为 lisp 系列语言提供 rainbow 括号高亮以及动态的括号内背景颜色高亮
+- 支持 org-ref 和 org-cite 格式的参考文献 csl 格式导出，内置 acl 和 ieee 两种 csl 样式
 
 ## 局限
 
 不处理 org 文件重命名：
 
 - 例如假设有 a.org 想导出成 b.html， 这个功能涉及整个项目引用检索，因此没有实现.
+- 由于代码执行的结果实际上会导出成成 pre.example tag, 它和 `#+begin_example` 导出结果是一样的，为了更好的控制源码和执行结果之间的距离，默认样式中把 example 的 margin-top 设置成负数，这会导致 `#+begin_example` 的导出结果边距很小，因此建议在 blog 的原始 blog 中不要使用 `#+begin_example` ， 可以用 dynamic ， verse,center 等其他 block

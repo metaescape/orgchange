@@ -142,8 +142,9 @@ def _merge_toc(html_files, soups):
             title = soup.find("h1", {"class": "title"}).contents[0]
 
         except AttributeError:
+            print(file)
             raise AttributeError(
-                f"\n--> ERROR: you may need to add a #+title in your org file: {os.path.abspath( os.curdir)}.org\n"
+                f"\n--> ERROR: you may need to add a #+title in your org file: {os.path.abspath(file)}\n"
             )
         title_li_str = f'<li> <a href="{file}">{title}</a></li>'
         title_li = new_soup(title_li_str)

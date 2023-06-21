@@ -1,5 +1,8 @@
 #+TITLE: Demo test for Org Change
 #+DATE: [2022-06-14]
+#+bibliography: ~/org/lib/zotero.bib
+#+cite_export: csl ~/org/lib/acl.csl
+
 
 * 如何查看本网页
 在 =example/www= 目录下执行 ~python -m http.server~ 快速启动一个 http 服务
@@ -156,6 +159,30 @@ org-table 表格
 
 
 
+* 参考文献导出
+[[cite:&huLoRALowRankAdaptation2021]]
+
+导出过程中
+
+#+begin_example
+[\[cite:&huLoRALowRankAdaptation2021]] 形式的 org-rfe 链接会在 org-export-before-parsing-hook 中被转成
+[cite:@huLoRALowRankAdaptation2021] 形式的 org-cite 链接，这样才能支持 csl 风格的导出.
+
+此外，需要在 org 文件的顶部添加：
+#+bibliography: ~/org/lib/zotero.bib
+#+cite_export: csl /tmp/ieee.csl
+
+其中 /tmp/ieee.csl 改成自己的 csl 文件路径，在 `orgchange/themes/static` 中提供了 `acl.csl` 和 `ieee.csl` 两个样例
+
+在 org 文件最后添加
+,* 参考
+#+print_bibliography:
+#+end_example
+
+
+注意 csl 的风格决定了导出的风格，这里提供了 ieee.csl 和 acl.csl 两个样例
+对于 acl 默认导出的参考文献列表没有 [1] 这样的编号，不过在 css 端可以解决
+以上部分要整理到 demo.org 中
 
 
 
@@ -170,3 +197,5 @@ org-table 表格
 keep hungry, keep foolish
 #+end_quote
 
+* 参考
+#+print_bibliography:

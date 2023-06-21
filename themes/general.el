@@ -135,3 +135,11 @@ Already existing files are overwritten."
           ))
       "+LEVEL=1-noexport" scope))))
 ;; https://orgmode.org/manual/Matching-tags-and-properties.html#Matching-tags-and-properties
+
+(defun my/org-modify-cite-links (backend)
+  "Modify cite links in the current buffer for export."
+  (goto-char (point-min))
+  (while (re-search-forward "\\[\\[cite:&\\(.*?\\)\\]\\]" nil t)
+    (replace-match "[cite:@\\1]" nil nil)))
+
+(add-hook 'org-export-before-parsing-hook 'my/org-modify-cite-links)

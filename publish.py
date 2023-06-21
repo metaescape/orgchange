@@ -141,12 +141,11 @@ def get_visible_posts(meta):
 
 def single_page_postprocessing(html_files, titles=[]):
     soups = []
-
     with change_dir(WWW):
         for html in html_files:
             with open(html[1:], "r") as f:
                 soup = BeautifulSoup(f, "html.parser")
-                soup = _merge_toc(html_files, [soup])[0]
+                soup = _merge_toc([html], [soup])[0]
                 soup = pygment_and_paren_match_all(soup)  # code highlight
                 soups.append(soup)
 
