@@ -2,12 +2,12 @@
 (require 'org-id)
 (require 'oc)
 
-(add-to-list 'load-path "~/.emacs.d/elpa/citeproc-20220623.1550/")
-(add-to-list 'load-path "~/.emacs.d/elpa/dash-20220608.1931")
-(add-to-list 'load-path "~/.emacs.d/elpa/queue-0.2")
-(add-to-list 'load-path "~/.emacs.d/elpa/s-20210616.619")
-(add-to-list 'load-path "~/.emacs.d/elpa/f-20220608.943")
-(add-to-list 'load-path "~/.emacs.d/elpa/parsebib-20220620.2207/")
+(add-to-list 'load-path "../../elpa/citeproc-20220623.1550/")
+(add-to-list 'load-path "../../elpa/dash-20220608.1931")
+(add-to-list 'load-path "../../elpa/queue-0.2")
+(add-to-list 'load-path "../../elpa/s-20210616.619")
+(add-to-list 'load-path "../../elpa/f-20220608.943")
+(add-to-list 'load-path "../../elpa/parsebib-20220620.2207/")
 
 (require 'oc-csl)
 

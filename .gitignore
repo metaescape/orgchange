@@ -2,3 +2,4 @@
 config.json
 example/www/
 *.pyc
+*.elc
