@@ -1,6 +1,6 @@
-# orgpost
+# orgchange
 
-`orgpost` 是专为个人博客设计的 org mode 发布工具和主题集合。
+`orgchange` 是为个人博客设计的 org mode 发布工具和主题集合。
 
 页面展示： [hugchange](www.hugchange.life)
 
