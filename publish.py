@@ -271,6 +271,7 @@ def publish_single_file(publish_info, publish_folder, verbose=False):
         **publish_info.get("context", {}),
     )
 
+    # TODO maybe move to postprocessing
     img_urls = extract_links_from_html(target_file_pathes)
 
     for img_url in img_urls:

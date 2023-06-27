@@ -165,7 +165,7 @@ org-table 表格
 导出过程中
 
 #+begin_example
-[\[cite:&huLoRALowRankAdaptation2021]] 形式的 org-rfe 链接会在 org-export-before-parsing-hook 中被转成
+[[cite:&huLoRALowRankAdaptation2021]] 形式的 org-rfe 链接会在 org-export-before-parsing-hook 中被转成
 [cite:@huLoRALowRankAdaptation2021] 形式的 org-cite 链接，这样才能支持 csl 风格的导出.
 
 此外，需要在 org 文件的顶部添加：

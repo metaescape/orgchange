@@ -399,6 +399,15 @@ nav a:hover {
   box-shadow: 0 calc(var(--shadow) / 2) var(--shadow) 0 rgb(0 0 0 / 40%);
 }
 
+p {
+  text-indent: 0rem;
+  margin-top: 0.5rem;
+}
+
+li p {
+  margin-top: 0rem;
+}
+
 p,
 ul,
 ol {
@@ -472,7 +481,11 @@ table {
   text-indent: initial;
   border-spacing: 2px;
   border-collapse: collapse;
-  margin: 0 auto;
+  margin: 1rem auto;
+}
+
+.csl-entry {
+  margin-bottom: 1rem;
 }
 
 table thead {
@@ -503,7 +516,7 @@ p code,
 li code {
   display: inline-block;
   white-space: no-wrap;
-  background-color: var(--content-background);
+  background-color: var(--pre-background);
   line-height: 1.5rem;
   font-size: inherit;
   border: 0.5px solid var(--hover-color);
@@ -761,10 +774,6 @@ blockquote p:first-of-type {
 ::-webkit-scrollbar-thumb {
   background: var(--hover-color);
   border-radius: 3px;
-}
-
-p {
-  text-indent: 0rem;
 }
 
 .post-list .post-line {

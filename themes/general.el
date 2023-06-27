@@ -140,6 +140,7 @@ Already existing files are overwritten."
   "Modify cite links in the current buffer for export."
   (goto-char (point-min))
   (while (re-search-forward "\\[\\[cite:&\\(.*?\\)\\]\\]" nil t)
-    (replace-match "[cite:@\\1]" nil nil)))
+    (unless (org-between-regexps-p "^#\\+begin_" "^#\\+end_")
+      (replace-match "[cite:@\\1]" nil nil))))
 
 (add-hook 'org-export-before-parsing-hook 'my/org-modify-cite-links)
