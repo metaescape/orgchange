@@ -30,6 +30,8 @@ RE_LINK = re.compile(
     re.VERBOSE,
 )
 
+utils_last_mod_time = {}
+
 
 def read_config(config_file):
     with open(config_file, "r") as f:
@@ -123,19 +125,22 @@ def format_prefixes(prefixes):
 
 def extract_links_from_html(pathes):
     img_urls = []
+    index_soup = None
     for path in pathes:
         with open(path, "r") as f:
             html_content = f.read()
 
         # Parse the HTML content using BeautifulSoup
         soup = BeautifulSoup(html_content, "html.parser")
-
+        if path.endswith("index.html"):
+            index_soup = soup
         # Find all image tags in the HTML document
         img_tags = soup.find_all("img")
 
         # Extract the image URLs from the image tags using regular expressions
         img_urls.extend([img["src"] for img in img_tags if "src" in img.attrs])
-    return img_urls
+    return_soup = index_soup if index_soup else soup
+    return (img_urls, return_soup)
 
 
 def check_modified_time_hook(file1, file2, f):
@@ -229,6 +234,41 @@ def print_green(text):
     print(f"{green}{text}{reset}")
 
 
+def get_timestamp_of_publish_utils(theme):
+    theme_dir = os.path.join(ORG_CHANGE_DIR, "themes", theme)
+    if utils_last_mod_time.get(theme, None) is None:
+        last_mod = get_latest_timestamp(
+            theme_dir,
+            ignore=["style.css"],
+            includes=[
+                f"{ORG_CHANGE_DIR}/themes/general.el",
+                f"{ORG_CHANGE_DIR}/publish.py",
+                f"{ORG_CHANGE_DIR}/utils.py",
+                f"{ORG_CHANGE_DIR}/dom.py",
+            ],
+        )
+        utils_last_mod_time[theme] = last_mod
+    return utils_last_mod_time[theme]
+
+
+def get_timestamp_of_orgfile(orgfile):
+    return os.path.getmtime(orgfile)
+
+
+def do_need_modified(theme_dir, org_path, html_path):
+    latest_timestamp = max(
+        get_timestamp_of_publish_utils(theme_dir),
+        get_timestamp_of_orgfile(org_path),
+    )
+    if (
+        os.path.exists(html_path)
+        and os.path.getmtime(html_path) > latest_timestamp
+    ):
+        print_green(f"html is newer than {org_path}, skip")
+        return False
+    return True
+
+
 def cache(html="index.html"):
     def decorator(func):
         @functools.wraps(func)  # 保留被装饰函数的元数据
@@ -244,17 +284,8 @@ def cache(html="index.html"):
                 )
             # if the timestamp of html_file is newer than orgfile, skip
             latest_timestamp = max(
-                get_latest_timestamp(
-                    theme,
-                    ignore=["style.css"],
-                    includes=[
-                        f"{ORG_CHANGE_DIR}/themes/general.el",
-                        f"{ORG_CHANGE_DIR}/publish.py",
-                        f"{ORG_CHANGE_DIR}/utils.py",
-                        f"{ORG_CHANGE_DIR}/dom.py",
-                    ],
-                ),
-                os.path.getmtime(orgfile),
+                get_timestamp_of_publish_utils(theme),
+                get_timestamp_of_orgfile(orgfile),
             )
             if (
                 os.path.exists(html_file)
@@ -266,7 +297,6 @@ def cache(html="index.html"):
             # 执行被装饰函数
             result = func(*args, **kwargs)
 
-            # 返回被装饰函数的结果
             return result
 
         return wrapper

@@ -212,7 +212,7 @@ def _add_article_footer(html_files, soups, titles=[]):
     n = len(html_files)
     for i in range(n):
         _, soup = html_files[i], soups[i]
-        paginav = soup.find("nav", {"class": "paginav"})
+        paginav = soup.find("nav", {"class": "paginav"}) if soup else None
         if paginav:
             _insert_paginav(paginav, html_files, titles, i, cls="prev")
             _insert_paginav(paginav, html_files, titles, i, cls="next")

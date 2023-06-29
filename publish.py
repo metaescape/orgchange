@@ -28,6 +28,7 @@ from utils import (
     normalize_path,
     read_config,
     rsync_copy,
+    do_need_modified,
 )
 
 
@@ -125,38 +126,43 @@ def multipage_postprocessing(orgfile, html_folder):
                 f.write(soup.prettify())
 
 
-def get_visible_posts(meta):
-    html_files = [
-        post["html_path_abs2www"]
-        for post in meta["posts"]
+def get_visible_post_ids(meta):
+    visible_ids = [
+        i
+        for i, post in enumerate(meta["posts"])
         if not (post["list_index"] or post["draft"])
     ]
-    titles = [
-        post["title"]
-        for post in meta["posts"]
-        if not (post["list_index"] or post["draft"])
-    ]
-    return html_files, titles
+
+    return visible_ids
 
 
-def single_page_postprocessing(html_files, titles=[]):
+def single_page_postprocessing(meta):
+    visible_ids = get_visible_post_ids(meta)
     soups = []
-    with change_dir(WWW):
-        for html in html_files:
-            with open(html[1:], "r") as f:
-                soup = BeautifulSoup(f, "html.parser")
-                soup = _merge_toc([html], [soup])[0]
-                soup = pygment_and_paren_match_all(soup)  # code highlight
-                soups.append(soup)
+    html_files = []
+    titles = []
 
-        _add_article_footer(html_files, soups, titles)
+    for i, post in enumerate(meta["posts"]):
+        if i not in visible_ids:
+            continue
+        if "soup" in post:  # do not need to update
+            soup = _merge_toc([post["html_path_abs2sys"]], [post["soup"]])[0]
+            soup = pygment_and_paren_match_all(soup)  # code highlight
+        soups.append(None if "soup" not in post else post["soup"])
+        html_files.append("/" + post["html_path_rel2publish"])
+        titles.append(post["title"])
 
-        for html, soup in zip(html_files, soups):
-            with open(html[1:], "w") as f:
-                f.write(soup.prettify())
+    _add_article_footer(html_files, soups, titles)
+
+    for i in visible_ids:
+        if "soup" not in meta["posts"][i]:
+            continue
+        soup = meta["posts"][i]["soup"]
+        with open(meta["posts"][i]["html_path_abs2sys"], "w") as f:
+            f.write(soup.prettify())
 
 
-@cache("index.html")
+# @cache("index.html")
 def export_to_multiple_htmls(
     orgfile, html_folder, theme, publish_folder, verbose, **kwargs
 ):
@@ -177,7 +183,7 @@ def export_to_multiple_htmls(
     multipage_postprocessing(orgfile, html_folder)
 
 
-@cache("")
+# @cache("")
 def export_to_single_html(
     orgfile, html_folder, theme, publish_folder, verbose, **kwargs
 ):
@@ -271,8 +277,7 @@ def publish_single_file(publish_info, publish_folder, verbose=False):
         **publish_info.get("context", {}),
     )
 
-    # TODO maybe move to postprocessing
-    img_urls = extract_links_from_html(target_file_pathes)
+    img_urls, soup = extract_links_from_html(target_file_pathes)
 
     for img_url in img_urls:
         with change_dir(org_folder):
@@ -280,6 +285,7 @@ def publish_single_file(publish_info, publish_folder, verbose=False):
             rsync_copy(img_url, html_folder)
 
     print("published to {}".format(html_path_abs2sys))
+    return soup
 
 
 def generate_index_html(config, info, publish_folder):
@@ -410,6 +416,12 @@ def publish_via_index(config, verbose=False):
                     "title": post_info["title"],
                 }
             )
+        post_info["need_update"] = do_need_modified(
+            post_info["theme"],
+            post_info["org_path_abs2sys"],
+            post_info["html_path_abs2sys"],
+        )
+
     setq = ""
     for var, value in config.get("setq", {}).items():
         # 只支持从外部设置 string 变量
@@ -417,6 +429,7 @@ def publish_via_index(config, verbose=False):
             setq += f"""(setq {var} {value})"""
         else:
             setq += f"""(setq {var} "{value}")"""
+
     for i, post_info in enumerate(meta["posts"]):
         post_info["context"] = {}
         context = post_info.get("context")
@@ -427,12 +440,11 @@ def publish_via_index(config, verbose=False):
             )
         context["categories"] = ",".join(post_info["categories"])
         context["setq"] = setq
+        if post_info["need_update"]:
+            soup = publish_single_file(post_info, publish_folder, verbose)
+            post_info["soup"] = soup
 
-        publish_single_file(post_info, publish_folder, verbose)
-
-    visible_htmls, visible_titles = get_visible_posts(meta)
-
-    single_page_postprocessing(visible_htmls, visible_titles)
+    single_page_postprocessing(meta)
 
     generate_index_html(config, meta, publish_folder)
 
