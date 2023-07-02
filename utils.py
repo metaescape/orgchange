@@ -123,7 +123,7 @@ def format_prefixes(prefixes):
     return sorted(formatted_prefixes, key=len, reverse=True)
 
 
-def extract_links_from_html(pathes):
+def extract_links_from_html(pathes, link_replace):
     img_urls = []
     index_soup = None
     for path in pathes:
@@ -139,6 +139,23 @@ def extract_links_from_html(pathes):
 
         # Extract the image URLs from the image tags using regular expressions
         img_urls.extend([img["src"] for img in img_tags if "src" in img.attrs])
+        for p in soup.find_all("p"):
+            # 在每个 <p> 标签中找到所有的 <a> 标签
+            for a in p.find_all("a"):
+                if not a.has_attr("href"):
+                    continue
+                href = a["href"]
+
+                for src, target in link_replace:
+                    src = r"file://" + os.path.expanduser(src)
+                    href = href.replace(src, target)
+
+                # 删除 "#MissingReference"
+                href = href.replace("#MissingReference", "")
+
+                # 更新 href 属性
+                a["href"] = href
+
     return_soup = index_soup if index_soup else soup
     return (img_urls, return_soup)
 

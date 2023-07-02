@@ -57,6 +57,11 @@ def index_node_process(node, publish_folder, prefixes, theme):
         html_path_abs2sys = html_path_abs2sys.replace(".html", "/index.html")
     html_path_rel2www = extract_suffix_from_prefix(html_path_abs2sys, WWW)
     html_path_abs2www = "/" + html_path_rel2www
+    link_replace = [
+        pair.strip().split("::")
+        for pair in node.get_property("link_replace", "").split(",")
+        if pair.strip()
+    ]
 
     return {
         "theme": node.get_property("theme", theme),
@@ -70,6 +75,7 @@ def index_node_process(node, publish_folder, prefixes, theme):
         "html_path_rel2publish": html_path_rel2publish,
         "html_path_abs2sys": html_path_abs2sys,
         "html_path_abs2www": html_path_abs2www,
+        "link_replace": link_replace,
     }
 
 
@@ -143,22 +149,32 @@ def single_page_postprocessing(meta):
     titles = []
 
     for i, post in enumerate(meta["posts"]):
+        if "soup" in post:
+            # 对所有 soup 都进行代码高亮
+            post["soup"] = pygment_and_paren_match_all(post["soup"])
+
         if i not in visible_ids:
             continue
-        if "soup" in post:  # do not need to update
-            soup = _merge_toc([post["html_path_abs2sys"]], [post["soup"]])[0]
-            soup = pygment_and_paren_match_all(soup)  # code highlight
+
+        # 只对可见的文章进行 toc 合并，因为不希望 toc 里面包含 draft 的目录
+        if "soup" in post:
+            post["soup"] = _merge_toc(
+                [post["html_path_abs2sys"]], [post["soup"]]
+            )[0]
+
+        # 只有可见文章才需要添加 footer
         soups.append(None if "soup" not in post else post["soup"])
         html_files.append("/" + post["html_path_rel2publish"])
         titles.append(post["title"])
 
     _add_article_footer(html_files, soups, titles)
 
-    for i in visible_ids:
-        if "soup" not in meta["posts"][i]:
+    # 保存所有 soup，无论是否可见
+    for i, post in enumerate(meta["posts"]):
+        if "soup" not in post:
             continue
-        soup = meta["posts"][i]["soup"]
-        with open(meta["posts"][i]["html_path_abs2sys"], "w") as f:
+        soup = post["soup"]
+        with open(post["html_path_abs2sys"], "w") as f:
             f.write(soup.prettify())
 
 
@@ -277,7 +293,9 @@ def publish_single_file(publish_info, publish_folder, verbose=False):
         **publish_info.get("context", {}),
     )
 
-    img_urls, soup = extract_links_from_html(target_file_pathes)
+    img_urls, soup = extract_links_from_html(
+        target_file_pathes, publish_info["link_replace"]
+    )
 
     for img_url in img_urls:
         with change_dir(org_folder):

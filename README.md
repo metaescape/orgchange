@@ -112,6 +112,7 @@ config_example.json 结构如下，发布前，需要把该文件复制或重命
 - 代码高亮：基于 pygments 进行代码高亮,从 https://pygments.org/styles/# 选择不同的代码主题
 - 专为 lisp 系列语言提供 rainbow 括号高亮以及动态的括号内背景颜色高亮
 - 支持 org-ref 和 org-cite 格式的参考文献 csl 格式导出，内置 acl 和 ieee 两种 csl 样式
+- 支持在 index.org 的各个文章的 heading property 中设置 `DRAFT`(只导出但不发布在 index.html 里) ，`link_replace`(替换 html 中本地文件链接) 等属性
 
 ## 局限
 
