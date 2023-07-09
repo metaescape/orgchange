@@ -123,7 +123,24 @@ def format_prefixes(prefixes):
     return sorted(formatted_prefixes, key=len, reverse=True)
 
 
-def extract_links_from_html(pathes, link_replace):
+def remove_prefix(path, prefixes):
+    # if path is a http link, then skip
+    if path.startswith("http"):
+        return path
+    # Remove the .. and . parts directly
+    path = os.path.normpath(path.replace("..", "").replace("./", ""))
+    for prefix in prefixes:
+        # Expand the user directory symbol (~) in the prefix
+        prefix = os.path.expanduser(prefix)
+        # Check if the path starts with the prefix
+        if path.startswith(prefix):
+            # Remove the prefix from the path
+            return path[len(prefix) :]
+    # If no prefix is found, return empty string
+    return ""
+
+
+def extract_links_from_html(pathes, link_replace, prefixes):
     img_urls = []
     index_soup = None
     for path in pathes:
@@ -149,6 +166,8 @@ def extract_links_from_html(pathes, link_replace):
                 for src, target in link_replace:
                     src = r"file://" + os.path.expanduser(src)
                     href = href.replace(src, target)
+
+                href = remove_prefix(href, prefixes)
 
                 # 删除 "#MissingReference"
                 href = href.replace("#MissingReference", "")

@@ -217,6 +217,7 @@ def export_to_single_html(
         (setq publish-directory "{publish_folder}") 
         (setq categories "{kwargs.get('categories', '')}") 
         (setq github-issue-link "{kwargs.get('github_issue_link', '#')}") 
+        {kwargs.get('setq')}
         (org-html-export-to-html))
     """
 
@@ -294,7 +295,9 @@ def publish_single_file(publish_info, publish_folder, verbose=False):
     )
 
     img_urls, soup = extract_links_from_html(
-        target_file_pathes, publish_info["link_replace"]
+        target_file_pathes,
+        publish_info["link_replace"],
+        publish_info["prefixes"],
     )
 
     for img_url in img_urls:
@@ -439,6 +442,7 @@ def publish_via_index(config, verbose=False):
             post_info["org_path_abs2sys"],
             post_info["html_path_abs2sys"],
         )
+        post_info["prefixes"] = prefixes
 
     setq = ""
     for var, value in config.get("setq", {}).items():
