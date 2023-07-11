@@ -4,6 +4,29 @@
 
 页面展示： [hugchange](www.hugchange.life)
 
+## 设计理念
+
+- 与个人 emacs 配置完全解耦。也就是说，下载 orgchange 后，所有的 blog 发布需要的工具和依赖都在 orgchange 中包含和配置，不依赖自己的 emacs 配置。因为个人认为， blog 的个性化部分不是在 emacs 配置上，而是在文章内容和设计上。安装 orgchange 后，应该可以马上生成网页，并且该网页拥有灵活地修改页面样式的配置入口。
+
+- 导出选项不应该被限制在 org 文件里。emacs org export 默认情况下会读取文件内的 header 选项( `#+` 开头的设置)，这导致 org 的内容和对 org 导出成 html 的控制选项都写在同一个文件中。然而个人倾向于在 org 只保留影响 emacs 交互的控制选项（比如 org-roam filetags, org-link 缩写等配置）
+
+- 文学编程式的配置方法。对网站所有的期望都写在一个 org 或 json 文件中，配置的 scope 遵守 org 的层级结构。
+
+- 通过 config.json 设置网站的全局属性，同时又可以在 index.org 中用 org property 的方式对每一篇导出的文章进行设置，尽可能避免在原始的 org 文件添加 blog 导出元属性。
+
+- blog 发布目录独立于 org 文件目录，并且不对 org 文件的组织有固定要求。原生的 org-publish 只能指定某个目录作为网页发布目录，只能发布该目录下的 org 文件。orgchange 则可以将分散在不同位置的 org 文件都导入到同一个 web 目录下。
+
+- 更现代的默认的导出选项： html5 标准
+
+## 特色功能
+
+- 支持单个文件按一级标题导出成多个 html, 每个 html 共享整个 org 文件的全局目录（类似 readthedocs 的全局目录）。
+- 可以在 index_org 中为为每篇文章单独设置 tags（独立于 org 的 filetag），并且自动生成 tags 页面。
+- 代码高亮：基于 pygments 进行代码高亮,从 https://pygments.org/styles/# 选择不同的代码主题
+- 专为 lisp 系列语言提供 rainbow 括号高亮以及动态的括号内背景颜色高亮
+- 支持 org-ref 和 org-cite 格式的参考文献 csl 格式导出，内置 acl 和 ieee 两种 csl 样式
+- 支持在 index.org 的各个文章的 heading property 中设置 `DRAFT`(只导出但不发布在 index.html 里) ，`link_replace`(替换 html 中本地文件链接) 等属性
+
 ## 依赖
 
 需要提前安装 python 包
@@ -94,25 +117,6 @@ config_example.json 结构如下，发布前，需要把该文件复制或重命
 
 - `index_template`: 主页的模板，在 `index_org` 中的文章列表会添加到该模板的指定位置中, 使用 jinja 渲染。
 - `beian`, `sitename`, `github_url`, `github_name`: 这些是可选的，它属于网站的 meta 信息，一般放置在主页的 footer 中
-
-## 设计原则
-
-- 独立于个人 emacs 配置，也就是说，下载 orgchange 后，所有的 blog 发布需要的工具和依赖都在 orgchange 中包含和配置，不依赖自己的 emacs 配置。
-
-- blog 发布目录独立于 org 文件目录，并且不对 org 文件的组织有固定要求。这意味着可以将分散在不同位置的 org 文件都导入到同一个 web 页面下。
-
-- 更现代的默认导出设置： html5 标准，黑白主题切换
-
-- 统一的全局配置，通过 config.json 设置网站的全局属性，同时又可以在 index.org 中用 org property 的方式对每一篇导出的文章进行设置，尽可能避免在原始的 org 文件添加 blog 导出元属性。
-
-## 特色功能
-
-- 支持单个文件按一级标题导出成多个 html, 每个 html 共享整个 org 文件的全局目录（类似 readthedocs 的全局目录）。
-- 可以在 index_org 中为为每篇文章单独设置 tags（独立于 org 的 filetag），并且自动生成 tags 页面。
-- 代码高亮：基于 pygments 进行代码高亮,从 https://pygments.org/styles/# 选择不同的代码主题
-- 专为 lisp 系列语言提供 rainbow 括号高亮以及动态的括号内背景颜色高亮
-- 支持 org-ref 和 org-cite 格式的参考文献 csl 格式导出，内置 acl 和 ieee 两种 csl 样式
-- 支持在 index.org 的各个文章的 heading property 中设置 `DRAFT`(只导出但不发布在 index.html 里) ，`link_replace`(替换 html 中本地文件链接) 等属性
 
 ## 局限
 

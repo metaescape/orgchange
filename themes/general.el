@@ -11,7 +11,7 @@
 
 (require 'oc-csl)
 
-;; (setq org-cite-export-processors '((t csl)))
+(setq org-cite-export-processors '((t csl)))
 
 (prin1 (format "load package %s \n" (locate-library "ox-html")) )
 ;; disable files end with ~
@@ -144,3 +144,19 @@ Already existing files are overwritten."
       (replace-match "[cite:@\\1]" nil nil))))
 
 (add-hook 'org-export-before-parsing-hook 'my/org-modify-cite-links)
+
+
+;; https://emacs.stackexchange.com/questions/28301/export-javascript-source-block-to-script-tag-in-html-when-exporting-org-file-to
+(add-to-list 'org-src-lang-modes '("inline-js" . javascript)) ;; js2 if you're fancy
+(defvar org-babel-default-header-args:inline-js
+  '((:results . "html")
+    (:exports . "results")))
+(defun org-babel-execute:inline-js (body _params)
+  (format "<script type=\"text/javascript\">\n%s\n</script>" body))
+
+(add-to-list 'org-src-lang-modes '("module-js" . javascript)) ;; js2 if you're fancy
+(defvar org-babel-default-header-args:module-js
+  '((:results . "html")
+    (:exports . "results")))
+(defun org-babel-execute:module-js (body _params)
+  (format "<script type=\"module\">\n%s\n</script>" body))

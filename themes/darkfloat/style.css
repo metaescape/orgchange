@@ -30,7 +30,7 @@ html {
   --change-decorate-table: #09f1;
   --main-background: #292a2d;
   --header-background: #252627;
-  --content-background: #303134;
+  --content-background: #2f3032;
   --content-color: #c7c7d3;
   --hover-color: #3f3f3f;
   --secondary-text-color: #999;
@@ -851,7 +851,7 @@ footer .beian {
     height: 4.8rem;
   }
   .post-list .post-line {
-    margin: 1rem 0rem;
+    margin: 0.5rem 0rem;
     font-size: 1rem;
   }
   .timestamp-block {
@@ -865,6 +865,9 @@ footer .beian {
   }
   h3 {
     font-size: 2rem;
+  }
+  h4 {
+    font-size: 1.6rem;
   }
 
   .paginav,

@@ -6,8 +6,6 @@ import os
 import re
 import shutil
 
-from bs4 import BeautifulSoup
-
 # get path of current file
 ORG_CHANGE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -121,62 +119,6 @@ def format_prefixes(prefixes):
         formatted_prefixes.append(os.path.realpath(prefix))
 
     return sorted(formatted_prefixes, key=len, reverse=True)
-
-
-def remove_prefix(path, prefixes):
-    # if path is a http link, then skip
-    if path.startswith("http"):
-        return path
-    # Remove the .. and . parts directly
-    path = os.path.normpath(path.replace("..", "").replace("./", ""))
-    for prefix in prefixes:
-        # Expand the user directory symbol (~) in the prefix
-        prefix = os.path.expanduser(prefix)
-        # Check if the path starts with the prefix
-        if path.startswith(prefix):
-            # Remove the prefix from the path
-            return path[len(prefix) :]
-    # If no prefix is found, return empty string
-    return ""
-
-
-def extract_links_from_html(pathes, link_replace, prefixes):
-    img_urls = []
-    index_soup = None
-    for path in pathes:
-        with open(path, "r") as f:
-            html_content = f.read()
-
-        # Parse the HTML content using BeautifulSoup
-        soup = BeautifulSoup(html_content, "html.parser")
-        if path.endswith("index.html"):
-            index_soup = soup
-        # Find all image tags in the HTML document
-        img_tags = soup.find_all("img")
-
-        # Extract the image URLs from the image tags using regular expressions
-        img_urls.extend([img["src"] for img in img_tags if "src" in img.attrs])
-        for p in soup.find_all("p"):
-            # 在每个 <p> 标签中找到所有的 <a> 标签
-            for a in p.find_all("a"):
-                if not a.has_attr("href"):
-                    continue
-                href = a["href"]
-
-                for src, target in link_replace:
-                    src = r"file://" + os.path.expanduser(src)
-                    href = href.replace(src, target)
-
-                href = remove_prefix(href, prefixes)
-
-                # 删除 "#MissingReference"
-                href = href.replace("#MissingReference", "")
-
-                # 更新 href 属性
-                a["href"] = href
-
-    return_soup = index_soup if index_soup else soup
-    return (img_urls, return_soup)
 
 
 def check_modified_time_hook(file1, file2, f):

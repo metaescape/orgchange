@@ -4,6 +4,7 @@ from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 from bs4 import BeautifulSoup, NavigableString
 import html
+from utils import change_dir, rsync_copy
 
 lisp_family = [
     "scheme",
@@ -131,7 +132,7 @@ def get_soups(html_files):
     return soups
 
 
-def _merge_toc(html_files, soups):
+def merge_toc(html_files, soups):
     # 创建一个字典，用于存储每个文件的table of contents元素
 
     tocs = []
@@ -185,7 +186,7 @@ def _merge_toc(html_files, soups):
     return soups
 
 
-def _insert_paginav(paginav, links, titles, i, cls="prev"):
+def insert_paginav(paginav, links, titles, i, cls="prev"):
     """
     insert a paginav element with link and title
     """
@@ -205,7 +206,7 @@ def _insert_paginav(paginav, links, titles, i, cls="prev"):
     nav_tag["href"] = links[alt_idx]
 
 
-def _add_article_footer(html_files, soups, titles=[]):
+def add_article_footer(html_files, soups, titles=[]):
     """
     add article footer to each html file
     """
@@ -214,5 +215,90 @@ def _add_article_footer(html_files, soups, titles=[]):
         _, soup = html_files[i], soups[i]
         paginav = soup.find("nav", {"class": "paginav"}) if soup else None
         if paginav:
-            _insert_paginav(paginav, html_files, titles, i, cls="prev")
-            _insert_paginav(paginav, html_files, titles, i, cls="next")
+            insert_paginav(paginav, html_files, titles, i, cls="prev")
+            insert_paginav(paginav, html_files, titles, i, cls="next")
+
+
+def remove_prefix(path, prefixes):
+    # if path is a http link, then skip
+    if path.startswith("http") or path.startswith("#"):
+        return path
+    # Remove the .. and . parts directly
+    path = os.path.normpath(path.replace("..", "").replace("./", ""))
+    for prefix in prefixes:
+        # Expand the user directory symbol (~) in the prefix
+        prefix = os.path.expanduser(prefix)
+        # Check if the path starts with the prefix
+        if path.startswith(prefix):
+            # Remove the prefix from the path
+            return path[len(prefix) :]
+    # If no prefix is found, return empty string
+    return ""
+
+
+def mermaid_process(soup):
+    """
+    check if there is a <code class="mermaid"> tag
+    if exist add
+      <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    </script>
+    before <body/> end
+    """
+    mermaid_code = soup.find("code", {"class": "mermaid"})
+    if mermaid_code:
+        # add <script> before body end
+        script_tag = soup.new_tag("script", type="module")
+        script_tag.string = "import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';"
+        soup.body.append(script_tag)
+    return soup
+
+
+def soup_decorate_per_html(post_info, soup):
+    """
+    extract images from html soups for later rsync
+    prune the cross reference links in href
+    add code highlight with pygments
+    """
+    link_replace, prefixes = (
+        post_info["link_replace"],
+        post_info["prefixes"],
+    )
+
+    # Find all image tags in the HTML document
+    img_tags = soup.find_all("img")
+    # Extract the image URLs from the image tags using regular expressions
+    img_urls = [img["src"] for img in img_tags if "src" in img.attrs]
+    # e.g. ~/org/posts/
+    org_folder = os.path.dirname(post_info["org_path_abs2sys"])
+    # e.g. /www/posts/
+    html_folder = os.path.dirname(post_info["html_path_abs2sys"])
+    for img_url in img_urls:
+        with change_dir(org_folder):
+            # mv url from ~/org/posts/imgs/... to /www/posts/imgs/...
+            rsync_copy(img_url, html_folder)
+
+    for p in soup.find_all("p"):
+        # 在每个 <p> 标签中找到所有的 <a> 标签
+        for a in p.find_all("a"):
+            if not a.has_attr("href"):
+                continue
+            href = a["href"]
+
+            for src, target in link_replace:
+                src = r"file://" + os.path.expanduser(src)
+                href = href.replace(src, target)
+
+            href = remove_prefix(href, prefixes)
+
+            # 删除 "#MissingReference"
+            href = href.replace("#MissingReference", "")
+
+            # 更新 href 属性
+            a["href"] = href
+
+    soup = pygment_and_paren_match_all(soup)
+
+    soup = mermaid_process(soup)
+
+    return soup

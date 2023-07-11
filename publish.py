@@ -9,16 +9,17 @@ import argparse
 from collections import defaultdict
 import glob
 from dom import (
-    _add_article_footer,
-    _merge_toc,
+    add_article_footer,
+    merge_toc,
     pygment_and_paren_match_all,
     get_soups,
+    soup_decorate_per_html,
 )
+from typing import List, Union
 
 from utils import (
     cache,
     change_dir,
-    extract_links_from_html,
     extract_suffix,
     extract_suffix_from_prefix,
     format_prefixes,
@@ -112,7 +113,8 @@ def _export_to_html(theme, orgfile, elisp_code, verbose=False):
         print(error.decode("utf-8"))
 
 
-def multipage_postprocessing(orgfile, html_folder):
+def multipage_postprocessing(post_info, html_folder):
+    orgfile = post_info["org_path_abs2sys"]
     org = orgparse.load(orgfile)
     html_files = []
     for node in org:
@@ -123,20 +125,20 @@ def multipage_postprocessing(orgfile, html_folder):
 
     with change_dir(html_folder):
         soups = get_soups(html_files)
-        soups = _merge_toc(html_files, soups)
-        for soup in soups:
-            soup = pygment_and_paren_match_all(soup)
-        _add_article_footer(html_files, soups)
+        soups = merge_toc(html_files, soups)
+        add_article_footer(html_files, soups)
         for file, soup in zip(html_files, soups):
+            if file.endswith("index.html"):
+                post_info["soup"] = soup
+            soup = soup_decorate_per_html(post_info, soup)
+
             with open(file, "w") as f:
                 f.write(soup.prettify())
 
 
 def get_visible_post_ids(meta):
     visible_ids = [
-        i
-        for i, post in enumerate(meta["posts"])
-        if not (post["list_index"] or post["draft"])
+        i for i, post in enumerate(meta["posts"]) if not post["draft"]
     ]
 
     return visible_ids
@@ -148,33 +150,39 @@ def single_page_postprocessing(meta):
     html_files = []
     titles = []
 
-    for i, post in enumerate(meta["posts"]):
-        if "soup" in post:
-            # 对所有 soup 都进行代码高亮
-            post["soup"] = pygment_and_paren_match_all(post["soup"])
+    for i, post_info in enumerate(meta["posts"]):
+        if "soup" not in post_info:
+            # 即便是 draft 也要读取并修饰代码块等
+            post_info["soup"] = get_soups([post_info["html_path_abs2sys"]])[0]
+
+        if not post_info["html_path_abs2sys"].endswith("index.html"):
+            # 不需要对 multipage 的 index.html 进行修饰
+            post_info["soup"] = soup_decorate_per_html(
+                post_info, post_info["soup"]
+            )
 
         if i not in visible_ids:
             continue
-
         # 只对可见的文章进行 toc 合并，因为不希望 toc 里面包含 draft 的目录
-        if "soup" in post:
-            post["soup"] = _merge_toc(
-                [post["html_path_abs2sys"]], [post["soup"]]
-            )[0]
+        post_info["soup"] = merge_toc(
+            [post_info["html_path_abs2sys"]], [post_info["soup"]]
+        )[0]
 
         # 只有可见文章才需要添加 footer
-        soups.append(None if "soup" not in post else post["soup"])
-        html_files.append("/" + post["html_path_rel2publish"])
-        titles.append(post["title"])
+        soups.append(None if "soup" not in post_info else post_info["soup"])
+        html_files.append("/" + post_info["html_path_rel2publish"])
+        titles.append(post_info["title"])
 
-    _add_article_footer(html_files, soups, titles)
+    add_article_footer(html_files, soups, titles)
 
     # 保存所有 soup，无论是否可见
-    for i, post in enumerate(meta["posts"]):
-        if "soup" not in post:
+    for i, post_info in enumerate(meta["posts"]):
+        if "soup" not in post_info:
             continue
-        soup = post["soup"]
-        with open(post["html_path_abs2sys"], "w") as f:
+        soup = post_info["soup"]
+        path = post_info["html_path_abs2sys"]
+        path = path if type(path) != list else path[0]
+        with open(path, "w") as f:
             f.write(soup.prettify())
 
 
@@ -196,10 +204,9 @@ def export_to_multiple_htmls(
     """
 
     _export_to_html(theme, orgfile, elisp_code, verbose=verbose)
-    multipage_postprocessing(orgfile, html_folder)
 
 
-# @cache("")
+# @cache("") # TODO Maybe merge with export_to_multiple_htmls
 def export_to_single_html(
     orgfile, html_folder, theme, publish_folder, verbose, **kwargs
 ):
@@ -253,21 +260,19 @@ def extract_meta_from_index_org(orgfile, publish_folder, prefixes, theme):
     return {"posts": posts}
 
 
-def publish_single_file(publish_info, publish_folder, verbose=False):
+def publish_single_file(
+    post_info, publish_folder, verbose=False
+) -> Union[BeautifulSoup, List[BeautifulSoup]]:
     """
     publish a single org file:
-    - generate  target_folder from publish_folder and target_file_path
     - call export_to_html to generate html file
     - call extract_links_from_html to get all images file path
     - call rsync_copy to copy all images to publish_folder
     """
-    list_index = publish_info.get("list_index", False)
+    list_index = post_info.get("list_index", False)
 
-    org_path_abs2sys = publish_info["org_path_abs2sys"]
-    html_path_abs2sys = publish_info["html_path_abs2sys"]
-
-    # e.g. ~/org/posts/
-    org_folder = os.path.dirname(org_path_abs2sys)
+    org_path_abs2sys = post_info["org_path_abs2sys"]
+    html_path_abs2sys = post_info["html_path_abs2sys"]
 
     # e.g. /www/posts/
     html_folder = os.path.dirname(html_path_abs2sys)
@@ -275,15 +280,16 @@ def publish_single_file(publish_info, publish_folder, verbose=False):
     if not os.path.exists(html_folder):
         os.makedirs(html_folder)
 
-    theme = publish_info.get("theme")
+    theme = post_info.get("theme")
     theme_path = f"{ORG_CHANGE_DIR}/themes/{theme}"
 
     export_func = export_to_single_html
-    target_file_pathes = [html_path_abs2sys]
+
     if list_index:
         export_func = export_to_multiple_htmls
-        # get all html fils under target_folder
-        target_file_pathes = glob.glob(os.path.join(html_folder, "*.html"))
+        # clear html_folder
+        for file in glob.glob(os.path.join(html_folder, "*.html")):
+            os.remove(file)
 
     export_func(
         org_path_abs2sys,
@@ -291,22 +297,11 @@ def publish_single_file(publish_info, publish_folder, verbose=False):
         theme_path,
         publish_folder,
         verbose,
-        **publish_info.get("context", {}),
+        **post_info.get("context", {}),
     )
-
-    img_urls, soup = extract_links_from_html(
-        target_file_pathes,
-        publish_info["link_replace"],
-        publish_info["prefixes"],
-    )
-
-    for img_url in img_urls:
-        with change_dir(org_folder):
-            # mv url from ~/org/posts/imgs/... to /www/posts/imgs/...
-            rsync_copy(img_url, html_folder)
-
+    if list_index:
+        multipage_postprocessing(post_info, html_folder)
     print("published to {}".format(html_path_abs2sys))
-    return soup
 
 
 def generate_index_html(config, info, publish_folder):
@@ -423,7 +418,6 @@ def publish_via_index(config, verbose=False):
 
     meta["index_template"] = config["index_template"]
     meta["categories"] = defaultdict(list)
-
     # first pass on all posts, generate html relative path
     for i, post_info in enumerate(meta["posts"]):
         # e.g. ./posts/a.org
@@ -463,8 +457,7 @@ def publish_via_index(config, verbose=False):
         context["categories"] = ",".join(post_info["categories"])
         context["setq"] = setq
         if post_info["need_update"]:
-            soup = publish_single_file(post_info, publish_folder, verbose)
-            post_info["soup"] = soup
+            publish_single_file(post_info, publish_folder, verbose)
 
     single_page_postprocessing(meta)
 
