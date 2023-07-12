@@ -11,9 +11,9 @@ import glob
 from dom import (
     add_article_footer,
     merge_toc,
-    pygment_and_paren_match_all,
     get_soups,
     soup_decorate_per_html,
+    get_titles,
 )
 from typing import List, Union
 
@@ -114,21 +114,20 @@ def _export_to_html(theme, orgfile, elisp_code, verbose=False):
 
 
 def multipage_postprocessing(post_info, html_folder):
-    orgfile = post_info["org_path_abs2sys"]
-    org = orgparse.load(orgfile)
-    html_files = []
-    for node in org:
-        if "noexport" in node.tags or node.level != 1:
-            continue
-        heading = node.get_heading(format="raw")
-        html_files.append(f"{heading.strip()}.html")
-
     with change_dir(html_folder):
+        html_files = glob.glob("*.html")
+        html_files_without_index = [
+            html for html in html_files if not html.endswith("index.html")
+        ]
+        html_files = ["index.html"] + sorted(html_files_without_index)
+
         soups = get_soups(html_files)
         soups = merge_toc(html_files, soups)
-        add_article_footer(html_files, soups)
+        titles = get_titles(soups)
+        add_article_footer(html_files, soups, titles)
         for file, soup in zip(html_files, soups):
             if file.endswith("index.html"):
+                # soup = change_index_title(soup, post_info["title"])
                 post_info["soup"] = soup
             soup = soup_decorate_per_html(post_info, soup)
 
@@ -288,7 +287,7 @@ def publish_single_file(
     if list_index:
         export_func = export_to_multiple_htmls
         # clear html_folder
-        for file in glob.glob(os.path.join(html_folder, "*.html")):
+        for file in glob.glob(os.path.join(html_folder, "*")):
             os.remove(file)
 
     export_func(

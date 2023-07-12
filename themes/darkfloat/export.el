@@ -63,9 +63,15 @@ holding export options."
    ;; Document title.
    (when (plist-get info :with-title)
 	 (let ((title (and (plist-get info :with-title)
+	 				;; (plist-get info :title) ;;original
                        (or user-settings-blog-title (plist-get info :title))
 					   ))
-		   (subtitle (plist-get info :subtitle))
+		;;    (subtitle (plist-get info :subtitle)) ;;original
+		   (subtitle
+				(if (null multi-page-index)
+					(plist-get info :subtitle)
+				(format "%s :: %s" (plist-get info :title) multi-page-index)))
+
 		   (html5-fancy (org-html--html5-fancy-p info)))
 	   (when title
 		 (format

@@ -17,6 +17,7 @@
 ;; disable files end with ~
 (setq make-backup-files nil)
 (setq user-settings-blog-title nil)
+(setq multi-page-index nil)
 ;; disable default css, use html5 sematic tags
 (setq org-html-style-default ""
       org-html-html5-fancy 't
@@ -98,42 +99,47 @@ contextual information."
 If SCOPE is nil headlines in the current buffer are exported.
 For other valid values for SCOPE see `org-map-entries'.
 Already existing files are overwritten."
-  (interactive)
   ;; Widen buffer temporarily as narrowing would affect the exporting.
+  (setq multi-page-index 0)
   (org-with-wide-buffer
    (save-mark-and-excursion
-     ;; Loop through each headline.
+     ;; Loop through each heading.
      (org-map-entries
       (lambda ()
-        ;; Get the plain headline text without statistics and make filename.
+        ;; Get the plain heading text without statistics and make filename.
         (let* ((title (car (last (org-get-outline-path t))))
-               (dir (if dir dir	(file-name-directory buffer-file-name)
-			   	))
-               (filename (concat dir "/" title ".html")))
+               (dir (if dir dir	default-directory))
+               (dirname (file-name-nondirectory
+                         (directory-file-name dir)))
+               (filename (if (= multi-page-index 0)
+                             (concat dir "/index.html")
+                             (concat dir "/" (format "%s_%s.html" dirname multi-page-index))))
+                             )
           ;;Set the active region.
 		  
 		  ;; 不显示一级标题
-        (set-mark (line-end-position)) 
-        (forward-line 1)
+          (set-mark (line-end-position)) 
+          (forward-line 1)
 
-		;; 显示一级标题，会与 title 重复
-		;;   (set-mark (point))
-		;;   (outline-next-visible-heading 1)
-        ;;   (outline-next-preface) ;; any level
+		  ;; 显示一级标题，会与 title 重复
+		  ;;   (set-mark (point))
+		  ;;   (outline-next-visible-heading 1)
+          ;;   (outline-next-preface) ;; any level
 		  (if (search-forward-regexp "^* " nil t)
-        (forward-char -2)
-				  (goto-char (point-max))
-				)
-        
-        (activate-mark)
+              (forward-char -2)
+			(goto-char (point-max)))
+          
+          (activate-mark)
           ;;Export the region to a html file.
-		  (setq user-settings-blog-title title)
+		  (setq user-settings-blog-title title) ;; used in export.el
       (with-current-buffer (org-html-export-as-html)
         ;; Save the buffer to file and kill it.
         (write-file filename)
         (kill-current-buffer))
-          ))
+      (setq multi-page-index (1+ multi-page-index))
+        ))
       "+LEVEL=1-noexport" scope))))
+
 ;; https://orgmode.org/manual/Matching-tags-and-properties.html#Matching-tags-and-properties
 
 (defun my/org-modify-cite-links (backend)
