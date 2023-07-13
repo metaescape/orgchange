@@ -2,7 +2,7 @@
 
 `orgchange` 是为个人博客设计的 org mode 发布工具和主题集合。
 
-页面展示： [hugchange](www.hugchange.life)
+页面展示： [hugchange](https://www.hugchange.life)
 
 ## 设计理念
 
@@ -25,7 +25,8 @@
 - 代码高亮：基于 pygments 进行代码高亮,从 https://pygments.org/styles/# 选择不同的代码主题
 - 专为 lisp 系列语言提供 rainbow 括号高亮以及动态的括号内背景颜色高亮
 - 支持 org-ref 和 org-cite 格式的参考文献 csl 格式导出，内置 acl 和 ieee 两种 csl 样式
-- 支持在 index.org 的各个文章的 heading property 中设置 `DRAFT`(只导出但不发布在 index.html 里) ，`link_replace`(替换 html 中本地文件链接) 等属性
+- 支持在 index.org 的各个文章 heading 内用 python src block 的方式单独设置导出属性，例如 `draft`(只导出但不发布在 index.html 里) ，`link_replace`(替换 html 中本地文件链接) 等属性
+- 如果有 mermaid src_bock, 导出的 html 中自动添加 mermaid js cdn 链接
 
 ## 依赖
 

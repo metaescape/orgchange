@@ -1,21 +1,44 @@
 #+title: 一个测试网站
 
 * 文章列表                                                           :post:
+
+#+begin_src python
+# 可以用相对当前文件的路径或绝对路径
+publish_folder = "./www"
+org_prefixes = ["~/org/", "."]
+# 可以指定不同 index 模版
+index_template = "~/codes/hugchangelife/orgchange/themes/darkfloat/index.html"
+
+beian = "京ICP备2021000000号"
+github_url = "https://github.com/metaescape"
+github_name = "mE"
+site_repo = "https://github.com/metaescape/hugchange.life/"
+site_name = "personal"
+#+end_src
+
+#+begin_src emacs-lisp :results none :eval no
+(setq org-id-locations-file "~/.wemacs/.org-id-locations")
+#+end_src
+
+
 ** [[./demo.org][demo]]                   
-:PROPERTIES:
-:CATEGORIES: sample,test
-:END:
 
-** [[./index.org][index]]
+#+begin_src python
+categories = ["sample","test"]
+#+end_src
 
+** [[./index.org][index]]                                            :draft:
+
+有 draft 标签不会显示在主页
 
 ** [[./multipage.org][multipage]]
-:PROPERTIES:
-:INDEX: default
 
-:END:
 
-INDEX: default 表示使用该文件中 index 标题作为索引页面
-如果是 INDEX: nil 或不存在 INDEX 属性则表示这是一个普通的文章
+#+begin_src python
+multipage_index = "default"
+#+end_src
+
+multipage_index = default 表示使用该文件中 index 标题作为索引页面,
+否则就是但页的文章
 
 DRAFT 不会显示在主页中，但还是会发布到网站上

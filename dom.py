@@ -278,7 +278,7 @@ def soup_decorate_per_html(post_info, soup):
     """
     link_replace, prefixes = (
         post_info.get("link_replace", {}),
-        post_info["prefixes"],
+        post_info["org_prefixes"],
     )
 
     # Find all image tags in the HTML document

@@ -212,6 +212,18 @@ def print_green(text):
     print(f"{green}{text}{reset}")
 
 
+def print_yellow(text):
+    yellow = "\033[33m"
+    reset = "\033[0m"
+    print(f"{yellow}{text}{reset}")
+
+
+def print_red(text):
+    red = "\033[31m"
+    reset = "\033[0m"
+    print(f"{red}{text}{reset}")
+
+
 def get_timestamp_of_publish_utils(theme):
     theme_dir = os.path.join(ORG_CHANGE_DIR, "themes", theme)
     if utils_last_mod_time.get(theme, None) is None:
@@ -234,15 +246,15 @@ def get_timestamp_of_orgfile(orgfile):
 
 
 def do_need_modified(theme_dir, org_path, html_path):
-    latest_timestamp = max(
-        get_timestamp_of_publish_utils(theme_dir),
-        get_timestamp_of_orgfile(org_path),
-    )
+    # latest_timestamp = max(
+    #     get_timestamp_of_publish_utils(theme_dir),
+    #     get_timestamp_of_orgfile(org_path),
+    # ) # 暂时不检查框架文件修改，如要重新发布所有，用 --all 选项
+    latest_timestamp = get_timestamp_of_orgfile(org_path)
     if (
         os.path.exists(html_path)
         and os.path.getmtime(html_path) > latest_timestamp
     ):
-        print_green(f"html is newer than {org_path}, skip")
         return False
     return True
 
@@ -287,6 +299,18 @@ def get_bindings_from_text(args):
     return {k: v for k, v in locals().items() if k != "args"}
 
 
+def eval_src_blocks(src_blocks, language, bindings=None):
+    """
+    evaluate src blocks
+    """
+    info = {} if bindings is None else bindings
+    for lang, content in src_blocks:
+        if language == "python" and lang == language:
+            variable_setting = get_bindings_from_text(content["body"])
+            info.update(variable_setting)
+    return info
+
+
 # 定义一个函数，用于提取所有的代码块
 def extract_code_blocks(text):
     pattern = r"\#\+begin_src *([\w\s:-]+)\n(.*?)\n *\#\+end_src"
@@ -296,7 +320,7 @@ def extract_code_blocks(text):
         language, attrs = unpack_language_header(match[0])
         src_body = match[1].strip()
         attrs["body"] = src_body
-        res.append((language, attrs))
+        res.append((language.strip(), attrs))
 
     return res
 
@@ -309,3 +333,12 @@ def unpack_language_header(language_header):
         attr_map[attr_k] = attr_v
 
     return language, attr_map
+
+
+def update_node_property_list(node):
+    """
+    deprecated
+    """
+    property_keys = list(node._properties.keys())
+    for key in property_keys:
+        node._properties[key.lower()] = node._properties[key]
