@@ -18,7 +18,6 @@ from dom import (
 from typing import List, Union
 
 from utils import (
-    cache,
     change_dir,
     extract_suffix,
     extract_suffix_from_prefix,
@@ -28,8 +27,9 @@ from utils import (
     is_valid_orgpath,
     normalize_path,
     read_config,
-    rsync_copy,
     do_need_modified,
+    extract_code_blocks,
+    get_bindings_from_text,
 )
 
 
@@ -43,8 +43,6 @@ def index_node_process(node, publish_folder, prefixes, theme):
     org_path_abs2sys = normalize_path(get_path_from_orglink(heading))
     if not is_valid_orgpath(org_path_abs2sys):
         return None
-    list_index = node.get_property("index", False)
-    list_index = False if list_index == "nil" else list_index
 
     title = get_title_from_orglink(heading)
 
@@ -52,32 +50,36 @@ def index_node_process(node, publish_folder, prefixes, theme):
 
     html_path_rel2publish = org_path_rel2prefix.replace(".org", ".html")
 
+    info = {
+        "theme": theme,
+        "title": title,
+        "org_path_abs2sys": org_path_abs2sys,
+        "html_path_rel2publish": html_path_rel2publish,
+    }
+
+    src_blocks = extract_code_blocks(node.get_body())
+    for language, content in src_blocks:
+        if language == "python":
+            variable_setting = get_bindings_from_text(content["body"])
+            info.update(variable_setting)
+
+    multipage_index = info.get("multipage_index", False)
     html_path_abs2sys = os.path.join(publish_folder, html_path_rel2publish)
-    if list_index:
+
+    if multipage_index:
         # e.g. ~/www/posts/book/index.html
         html_path_abs2sys = html_path_abs2sys.replace(".html", "/index.html")
     html_path_rel2www = extract_suffix_from_prefix(html_path_abs2sys, WWW)
     html_path_abs2www = "/" + html_path_rel2www
-    link_replace = [
-        pair.strip().split("::")
-        for pair in node.get_property("link_replace", "").split(",")
-        if pair.strip()
-    ]
 
-    return {
-        "theme": node.get_property("theme", theme),
-        "list_index": list_index,
-        "draft": node.get_property("draft", False),
-        "categories": [
-            x.strip() for x in node.get_property("categories", "").split(",")
-        ],
-        "title": title,
-        "org_path_abs2sys": org_path_abs2sys,
-        "html_path_rel2publish": html_path_rel2publish,
-        "html_path_abs2sys": html_path_abs2sys,
-        "html_path_abs2www": html_path_abs2www,
-        "link_replace": link_replace,
-    }
+    info.update(
+        {
+            "html_path_abs2sys": html_path_abs2sys,
+            "html_path_abs2www": html_path_abs2www,
+        }
+    )
+
+    return info
 
 
 def _export_to_html(theme, orgfile, elisp_code, verbose=False):
@@ -137,7 +139,9 @@ def multipage_postprocessing(post_info, html_folder):
 
 def get_visible_post_ids(meta):
     visible_ids = [
-        i for i, post in enumerate(meta["posts"]) if not post["draft"]
+        i
+        for i, post in enumerate(meta["posts"])
+        if not post.get("draft", False)
     ]
 
     return visible_ids
@@ -159,18 +163,19 @@ def single_page_postprocessing(meta):
             post_info["soup"] = soup_decorate_per_html(
                 post_info, post_info["soup"]
             )
+            if post_info["need_update"]:
+                # 只对需要更新的 html 进行 toc 合并,否则会新增一个 toc, 而且既然不更新也没必要处理
+                post_info["soup"] = merge_toc(
+                    [post_info["html_path_abs2sys"]], [post_info["soup"]]
+                )[0]
 
-        if i not in visible_ids:
-            continue
-        # 只对可见的文章进行 toc 合并，因为不希望 toc 里面包含 draft 的目录
-        post_info["soup"] = merge_toc(
-            [post_info["html_path_abs2sys"]], [post_info["soup"]]
-        )[0]
-
-        # 只有可见文章才需要添加 footer
-        soups.append(None if "soup" not in post_info else post_info["soup"])
-        html_files.append("/" + post_info["html_path_rel2publish"])
-        titles.append(post_info["title"])
+        # 只有可见文章才需要添加 footer, 那些不需要更新的也要加入，提供上下文
+        if not post_info.get("draft", False):
+            soups.append(
+                None if "soup" not in post_info else post_info["soup"]
+            )
+            html_files.append("/" + post_info["html_path_rel2publish"])
+            titles.append(post_info["title"])
 
     add_article_footer(html_files, soups, titles)
 
@@ -268,7 +273,7 @@ def publish_single_file(
     - call extract_links_from_html to get all images file path
     - call rsync_copy to copy all images to publish_folder
     """
-    list_index = post_info.get("list_index", False)
+    multipage_index = post_info.get("multipage_index", False)
 
     org_path_abs2sys = post_info["org_path_abs2sys"]
     html_path_abs2sys = post_info["html_path_abs2sys"]
@@ -284,7 +289,7 @@ def publish_single_file(
 
     export_func = export_to_single_html
 
-    if list_index:
+    if multipage_index:
         export_func = export_to_multiple_htmls
         # clear html_folder
         for file in glob.glob(os.path.join(html_folder, "*")):
@@ -298,7 +303,7 @@ def publish_single_file(
         verbose,
         **post_info.get("context", {}),
     )
-    if list_index:
+    if multipage_index:
         multipage_postprocessing(post_info, html_folder)
     print("published to {}".format(html_path_abs2sys))
 
@@ -421,7 +426,7 @@ def publish_via_index(config, verbose=False):
     for i, post_info in enumerate(meta["posts"]):
         # e.g. ./posts/a.org
 
-        for category in post_info["categories"]:
+        for category in post_info.get("categories", []):
             if category == "":
                 continue
             meta["categories"][category].append(
@@ -453,7 +458,7 @@ def publish_via_index(config, verbose=False):
             context["github_issue_link"] = os.path.join(
                 site_repo, "issues/new"
             )
-        context["categories"] = ",".join(post_info["categories"])
+        context["categories"] = post_info.get("categories", [])
         context["setq"] = setq
         if post_info["need_update"]:
             publish_single_file(post_info, publish_folder, verbose)

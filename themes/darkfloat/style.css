@@ -628,7 +628,7 @@ pre.example {
 
 details {
   border-radius: 1rem;
-  border: 0.2px inset var(--heading-color);
+  border: 0.2px inset var(--pre-text);
   padding: 5px;
   margin-top: 1rem;
   margin-bottom: 2rem;

@@ -280,3 +280,32 @@ def cache(html="index.html"):
         return wrapper
 
     return decorator
+
+
+def get_bindings_from_text(args):
+    exec(args)
+    return {k: v for k, v in locals().items() if k != "args"}
+
+
+# 定义一个函数，用于提取所有的代码块
+def extract_code_blocks(text):
+    pattern = r"\#\+begin_src *([\w\s:-]+)\n(.*?)\n *\#\+end_src"
+    matches = re.findall(pattern, text, re.DOTALL)
+    res = []
+    for match in matches:
+        language, attrs = unpack_language_header(match[0])
+        src_body = match[1].strip()
+        attrs["body"] = src_body
+        res.append((language, attrs))
+
+    return res
+
+
+def unpack_language_header(language_header):
+    language, *attrs = language_header.split(":")
+    attr_map = {}
+    for attr_pair in attrs:
+        attr_k, attr_v = attr_pair.split(" ", 1)
+        attr_map[attr_k] = attr_v
+
+    return language, attr_map

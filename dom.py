@@ -159,6 +159,7 @@ def merge_toc(html_files, soups):
         # print(local_toc.prettify(), title_li.prettify())
         tocs.append((local_toc, title_li))
 
+    # second pass, merage each tocs
     global_tocs = []
     for i, (local_toc, title_li) in enumerate(tocs):
         global_toc_str = f"""
@@ -178,9 +179,11 @@ def merge_toc(html_files, soups):
         # print(global_toc)
 
         container = soup.find("div", {"class": "container"})
-
-        # if not container.find("nav", {"id": "global-toc"}):
-        container.insert(0, new_soup(global_toc))
+        old_global_toc = container.find("nav", {"id": "global-toc"})
+        if old_global_toc:
+            old_global_toc.replace_with(global_toc)
+        else:
+            container.insert(0, new_soup(global_toc))
         # 如果不用 new_soup,  global_toc 会被清空，为什么？
 
     return soups
@@ -253,7 +256,13 @@ def mermaid_process(soup):
     if mermaid_code:
         # add <script> before body end
         script_tag = soup.new_tag("script", type="module")
-        script_tag.string = "import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';"
+        script_tag.string = """
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({
+        securityLevel: 'loose',
+        theme: 'neutral',
+        });
+        """
         soup.body.append(script_tag)
     return soup
 
@@ -265,7 +274,7 @@ def soup_decorate_per_html(post_info, soup):
     add code highlight with pygments
     """
     link_replace, prefixes = (
-        post_info["link_replace"],
+        post_info.get("link_replace", {}),
         post_info["prefixes"],
     )
 
@@ -289,7 +298,7 @@ def soup_decorate_per_html(post_info, soup):
                 continue
             href = a["href"]
 
-            for src, target in link_replace:
+            for src, target in link_replace.items():
                 src = r"file://" + os.path.expanduser(src)
                 href = href.replace(src, target)
 

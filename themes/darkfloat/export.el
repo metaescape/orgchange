@@ -70,7 +70,7 @@ holding export options."
 		   (subtitle
 				(if (null multi-page-index)
 					(plist-get info :subtitle)
-				(format "%s :: %s" (plist-get info :title) multi-page-index)))
+				(format "%s %s" (plist-get info :title) multi-page-index)))
 
 		   (html5-fancy (org-html--html5-fancy-p info)))
 	   (when title
