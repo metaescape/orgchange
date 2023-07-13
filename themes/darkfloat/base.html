@@ -44,7 +44,11 @@
         {% endif %} {% for item in posts %}
 
         <p class="post-line">
-          <a href="{{ item['html_path_abs2www'] }}">{{ item["title"] }}</a>
+          <a
+            href="{{ item['html_path_abs2www'] }}"
+            data-number="{{item['idx']}}. "
+            >{{ item["title"] }}</a
+          >
           <span class="timestamp-block">
             <span class="timestamp index-created">
               {{ item["created"] }}-></span

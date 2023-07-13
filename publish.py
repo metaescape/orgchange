@@ -15,6 +15,7 @@ from dom import (
     get_soups,
     soup_decorate_per_html,
     get_titles,
+    extract_timestamps,
 )
 from typing import List, Union
 
@@ -58,12 +59,7 @@ def publish_via_index(index_org, verbose=False, republish_all=False):
         for category in post_info.get("categories", []):
             if category == "":
                 continue
-            site_info["categories"][category].append(
-                {
-                    "html_path_abs2www": post_info["html_path_abs2www"],
-                    "title": post_info["title"],
-                }
-            )
+            site_info["categories"][category].append(post_info)
         if post_info["need_update"]:
             publish_single_file(post_info, verbose)
         else:
@@ -289,46 +285,74 @@ def multipage_postprocessing(post_info, html_folder):
                 f.write(soup.prettify())
 
 
-def single_page_postprocessing(site_info):
-    soups = []
-    html_files = []
-    titles = []
-
-    for i, post_info in enumerate(site_info["posts"]):
-        if "soup" not in post_info:
-            # 即便是 draft 也要读取并修饰代码块等
-            post_info["soup"] = get_soups([post_info["html_path_abs2sys"]])[0]
-
-        if not post_info["html_path_abs2sys"].endswith("index.html"):
-            # 不需要对 multipage 的 index.html 进行修饰
-            post_info["soup"] = soup_decorate_per_html(
-                post_info, post_info["soup"]
-            )
-            if post_info["need_update"]:
-                # 只对需要更新的 html 进行 toc 合并,否则会新增一个 toc, 而且既然不更新也没必要处理
-                post_info["soup"] = merge_toc(
-                    [post_info["html_path_abs2sys"]], [post_info["soup"]]
-                )[0]
-
+def merge_single_pages_footer(site_info):
+    visible_soups = []
+    visible_htmls = []
+    visible_titles = []
+    for post_info in site_info["posts"]:
         # 只有可见文章才需要添加 footer, 那些不需要更新的也要加入，提供上下文
         if not post_info.get("draft", False):
-            soups.append(
+            post_info["idx"] = len(visible_htmls)
+            visible_soups.append(
                 None if "soup" not in post_info else post_info["soup"]
             )
-            html_files.append(post_info["html_path_abs2www"])
-            titles.append(post_info["title"])
+            visible_htmls.append(post_info["html_path_abs2www"])
+            visible_titles.append(post_info["title"])
 
-    add_article_footer(html_files, soups, titles)
+    add_article_footer(visible_htmls, visible_soups, visible_titles)
 
+
+def save_single_pages_soup(site_info):
     # 保存所有 soup，无论是否可见
-    for i, post_info in enumerate(site_info["posts"]):
+    for post_info in site_info["posts"]:
         if "soup" not in post_info:
             continue
         soup = post_info["soup"]
         path = post_info["html_path_abs2sys"]
-        path = path if type(path) != list else path[0]
         with open(path, "w") as f:
             f.write(soup.prettify())
+
+
+def merge_anthology_toc(site_info):
+    anthologies_soup = defaultdict(list)
+    anthologies_path = defaultdict(list)
+    anthologies = defaultdict(list)
+    for i, post_info in enumerate(site_info["posts"]):
+        if post_info.get("draft", False):
+            continue
+        anthology = post_info.get("anthology", f"sigle_{i}")
+        assert (
+            type(anthology) != list
+        ), f"{post_info['title']}'s anthology should be unique"
+        anthologies_soup[anthology].append(post_info["soup"])
+        anthologies_path[anthology].append(post_info["html_path_abs2www"])
+        anthologies[anthology].append(post_info)
+    for anth in anthologies_soup.keys():
+        soups = merge_toc(anthologies_path[anth], anthologies_soup[anth])
+        for post_info, soup in zip(anthologies[anth], soups):
+            post_info[soup] = soup
+
+
+def single_page_postprocessing(site_info):
+    for post_info in site_info["posts"]:
+        if "soup" not in post_info:
+            # 对所有 post 都要读取 soup，用于提供合并 toc 的上下文
+            post_info["soup"] = get_soups([post_info["html_path_abs2sys"]])[0]
+        # 对所有 post 都提取时间信息，用于显示在 index list 和 category list 页面
+        extract_timestamps(post_info)
+
+        # 不需要对 multipage 的 index.html 进行单 soup 修饰
+        if (
+            not post_info.get("multipage_index", False)
+            and post_info["need_update"]
+        ):
+            post_info["soup"] = soup_decorate_per_html(
+                post_info, post_info["soup"]
+            )
+
+    merge_anthology_toc(site_info)
+    merge_single_pages_footer(site_info)
+    save_single_pages_soup(site_info)
 
 
 def generate_index_html(site_info):
@@ -341,23 +365,6 @@ def generate_index_html(site_info):
     visible_posts = [
         x for x in site_info["posts"] if not x.get("draft", False)
     ]
-    for post in visible_posts:
-        with open(post["html_path_abs2sys"], "r") as f:
-            soup = BeautifulSoup(f, "html.parser")
-        try:
-            post["created"] = (
-                soup.find("span", {"id": "created-timestamp"})
-                .text.strip()
-                .split(" ")[0]
-            )
-            post["last_modify"] = (
-                soup.find("span", {"id": "last-modify-timestamp"})
-                .text.strip()
-                .split(" ")[0]
-            )
-        except:
-            print_yellow(f"ignore postprocess for {post['html_path_abs2sys']}")
-            pass
 
     data = {
         "year": datetime.datetime.now().year,
@@ -404,7 +411,6 @@ def generate_category_html(site_info):
         for key in ["beian", "sitename", "github_url", "github_name"]:
             if key in site_info:
                 data[key] = site_info[key]
-
         rendered_template = template.render(data)
 
         with open(

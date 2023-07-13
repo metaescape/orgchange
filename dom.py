@@ -4,7 +4,7 @@ from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 from bs4 import BeautifulSoup, NavigableString
 import html
-from utils import change_dir, rsync_copy
+from utils import change_dir, rsync_copy, print_yellow
 
 lisp_family = [
     "scheme",
@@ -318,3 +318,23 @@ def soup_decorate_per_html(post_info, soup):
     soup = mermaid_process(soup, post_info.get("mermaid_theme", "neutral"))
 
     return soup
+
+
+def extract_timestamps(post_info):
+    soup = post_info["soup"]
+    try:
+        post_info["created"] = (
+            soup.find("span", {"id": "created-timestamp"})
+            .text.strip()
+            .split(" ")[0]
+        )
+        post_info["last_modify"] = (
+            soup.find("span", {"id": "last-modify-timestamp"})
+            .text.strip()
+            .split(" ")[0]
+        )
+    except:
+        print_yellow(
+            f"ignore postprocess for {post_info['html_path_abs2sys']}"
+        )
+        pass

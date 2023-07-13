@@ -116,6 +116,10 @@ h3 {
   position: relative;
 }
 
+.top-header ul {
+  margin-bottom: 0;
+}
+
 .header-left {
   margin: 0;
   display: flex;
@@ -798,6 +802,12 @@ blockquote p:first-of-type {
 .post-list a:hover,
 .post-list a:active {
   color: var(--change-decorate8);
+}
+
+.post-list p a:hover::before {
+  content: attr(data-number);
+  padding: 0;
+  margin: 0;
 }
 
 .timestamp-block {
