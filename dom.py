@@ -243,7 +243,7 @@ def remove_prefix(path, prefixes):
     return ""
 
 
-def mermaid_process(soup):
+def mermaid_process(soup, theme):
     """
     check if there is a <code class="mermaid"> tag
     if exist add
@@ -256,13 +256,16 @@ def mermaid_process(soup):
     if mermaid_code:
         # add <script> before body end
         script_tag = soup.new_tag("script", type="module")
-        script_tag.string = """
+        script_tag.string = (
+            """
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
         mermaid.initialize({
         securityLevel: 'loose',
-        theme: 'neutral',
-        });
+        theme: 
         """
+            + f"'{theme}',"
+            + "});"
+        )
         soup.body.append(script_tag)
     return soup
 
@@ -312,6 +315,6 @@ def soup_decorate_per_html(post_info, soup):
 
     soup = pygment_and_paren_match_all(soup)
 
-    soup = mermaid_process(soup)
+    soup = mermaid_process(soup, post_info.get("mermaid_theme", "neutral"))
 
     return soup
