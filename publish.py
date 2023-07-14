@@ -122,28 +122,48 @@ def update_site_info(node, site_info: dict):
     return site_info
 
 
-def index_node_process(node, post_info):
+def post_title_path_prepare(node, post_info):
+    """
+    generate html_path_abs2sys, html_path_abs2www, org_path_abs2sys
+    """
     publish_folder = post_info.get("publish_folder", "./example/www")
-    prefixes = post_info.get("org_prefixes", [])
 
+    prefixes = post_info.get("org_prefixes", [])
     heading = node.get_heading(format="raw")
+
     org_path_abs2sys = normalize_path(get_path_from_orglink(heading))
     if not is_valid_orgpath(org_path_abs2sys):
         print_yellow(f"invalid org path: {org_path_abs2sys}, skip")
         return None
-
-    post_info["title"] = get_title_from_orglink(heading)
     org_path_rel2prefix = extract_suffix(org_path_abs2sys, prefixes)
 
     html_path_rel2publish = org_path_rel2prefix.replace(".org", ".html")
+    html_path_abs2sys = os.path.join(publish_folder, html_path_rel2publish)
+
+    post_info["need_update"] = do_need_modified(
+        post_info["theme"],
+        org_path_abs2sys,
+        html_path_abs2sys,
+    )
+    multipage_index = post_info.get("multipage_index", False)
+    if multipage_index:
+        # e.g. ~/www/posts/book/index.html
+        html_path_abs2sys = html_path_abs2sys.replace(".html", "/index.html")
+    html_path_rel2www = extract_suffix_from_prefix(html_path_abs2sys, WWW)
+    html_path_abs2www = "/" + html_path_rel2www
 
     post_info.update(
         {
+            "title": get_title_from_orglink(heading),
+            "html_path_abs2sys": html_path_abs2sys,
+            "html_path_abs2www": html_path_abs2www,
             "org_path_abs2sys": org_path_abs2sys,
             "html_path_rel2publish": html_path_rel2publish,
         }
     )
 
+
+def index_node_process(node, post_info):
     src_blocks = extract_code_blocks(node.get_body())
     for language, content in src_blocks:
         if language == "python":
@@ -151,28 +171,8 @@ def index_node_process(node, post_info):
             post_info.update(variable_setting)
         if language == "emacs-lisp":
             post_info["setq"] += content["body"]
-    multipage_index = post_info.get("multipage_index", False)
 
-    html_path_abs2sys = os.path.join(publish_folder, html_path_rel2publish)
-
-    if multipage_index:
-        # e.g. ~/www/posts/book/index.html
-        html_path_abs2sys = html_path_abs2sys.replace(".html", "/index.html")
-    html_path_rel2www = extract_suffix_from_prefix(html_path_abs2sys, WWW)
-    html_path_abs2www = "/" + html_path_rel2www
-
-    post_info["need_update"] = do_need_modified(
-        post_info["theme"],
-        org_path_abs2sys,
-        html_path_abs2sys,
-    )
-
-    post_info.update(
-        {
-            "html_path_abs2sys": html_path_abs2sys,
-            "html_path_abs2www": html_path_abs2www,
-        }
-    )
+    post_title_path_prepare(node, post_info)
 
     return post_info
 
