@@ -28,6 +28,12 @@
       org-export-with-broken-links t
       )
 
+
+(setq org-html-checkbox-type 'unicode ;; ascii
+      org-export-headline-levels 3
+      org-export-with-toc t
+	  org-export-with-section-numbers nil)
+
 (setq org-html-divs
       '((preamble "header" "preamble")
         (content "main" "content")

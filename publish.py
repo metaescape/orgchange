@@ -115,6 +115,7 @@ def update_site_info(node, site_info: dict):
             site_info.update(variable_setting)
         if language == "emacs-lisp":
             site_info["setq"] = content["body"]
+    # publish_folder is used for generate dynamic pages(e.g. categories, index.html, about.html)
     site_info["publish_folder"] = normalize_path(site_info["publish_folder"])
     site_info["index_template"] = normalize_path(site_info["index_template"])
     site_info["org_prefixes"] = format_prefixes(site_info["org_prefixes"])
@@ -134,6 +135,7 @@ def post_title_path_prepare(node, post_info):
     org_path_abs2sys = normalize_path(get_path_from_orglink(heading))
     if not is_valid_orgpath(org_path_abs2sys):
         print_yellow(f"invalid org path: {org_path_abs2sys}, skip")
+
         return None
     org_path_rel2prefix = extract_suffix(org_path_abs2sys, prefixes)
 

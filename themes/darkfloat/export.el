@@ -133,12 +133,6 @@ holding export options."
    "\n</body>\n</html>"))
 
 
-(setq org-html-checkbox-type 'unicode ;; ascii
-      org-export-headline-levels 3
-      org-export-with-toc t
-	  org-export-with-section-numbers nil)
-
-
 (setq org-html-preamble t)
 (setq org-html-postamble t)
 (setq org-html-preamble-format
