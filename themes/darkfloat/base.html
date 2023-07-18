@@ -3,8 +3,9 @@
   {% block head %}
   <head>
     <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{{sitename}}</title>
+    <title>{{title}}</title>
     {% include 'head.html' %}
     <script type="text/x-mathjax-config">
           MathJax.Hub.Config({
@@ -37,7 +38,7 @@
       {% include 'afterBodyBegin.js' %}
     </script>
     <div class="container">
-      {% include 'header.html' %} {% block content %}
+      {{global_toc}} {% include 'header.html' %} {% block content %}
       <div class="post-list" id="content">
         {% if section %}
         <h2>{{section}}</h2>
@@ -74,11 +75,10 @@
           >
           mode 9.4.4)</span
         >
-        {% if beian %}
+
         <p class="beian">
           <a href="http://beian.miit.gov.cn/">{{ beian }}</a>
         </p>
-        {% endif %}
       </footer>
     </div>
     <script>

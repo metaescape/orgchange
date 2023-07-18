@@ -323,13 +323,18 @@ def soup_decorate_per_html(post_info, soup):
 def extract_timestamps(post_info):
     soup = post_info["soup"]
     try:
-        post_info["created"] = (
+        post_info["created_timestamp"] = (
             soup.find("span", {"id": "created-timestamp"})
             .text.strip()
             .split(" ")[0]
         )
-        post_info["last_modify"] = (
+        post_info["last_modify_timestamp"] = (
             soup.find("span", {"id": "last-modify-timestamp"})
+            .text.strip()
+            .split(" ")[0]
+        )
+        post_info["emacs_org_version"] = (
+            soup.find("span", {"id": "emacs_org_version"})
             .text.strip()
             .split(" ")[0]
         )

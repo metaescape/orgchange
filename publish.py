@@ -84,7 +84,9 @@ def extract_site_info_from_index_org(orgfile, republish_all=False):
     with change_dir(os.path.dirname(orgfile)):
         org = orgparse.load(orgfile)
         posts = []
-        site_info = {}
+        site_info = {
+            "year": datetime.datetime.now().year,
+        }
 
         for node in org:
             if "noexport" in node.tags:
@@ -95,7 +97,8 @@ def extract_site_info_from_index_org(orgfile, republish_all=False):
                     site_info != {}
                 ), f"please define site level config in python src block under {node.heading}"
             if "post" in node.tags and node.level == 2:
-                post_info = index_node_process(node, copy.deepcopy(site_info))
+                # use shallow copy, make it like inheritance
+                post_info = index_node_process(node, copy.copy(site_info))
                 if post_info is None:  # wrong path
                     continue
                 post_info["draft"] = "draft" in node.tags
@@ -120,6 +123,7 @@ def update_site_info(node, site_info: dict):
     site_info["index_template"] = normalize_path(site_info["index_template"])
     site_info["org_prefixes"] = format_prefixes(site_info["org_prefixes"])
     site_info["theme"] = site_info.get("theme", "darkfloat")
+    site_info["title"] = site_info.get("sitename", "Orgchange site")
     return site_info
 
 
@@ -153,6 +157,9 @@ def post_title_path_prepare(node, post_info):
         html_path_abs2sys = html_path_abs2sys.replace(".html", "/index.html")
     html_path_rel2www = extract_suffix_from_prefix(html_path_abs2sys, WWW)
     html_path_abs2www = "/" + html_path_rel2www
+    publish_folder_abs2www = "/" + extract_suffix_from_prefix(
+        publish_folder, WWW
+    )
 
     post_info.update(
         {
@@ -161,6 +168,7 @@ def post_title_path_prepare(node, post_info):
             "html_path_abs2www": html_path_abs2www,
             "org_path_abs2sys": org_path_abs2sys,
             "html_path_rel2publish": html_path_rel2publish,
+            "publish_folder_abs2www": publish_folder_abs2www,
         }
     )
 
@@ -276,15 +284,37 @@ def multipage_postprocessing(post_info, html_folder):
         soups = get_soups(html_files)
         soups = merge_toc(html_files, soups)
         titles = get_titles(soups)
-        add_article_footer(html_files, soups, titles)
+        # add_article_footer(html_files, soups, titles)
+        posts = []
         for file, soup in zip(html_files, soups):
-            if file.endswith("index.html"):
-                # soup = change_index_title(soup, post_info["title"])
-                post_info["soup"] = soup
+            sub_post_info = copy.copy(post_info)
             soup = soup_decorate_per_html(post_info, soup)
+            if file.endswith("index.html"):
+                post_info["soup"] = soup
 
-            with open(file, "w") as f:
-                f.write(soup.prettify())
+            sub_post_info["soup"] = soup
+            header_titles = post_info["soup"].find(
+                "header", {"class": "header-titles"}
+            )
+            if header_titles:
+                sub_post_info["header_titles"] = str(header_titles)
+            posts.append(sub_post_info)
+            # soup = change_index_title(soup, post_info["title"])
+
+        for i, sub_post_info in enumerate(posts):
+            sub_post_info["next"] = (
+                (posts[i + 1]["html_path_abs2www"], posts[i + 1]["title"])
+                if i < len(posts) - 1
+                else ("", "")
+            )
+            sub_post_info["prev"] = (
+                (posts[i - 1]["html_path_abs2www"], posts[i - 1]["title"])
+                if i > 0
+                else ("", "")
+            )
+            generate_post_page(sub_post_info)
+            # with open(file, "w") as f:
+            #     f.write(soup.prettify())
 
 
 def merge_single_pages_footer(site_info):
@@ -304,15 +334,23 @@ def merge_single_pages_footer(site_info):
     add_article_footer(visible_htmls, visible_soups, visible_titles)
 
 
-def save_single_pages_soup(site_info):
+def render_and_save_single_pages_soup(site_info):
     # 保存所有 soup，无论是否可见
-    for post_info in site_info["posts"]:
-        if "soup" not in post_info:
-            continue
-        soup = post_info["soup"]
-        path = post_info["html_path_abs2sys"]
-        with open(path, "w") as f:
-            f.write(soup.prettify())
+    posts = [p for p in site_info["posts"] if not p.get("draft", False)]
+    for i, post_info in enumerate(posts):
+        post_info["next"] = (
+            (posts[i + 1]["html_path_abs2www"], posts[i + 1]["title"])
+            if i < len(posts) - 1
+            else ("", "")
+        )
+        post_info["prev"] = (
+            (posts[i - 1]["html_path_abs2www"], posts[i - 1]["title"])
+            if i > 0
+            else ("", "")
+        )
+        generate_post_page(post_info)
+        # with open(path, "w") as f:
+        #     f.write(soup.prettify())
 
 
 def merge_anthology_toc(site_info):
@@ -332,7 +370,7 @@ def merge_anthology_toc(site_info):
     for anth in anthologies_soup.keys():
         soups = merge_toc(anthologies_path[anth], anthologies_soup[anth])
         for post_info, soup in zip(anthologies[anth], soups):
-            post_info[soup] = soup
+            post_info["soup"] = soup
 
 
 def single_page_postprocessing(site_info):
@@ -351,10 +389,42 @@ def single_page_postprocessing(site_info):
             post_info["soup"] = soup_decorate_per_html(
                 post_info, post_info["soup"]
             )
-
     merge_anthology_toc(site_info)
-    merge_single_pages_footer(site_info)
-    save_single_pages_soup(site_info)
+    # merge_single_pages_footer(site_info)
+    render_and_save_single_pages_soup(site_info)
+
+
+def generate_post_page(post_info):
+    """
+    generate index.html from index.org
+    """
+    index = post_info["index_template"]
+    env = Environment(loader=FileSystemLoader(os.path.dirname(index)))
+    article_template = "article.html"
+    template = env.get_template(article_template)
+    global_toc = post_info["soup"].find("nav", {"id": "global-toc"})
+    if global_toc:
+        post_info["global_toc"] = str(global_toc)
+
+    header_titles = post_info["soup"].find(
+        "header", {"class": "header-titles"}
+    )
+    if header_titles:
+        post_info["header_titles"] = str(header_titles)
+    table_of_contents = post_info["soup"].find(
+        "nav", {"id": "table-of-contents"}
+    )
+    if table_of_contents:
+        post_info["table_of_contents"] = str(table_of_contents)
+
+    org_main = post_info["soup"].find("div", {"id": "org-main"})
+    if table_of_contents:
+        post_info["org_main"] = str(org_main)
+    rendered_template = template.render(post_info)
+
+    with open(post_info["html_path_abs2sys"], "w") as f:
+        f.write(rendered_template)
+        print(f"{post_info['html_path_abs2sys']} generated")
 
 
 def generate_index_html(site_info):
@@ -413,6 +483,7 @@ def generate_category_html(site_info):
         for key in ["beian", "sitename", "github_url", "github_name"]:
             if key in site_info:
                 data[key] = site_info[key]
+
         rendered_template = template.render(data)
 
         with open(
