@@ -148,6 +148,10 @@ def extract_suffix_from_prefix(file_path, prefix):
     """
     extract file suffix from file_path if file_path starts with prefix
     """
+    # if file path is a folder, add separator to the end
+    if os.path.isdir(file_path) and not file_path.endswith(os.sep):
+        file_path += os.sep
+
     if not prefix.endswith(os.sep):
         prefix += os.sep
 

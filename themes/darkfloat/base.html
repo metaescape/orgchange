@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{{title}}</title>
+    <title>{{ title }}</title>
     {% include 'head.html' %}
     <script type="text/x-mathjax-config">
           MathJax.Hub.Config({
@@ -38,7 +38,7 @@
       setTheme(localStorage.getItem("theme"));
     </script>
     <div class="container">
-      {{global_toc}}
+      {{ global_toc }}
       <header class="top-header">
         <div class="header-inner">
           <div class="header-left">
@@ -82,7 +82,7 @@
       <div class="post-list" id="content">
         {% if section %}
         <h2>{{section}}</h2>
-        {% endif %} {% for item in posts %}
+        {% endif %} {% for item in visible_posts %}
 
         <p class="post-line">
           <a
@@ -105,15 +105,13 @@
       {% endblock %}
 
       <footer id="postamble" class="status">
-        <span> © {{year}}</span
+        <span> © {{year}} </span
         ><a href="{{github_url}}" target="_blank"> {{ github_name }} </a> |
         <span
-          >Powered by
-          <a href="https://www.gnu.org/software/emacs/">Emacs</a> 28.0.50 (<a
-            href="https://orgmode.org"
-            >Org</a
-          >
-          mode 9.4.4)</span
+          >Powered by {{ emacs_org_version[0] }} &
+          <a href="https://github.com/metaescape/orgchange" target="_blank"
+            >OrgChange</a
+          ></span
         >
         {% block beian %}
         <p class="beian">

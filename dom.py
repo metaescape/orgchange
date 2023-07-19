@@ -335,26 +335,40 @@ def soup_decorate_per_html(post_info, soup):
     return soup
 
 
-def extract_timestamps(post_info):
+def extract_time_version(post_info):
     soup = post_info["soup"]
-    try:
-        post_info["created_timestamp"] = (
-            soup.find("span", {"id": "created-timestamp"})
-            .text.strip()
-            .split(" ")[0]
+    post_info["created_timestamp"] = soup.find(
+        "span", {"id": "created-timestamp"}
+    ).text
+    post_info["last_modify_timestamp"] = soup.find(
+        "span", {"id": "last-modify-timestamp"}
+    ).text
+    if post_info["emacs_org_version"] == []:
+        post_info["emacs_org_version"].append(
+            soup.find("span", {"id": "emacs-org-version"}).text
         )
-        post_info["last_modify_timestamp"] = (
-            soup.find("span", {"id": "last-modify-timestamp"})
-            .text.strip()
-            .split(" ")[0]
-        )
-        post_info["emacs_org_version"] = (
-            soup.find("span", {"id": "emacs_org_version"})
-            .text.strip()
-            .split(" ")[0]
-        )
-    except:
-        print_yellow(
-            f"ignore postprocess for {post_info['html_path_abs2sys']}"
-        )
-        pass
+
+    # only with date, no weekday and time
+    if post_info["created_timestamp"]:
+        post_info["created"] = post_info["created_timestamp"].split()[0]
+    if post_info["last_modify_timestamp"]:
+        post_info["last_modify"] = post_info["last_modify_timestamp"].split()[
+            0
+        ]
+
+
+# deprecated
+def merge_single_pages_footer(site_info):
+    visible_soups = []
+    visible_htmls = []
+    visible_titles = []
+    for post_info in site_info["posts"]:
+        # 只有可见文章才需要添加 footer, 那些不需要更新的也要加入，提供上下文
+        if not post_info.get("draft", False):
+            visible_soups.append(
+                None if "soup" not in post_info else post_info["soup"]
+            )
+            visible_htmls.append(post_info["html_path_abs2www"])
+            visible_titles.append(post_info["title"])
+
+    add_article_footer(visible_htmls, visible_soups, visible_titles)

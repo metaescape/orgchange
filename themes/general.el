@@ -28,21 +28,20 @@
       org-export-with-broken-links 'mark
       )
 
-
 (setq org-html-checkbox-type 'unicode ;; ascii
       org-export-headline-levels 3
       org-export-with-toc t
 	    org-export-with-section-numbers nil)
 
-
 (setq org-html-preamble t)
-(setq org-html-postamble t)
+;; (setq org-html-postamble t)
   
 (setq org-html-preamble-format
       `(("en" "<span id=\"created-timestamp\">%d</span>
 	  		   <span id=\"last-modify-timestamp\">%C</span>
 			   <span id=\"emacs-org-version\">%c</span>"
 			   )))
+         
 
 (setq org-html-divs
       '((preamble "header" "preamble")

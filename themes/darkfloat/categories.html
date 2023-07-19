@@ -1,7 +1,7 @@
 {% extends "base.html" %} {% block content %}
 <div id="content">
   <div class="categories">
-    {% for category, count in categories %}
+    {% for category, count in categories_len %}
 
     <a href="{{publish_offset}}/categories/{{category}}.html"
       >{{category}}:{{count}}</a

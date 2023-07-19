@@ -10,12 +10,11 @@ import argparse
 from collections import defaultdict
 import glob
 from dom import (
-    add_article_footer,
     merge_toc,
     get_soups,
     soup_decorate_per_html,
     get_titles,
-    extract_timestamps,
+    extract_time_version,
 )
 from typing import List, Union
 
@@ -129,6 +128,16 @@ def update_site_info(node, site_info: dict):
     site_info["id_map"] = {}
     # inverse map from theoritical org-export html path to real publish path
     site_info["html_map"] = {}
+    site_info[
+        "emacs_org_version"
+    ] = []  # use list to share across all post_info
+    publish_folder_abs2www = "/" + extract_suffix_from_prefix(
+        site_info["publish_folder"], WWW
+    )
+    if not publish_folder_abs2www.endswith(os.sep):
+        publish_folder_abs2www += os.sep
+
+    site_info["publish_folder_abs2www"] = publish_folder_abs2www
     return site_info
 
 
@@ -163,9 +172,6 @@ def post_title_path_prepare(node, post_info):
         html_path_abs2sys = html_path_abs2sys.replace(".html", "/index.html")
     html_path_rel2www = extract_suffix_from_prefix(html_path_abs2sys, WWW)
     html_path_abs2www = "/" + html_path_rel2www
-    publish_folder_abs2www = "/" + extract_suffix_from_prefix(
-        publish_folder, WWW
-    )
 
     post_info.update(
         {
@@ -175,7 +181,6 @@ def post_title_path_prepare(node, post_info):
             "html_path_abs2www": html_path_abs2www,
             "org_path_abs2sys": org_path_abs2sys,
             "html_path_rel2publish": html_path_rel2publish,
-            "publish_folder_abs2www": publish_folder_abs2www,
         }
     )
     post_info["html_map"][html_path_theoritical] = html_path_abs2www
@@ -269,8 +274,6 @@ def _export_to_html(theme_path, orgfile, elisp_code, verbose=False):
         f"--chdir={theme_path}",
         "--load",
         "../general.el",
-        "--load",
-        "export.el",
         orgfile,
         "--eval",
         elisp_code,
@@ -346,27 +349,11 @@ def multipage_postprocessing(post_info, html_folder):
             #     f.write(soup.prettify())
 
 
-def merge_single_pages_footer(site_info):
-    visible_soups = []
-    visible_htmls = []
-    visible_titles = []
-    for post_info in site_info["posts"]:
-        # 只有可见文章才需要添加 footer, 那些不需要更新的也要加入，提供上下文
-        if not post_info.get("draft", False):
-            post_info["idx"] = len(visible_htmls)
-            visible_soups.append(
-                None if "soup" not in post_info else post_info["soup"]
-            )
-            visible_htmls.append(post_info["html_path_abs2www"])
-            visible_titles.append(post_info["title"])
-
-    add_article_footer(visible_htmls, visible_soups, visible_titles)
-
-
 def render_and_save_single_pages_soup(site_info):
     # 保存所有 soup，无论是否可见
     posts = [p for p in site_info["posts"] if not p.get("draft", False)]
     for i, post_info in enumerate(posts):
+        post_info["idx"] = i
         post_info["next"] = (
             (posts[i + 1]["html_path_abs2www"], posts[i + 1]["title"])
             if i < len(posts) - 1
@@ -377,6 +364,11 @@ def render_and_save_single_pages_soup(site_info):
             if i > 0
             else ("", "")
         )
+        generate_post_page(post_info)
+    draft_posts = [p for p in site_info["posts"] if p.get("draft", False)]
+    for post_info in draft_posts:
+        post_info["prev"] = ("", "")
+        post_info["next"] = ("", "")
         generate_post_page(post_info)
 
 
@@ -408,7 +400,7 @@ def single_page_postprocessing(site_info):
             # 对所有 post 都要读取 soup，用于提供合并 toc 的上下文
             post_info["soup"] = get_soups([post_info["html_path_abs2sys"]])[0]
         # 对所有 post 都提取时间信息，用于显示在 index list 和 category list 页面
-        extract_timestamps(post_info)
+        extract_time_version(post_info)
 
         # 不需要对 multipage 的 index.html 进行单 soup 修饰
         if (
@@ -468,21 +460,9 @@ def generate_index_html(site_info):
         x for x in site_info["posts"] if not x.get("draft", False)
     ]
 
-    data = {
-        "year": datetime.datetime.now().year,
-        "posts": visible_posts,
-    }
+    site_info["visible_posts"] = visible_posts
 
-    for key in [
-        "beian",
-        "sitename",
-        "github_url",
-        "github_name",
-    ]:
-        if key in site_info:
-            data[key] = site_info[key]
-
-    rendered_template = template.render(data)
+    rendered_template = template.render(site_info)
     index_html = os.path.join(site_info["publish_folder"], "index.html")
     with open(index_html, "w") as f:
         f.write(rendered_template)
@@ -503,18 +483,17 @@ def generate_category_html(site_info):
         os.makedirs(categories_dir)
 
     for category in site_info["categories"]:
-        data = {
-            "publish_offset": os.path.relpath(publish_folder, WWW),
-            "year": datetime.datetime.now().year,
-            "section": category,
-            "posts": site_info["categories"][category],
-        }
+        category_info = copy.copy(site_info)
+        # Draft posts will be deemed as visible posts.
+        category_info.update(
+            {
+                "publish_offset": os.path.relpath(publish_folder, WWW),
+                "section": category,
+                "visible_posts": site_info["categories"][category],
+            }
+        )
 
-        for key in ["beian", "sitename", "github_url", "github_name"]:
-            if key in site_info:
-                data[key] = site_info[key]
-
-        rendered_template = template.render(data)
+        rendered_template = template.render(category_info)
 
         with open(
             os.path.join(publish_folder, "categories", f"{category}.html"), "w"
@@ -522,13 +501,10 @@ def generate_category_html(site_info):
             f.write(rendered_template)
 
     template = env.get_template("categories.html")
-    data = {
-        "year": datetime.datetime.now().year,
-        "categories": [
-            (cate, len(lst)) for cate, lst in site_info["categories"].items()
-        ],
-    }
-    rendered_template = template.render(data)
+    site_info["categories_len"] = [
+        (cate, len(lst)) for cate, lst in site_info["categories"].items()
+    ]
+    rendered_template = template.render(site_info)
     categories_index_html = os.path.join(
         publish_folder, "categories", "index.html"
     )
