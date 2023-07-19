@@ -239,8 +239,7 @@ def remove_prefix(path, prefixes):
         if path.startswith(prefix):
             # Remove the prefix from the path
             return path[len(prefix) :]
-    # If no prefix is found, return empty string
-    return ""
+    return path
 
 
 def mermaid_process(soup, theme):
@@ -270,6 +269,19 @@ def mermaid_process(soup, theme):
     return soup
 
 
+def check_id(href, post_info):
+    # if find "#ID-" in href, then split
+    if href.find("#ID-") != -1:
+        html, org_id = href.split("#ID-")
+        if org_id in post_info["id_map"]:
+            href = post_info["id_map"][org_id] + "#" + org_id
+            return href
+        if os.path.basename(html) in post_info["html_map"]:
+            href = post_info["html_map"][os.path.basename(html)] + "#" + org_id
+            return href
+    return ""
+
+
 def soup_decorate_per_html(post_info, soup):
     """
     extract images from html soups for later rsync
@@ -293,6 +305,7 @@ def soup_decorate_per_html(post_info, soup):
         with change_dir(org_folder):
             # mv url from ~/org/posts/imgs/... to /www/posts/imgs/...
             rsync_copy(img_url, html_folder)
+    # breakpoint()
 
     for p in soup.find_all("p"):
         # 在每个 <p> 标签中找到所有的 <a> 标签
@@ -306,6 +319,8 @@ def soup_decorate_per_html(post_info, soup):
                 href = href.replace(src, target)
 
             href = remove_prefix(href, prefixes)
+
+            href = check_id(href, post_info)
 
             # 删除 "#MissingReference"
             href = href.replace("#MissingReference", "")

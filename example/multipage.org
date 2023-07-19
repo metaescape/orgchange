@@ -6,12 +6,38 @@
 且文件名与一级标题相同
 
 例如本节会被导出成 `index.html`
+以下是对每一章的引用
+
+[[id:20230719T103158.578781][第一章]]
+
+[[id:20230719T103206.666944][第二章]]
+
+而在 [[id:20230719T110804.618657][demo.org]] 中则提到更多
+
+我是内部的[[id:20230719T114415.747060][如果是在内部呢]]
+
+** 如果是在内部呢
+:PROPERTIES:
+:ID:       20230719T114415.747060
+:END:
 
 * 第一章
+:PROPERTIES:
+:ID:       20230719T103158.578781
+:END:
+
+the other two tasks require specialized knowledge (in neuro-
+pathic pain and arctic atmosphere science respectively)
+that a lay person would not be able to infer.
+
 
 ** 第一节
 
+
 * 第二章
+:PROPERTIES:
+:ID:       20230719T103206.666944
+:END:
 ** 第一节
 ** 第二节
 计算机网络

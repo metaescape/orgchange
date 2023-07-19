@@ -25,14 +25,14 @@
       org-export-use-babel nil
       org-export-with-sub-superscripts nil
       org-html-container-element "section"
-      org-export-with-broken-links t
+      org-export-with-broken-links 'mark
       )
 
 
 (setq org-html-checkbox-type 'unicode ;; ascii
       org-export-headline-levels 3
       org-export-with-toc t
-	  org-export-with-section-numbers nil)
+	    org-export-with-section-numbers nil)
 
 
 (setq org-html-preamble t)
@@ -134,16 +134,16 @@ Already existing files are overwritten."
           ;;Set the active region.
 		  
 		  ;; 不显示一级标题
-          (set-mark (line-end-position)) 
-          (forward-line 1)
+          ;; (set-mark (line-end-position)) 
+          ;; (forward-line 1)
 
 		  ;; 显示一级标题，会与 title 重复
-		  ;;   (set-mark (point))
-		  ;;   (outline-next-visible-heading 1)
+		    (set-mark (point))
+		    (outline-next-visible-heading 1)
           ;;   (outline-next-preface) ;; any level
 		  (if (search-forward-regexp "^* " nil t)
-              (forward-char -2)
-			(goto-char (point-max)))
+          (forward-char -2)
+			    (goto-char (point-max)))
           
           (activate-mark)
           ;;Export the region to a html file.
@@ -248,9 +248,10 @@ holding export options."
      (format "<%s id=\"%s\">\n" (nth 1 div) (nth 2 div)))
    ;; Document title.
    (when (plist-get info :with-title)
-	 (let ((title (and (plist-get info :with-title)
+	 (let* ((origin-title (org-export-data (plist-get info :title) info))
+         (title (and (plist-get info :with-title)
 	 				;; (plist-get info :title) ;;original
-                       (or user-settings-blog-title (plist-get info :title))
+                       (or (format "%s:%s" origin-title user-settings-blog-title) (plist-get info :title))
 					   ))
 		;;    (subtitle (plist-get info :subtitle)) ;;original
 		   (subtitle
@@ -330,3 +331,33 @@ holding export options."
 ;;                   (read-file-content "postamble.html")))))
 
 ;; (prin1 "Ok , this publish system don't need htmlize.el\n")
+
+(defun org-html--reference (datum info &optional named-only)
+  "Return an appropriate reference for DATUM.
+
+DATUM is an element or a `target' type object.  INFO is the
+current export state, as a plist.
+
+When NAMED-ONLY is non-nil and DATUM has no NAME keyword, return
+nil.  This doesn't apply to headlines, inline tasks, radio
+targets and targets."
+  (let* ((type (org-element-type datum))
+	 (user-label
+	  (org-element-property
+	   (pcase type
+	     ((or `headline `inlinetask) :ID)
+	     ((or `radio-target `target) :value)
+	     (_ :name))
+	   datum)))
+    (cond
+     ((and user-label
+	   (or (plist-get info :html-prefer-user-labels)
+	       ;; Used CUSTOM_ID property unconditionally.
+	       (memq type '(headline inlinetask))))
+      user-label)
+     ((and named-only
+	   (not (memq type '(headline inlinetask radio-target target)))
+	   (not user-label))
+      nil)
+     (t
+      (org-export-get-reference datum info)))))

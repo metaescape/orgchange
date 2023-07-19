@@ -13,7 +13,7 @@ beian = "京ICP备2021000000号"
 github_url = "https://github.com/metaescape"
 github_name = "mE"
 site_repo = "https://github.com/metaescape/hugchange.life/"
-site_name = "personal"
+site_name = "demo for orgchange"
 #+end_src
 
 #+begin_src emacs-lisp :results none :eval no

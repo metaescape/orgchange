@@ -106,6 +106,7 @@ def extract_site_info_from_index_org(orgfile, republish_all=False):
                     post_info["need_update"] = True
                 posts.append(post_info)
         site_info["posts"] = posts
+
     return site_info
 
 
@@ -123,7 +124,11 @@ def update_site_info(node, site_info: dict):
     site_info["index_template"] = normalize_path(site_info["index_template"])
     site_info["org_prefixes"] = format_prefixes(site_info["org_prefixes"])
     site_info["theme"] = site_info.get("theme", "darkfloat")
-    site_info["title"] = site_info.get("sitename", "Orgchange site")
+    site_info["title"] = site_info.get("site_name", "Orgchange site")
+    # inverse map from id to html path
+    site_info["id_map"] = {}
+    # inverse map from theoritical org-export html path to real publish path
+    site_info["html_map"] = {}
     return site_info
 
 
@@ -152,6 +157,7 @@ def post_title_path_prepare(node, post_info):
         html_path_abs2sys,
     )
     multipage_index = post_info.get("multipage_index", False)
+    html_path_theoritical = os.path.basename(html_path_abs2sys)
     if multipage_index:
         # e.g. ~/www/posts/book/index.html
         html_path_abs2sys = html_path_abs2sys.replace(".html", "/index.html")
@@ -164,6 +170,7 @@ def post_title_path_prepare(node, post_info):
     post_info.update(
         {
             "title": get_title_from_orglink(heading),
+            "html_path_theoritical": html_path_theoritical,
             "html_path_abs2sys": html_path_abs2sys,
             "html_path_abs2www": html_path_abs2www,
             "org_path_abs2sys": org_path_abs2sys,
@@ -171,6 +178,7 @@ def post_title_path_prepare(node, post_info):
             "publish_folder_abs2www": publish_folder_abs2www,
         }
     )
+    post_info["html_map"][html_path_theoritical] = html_path_abs2www
 
 
 def index_node_process(node, post_info):
@@ -185,6 +193,22 @@ def index_node_process(node, post_info):
     post_title_path_prepare(node, post_info)
 
     return post_info
+
+
+def build_maps(post_info):
+    if post_info.get("draft", False):
+        return
+
+    def id_contains_dot(tag_id):
+        return tag_id.find(".") != -1 if tag_id else False
+
+    soup = post_info["soup"]
+    # 搜索所有的 h1, h2, h3, h4, 和 h5 标签
+    headings = soup.find_all(
+        ["h1", "h2", "h3", "h4", "h5"], id=id_contains_dot
+    )
+    for heading in headings:
+        post_info["id_map"][heading["id"]] = post_info["html_path_abs2www"]
 
 
 def publish_single_file(
@@ -218,13 +242,9 @@ def publish_single_file(
         )
         for file in glob.glob(os.path.join(html_folder, "*")):
             os.remove(file)
-    category = ",".join(post_info.get("categories", ""))
     elisp_code = f"""
     (progn 
         (setq default-directory "{html_folder}") 
-        (setq publish-directory "{post_info.get('publish_folder')}") 
-        (setq categories "{category}") 
-        (setq github-issue-link "{post_info.get('github_issue_link', '#')}") 
         {post_info.get('setq')}
         {final_export_elisp})
     """
@@ -286,22 +306,31 @@ def multipage_postprocessing(post_info, html_folder):
         titles = get_titles(soups)
         # add_article_footer(html_files, soups, titles)
         posts = []
-        for file, soup in zip(html_files, soups):
+        for file, soup, title in zip(html_files, soups, titles):
             sub_post_info = copy.copy(post_info)
-            soup = soup_decorate_per_html(post_info, soup)
+            sub_post_info["title"] = str(title)
+
             if file.endswith("index.html"):
                 post_info["soup"] = soup
-
             sub_post_info["soup"] = soup
+
             header_titles = post_info["soup"].find(
                 "header", {"class": "header-titles"}
             )
             if header_titles:
                 sub_post_info["header_titles"] = str(header_titles)
+
+            sub_post_info["html_path_abs2www"] = file
+            sub_post_info["html_path_abs2sys"] = os.path.join(
+                html_folder, file
+            )
+            build_maps(sub_post_info)
             posts.append(sub_post_info)
             # soup = change_index_title(soup, post_info["title"])
 
         for i, sub_post_info in enumerate(posts):
+            soup = sub_post_info["soup"]
+            sub_post_info["soup"] = soup_decorate_per_html(sub_post_info, soup)
             sub_post_info["next"] = (
                 (posts[i + 1]["html_path_abs2www"], posts[i + 1]["title"])
                 if i < len(posts) - 1
@@ -358,7 +387,9 @@ def merge_anthology_toc(site_info):
     anthologies_path = defaultdict(list)
     anthologies = defaultdict(list)
     for i, post_info in enumerate(site_info["posts"]):
-        if post_info.get("draft", False):
+        if post_info.get("draft", False) or post_info.get(
+            "multipage_index", False
+        ):
             continue
         anthology = post_info.get("anthology", f"sigle_{i}")
         assert (
@@ -398,6 +429,7 @@ def generate_post_page(post_info):
     """
     generate index.html from index.org
     """
+
     index = post_info["index_template"]
     env = Environment(loader=FileSystemLoader(os.path.dirname(index)))
     article_template = "article.html"
