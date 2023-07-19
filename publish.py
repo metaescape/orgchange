@@ -378,8 +378,6 @@ def render_and_save_single_pages_soup(site_info):
             else ("", "")
         )
         generate_post_page(post_info)
-        # with open(path, "w") as f:
-        #     f.write(soup.prettify())
 
 
 def merge_anthology_toc(site_info):

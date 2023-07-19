@@ -251,7 +251,8 @@ holding export options."
 	 (let* ((origin-title (org-export-data (plist-get info :title) info))
          (title (and (plist-get info :with-title)
 	 				;; (plist-get info :title) ;;original
-                       (or (format "%s:%s" origin-title user-settings-blog-title) (plist-get info :title))
+                       (or (and user-settings-blog-title (format "%s:%s" origin-title user-settings-blog-title))
+                           (plist-get info :title))
 					   ))
 		;;    (subtitle (plist-get info :subtitle)) ;;original
 		   (subtitle
