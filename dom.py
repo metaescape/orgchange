@@ -265,8 +265,9 @@ def mermaid_process(soup, theme):
             + f"'{theme}',"
             + "});"
         )
-        soup.body.append(script_tag)
-    return soup
+
+        return str(script_tag)
+    return ""
 
 
 def check_id(href, post_info):
@@ -282,12 +283,13 @@ def check_id(href, post_info):
     return ""
 
 
-def soup_decorate_per_html(post_info, soup):
+def soup_decorate_per_html(post_info):
     """
     extract images from html soups for later rsync
     prune the cross reference links in href
     add code highlight with pygments
     """
+    soup = post_info["soup"]
     link_replace, prefixes = (
         post_info.get("link_replace", {}),
         post_info["org_prefixes"],
@@ -305,7 +307,6 @@ def soup_decorate_per_html(post_info, soup):
         with change_dir(org_folder):
             # mv url from ~/org/posts/imgs/... to /www/posts/imgs/...
             rsync_copy(img_url, html_folder)
-    # breakpoint()
 
     for p in soup.find_all("p"):
         # 在每个 <p> 标签中找到所有的 <a> 标签
@@ -329,25 +330,25 @@ def soup_decorate_per_html(post_info, soup):
             a["href"] = href
 
     soup = pygment_and_paren_match_all(soup)
+    post_info["soup"] = soup
 
-    soup = mermaid_process(soup, post_info.get("mermaid_theme", "neutral"))
-
-    return soup
+    post_info["mermaid_script"] = mermaid_process(
+        soup, post_info.get("mermaid_theme", "neutral")
+    )
 
 
 def extract_time_version(post_info):
     soup = post_info["soup"]
     post_info["created_timestamp"] = soup.find(
         "span", {"id": "created-timestamp"}
-    ).text
+    ).text.strip()
     post_info["last_modify_timestamp"] = soup.find(
         "span", {"id": "last-modify-timestamp"}
-    ).text
+    ).text.strip()
     if post_info["emacs_org_version"] == []:
         post_info["emacs_org_version"].append(
-            soup.find("span", {"id": "emacs-org-version"}).text
+            soup.find("span", {"id": "emacs-org-version"}).text.strip()
         )
-
     # only with date, no weekday and time
     if post_info["created_timestamp"]:
         post_info["created"] = post_info["created_timestamp"].split()[0]

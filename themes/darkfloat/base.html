@@ -6,31 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ title }}</title>
-    {% include 'head.html' %}
-    <script type="text/x-mathjax-config">
-          MathJax.Hub.Config({
-              displayAlign: "center",
-              displayIndent: "0em",
-
-              "HTML-CSS": { scale: 100,
-                              linebreaks: { automatic: "false" },
-                              webFont: "TeX"
-                             },
-              SVG: {scale: 100,
-                    linebreaks: { automatic: "false" },
-                    font: "TeX"},
-              NativeMML: {scale: 100},
-              TeX: { equationNumbers: {autoNumber: "AMS"},
-                     MultLineWidth: "85%",
-                     TagSide: "right",
-                     TagIndent: ".8em"
-                   }
-      });
-    </script>
-    <script
-      type="text/javascript"
-      src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML"
-    ></script>
+    {% include 'head.html' %} {{ emacs_scripts }}
   </head>
   {% endblock %}
   <body>
@@ -108,7 +84,8 @@
         <span> © {{year}} </span
         ><a href="{{github_url}}" target="_blank"> {{ github_name }} </a> |
         <span
-          >Powered by {{ emacs_org_version[0] }} &
+          >Powered by
+          <span id="emacs-org-version">{{ emacs_org_version[0] }}</span> &
           <a href="https://github.com/metaescape/orgchange" target="_blank"
             >OrgChange</a
           ></span
@@ -120,6 +97,7 @@
         {% endblock %}
       </footer>
     </div>
+    {{ mermaid_script }}
     <script>
       {% include 'beforeBodyEnd.js' %}
     </script>

@@ -1,6 +1,8 @@
 #+title: 一个测试网站
 
-* 文章列表                                                           :post:
+* 测试网站                                                             :post:
+带有 =post= tag 的第一层级 heading 下的 python block 就是整个网站的全局设置：
+
 
 #+begin_src python
 # 可以用相对当前文件的路径或绝对路径
@@ -16,6 +18,9 @@ site_repo = "https://github.com/metaescape/hugchange.life/"
 site_name = "demo for orgchange"
 #+end_src
 
+
+带有 =post= tag 的第一层级 heading 下的 emacs-lisp block 也是整个网站的全局设置：
+
 #+begin_src emacs-lisp :results none :eval no
 (setq org-id-locations-file "~/.wemacs/.org-id-locations")
 #+end_src
@@ -23,22 +28,24 @@ site_name = "demo for orgchange"
 
 ** [[./demo.org][demo]]                   
 
+demo.org 将会被发布，可以在 python block 中设置该文章分类：
 #+begin_src python
 categories = ["sample","test"]
 #+end_src
 
+在以下 emacs block 中设置 demo.org 导出的选项：
+#+begin_src emacs-lisp :results none :eval no
+(setq org-export-with-section-numbers t)
+#+end_src
+
 ** [[./index.org][index]]                                            :draft:
 
-有 draft 标签不会显示在主页
+有 draft 标签不会显示在主页，但仍然会被发布，如果不需要发布，则用 =noexport= 标签
 
 ** [[./multipage.org][multipage]]
 
+以下选项表示使用该文件中第一个 level 1 heading 作为索引页面，如果不设置改变量，默认发布成一个 html 文件
 
 #+begin_src python
 multipage_index = "default"
 #+end_src
-
-multipage_index = default 表示使用该文件中 index 标题作为索引页面,
-否则就是但页的文章
-
-DRAFT 不会显示在主页中，但还是会发布到网站上

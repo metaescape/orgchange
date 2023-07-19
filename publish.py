@@ -50,8 +50,6 @@ def publish_via_index(index_org, verbose=False, republish_all=False):
         index_org, republish_all=republish_all
     )
 
-    site_info["categories"] = defaultdict(list)
-
     # collect categories and publish
     for post_info in site_info["posts"]:
         # e.g. ./posts/a.org
@@ -128,6 +126,7 @@ def update_site_info(node, site_info: dict):
     site_info["id_map"] = {}
     # inverse map from theoritical org-export html path to real publish path
     site_info["html_map"] = {}
+    site_info["categories"] = defaultdict(list)
     site_info[
         "emacs_org_version"
     ] = []  # use list to share across all post_info
@@ -160,11 +159,6 @@ def post_title_path_prepare(node, post_info):
     html_path_rel2publish = org_path_rel2prefix.replace(".org", ".html")
     html_path_abs2sys = os.path.join(publish_folder, html_path_rel2publish)
 
-    post_info["need_update"] = do_need_modified(
-        post_info["theme"],
-        org_path_abs2sys,
-        html_path_abs2sys,
-    )
     multipage_index = post_info.get("multipage_index", False)
     html_path_theoritical = os.path.basename(html_path_abs2sys)
     if multipage_index:
@@ -172,6 +166,12 @@ def post_title_path_prepare(node, post_info):
         html_path_abs2sys = html_path_abs2sys.replace(".html", "/index.html")
     html_path_rel2www = extract_suffix_from_prefix(html_path_abs2sys, WWW)
     html_path_abs2www = "/" + html_path_rel2www
+
+    post_info["need_update"] = do_need_modified(
+        post_info["theme"],
+        org_path_abs2sys,
+        html_path_abs2sys,
+    )
 
     post_info.update(
         {
@@ -230,11 +230,6 @@ def publish_single_file(
 
     # e.g. /www/posts/
     html_folder = os.path.dirname(html_path_abs2sys)
-
-    if not os.path.exists(html_folder):
-        os.makedirs(html_folder)
-
-    html_folder = os.path.dirname(post_info["html_path_abs2sys"])
 
     if not os.path.exists(html_folder):
         os.makedirs(html_folder)
@@ -313,11 +308,11 @@ def multipage_postprocessing(post_info, html_folder):
             sub_post_info = copy.copy(post_info)
             sub_post_info["title"] = str(title)
 
+            sub_post_info["soup"] = soup
             if file.endswith("index.html"):
                 post_info["soup"] = soup
-            sub_post_info["soup"] = soup
 
-            header_titles = post_info["soup"].find(
+            header_titles = sub_post_info["soup"].find(
                 "header", {"class": "header-titles"}
             )
             if header_titles:
@@ -333,7 +328,9 @@ def multipage_postprocessing(post_info, html_folder):
 
         for i, sub_post_info in enumerate(posts):
             soup = sub_post_info["soup"]
-            sub_post_info["soup"] = soup_decorate_per_html(sub_post_info, soup)
+            if file.endswith("index.html"):
+                continue  #  index.html will be decorated in single_page_postprocessing
+            soup_decorate_per_html(sub_post_info)
             sub_post_info["next"] = (
                 (posts[i + 1]["html_path_abs2www"], posts[i + 1]["title"])
                 if i < len(posts) - 1
@@ -364,12 +361,15 @@ def render_and_save_single_pages_soup(site_info):
             if i > 0
             else ("", "")
         )
-        generate_post_page(post_info)
+        if post_info["need_update"]:
+            generate_post_page(post_info)
+
     draft_posts = [p for p in site_info["posts"] if p.get("draft", False)]
     for post_info in draft_posts:
         post_info["prev"] = ("", "")
         post_info["next"] = ("", "")
-        generate_post_page(post_info)
+        if post_info["need_update"]:
+            generate_post_page(post_info)
 
 
 def merge_anthology_toc(site_info):
@@ -401,15 +401,8 @@ def single_page_postprocessing(site_info):
             post_info["soup"] = get_soups([post_info["html_path_abs2sys"]])[0]
         # 对所有 post 都提取时间信息，用于显示在 index list 和 category list 页面
         extract_time_version(post_info)
-
-        # 不需要对 multipage 的 index.html 进行单 soup 修饰
-        if (
-            not post_info.get("multipage_index", False)
-            and post_info["need_update"]
-        ):
-            post_info["soup"] = soup_decorate_per_html(
-                post_info, post_info["soup"]
-            )
+        if post_info["need_update"]:
+            soup_decorate_per_html(post_info)
     merge_anthology_toc(site_info)
     # merge_single_pages_footer(site_info)
     render_and_save_single_pages_soup(site_info)
@@ -433,11 +426,18 @@ def generate_post_page(post_info):
     )
     if header_titles:
         post_info["header_titles"] = str(header_titles)
+
     table_of_contents = post_info["soup"].find(
         "nav", {"id": "table-of-contents"}
     )
     if table_of_contents:
         post_info["table_of_contents"] = str(table_of_contents)
+
+    emacs_scripts = post_info["soup"].find_all("script")
+    if emacs_scripts:
+        post_info["emacs_scripts"] = "\n".join(
+            [str(script) for script in emacs_scripts]
+        )
 
     org_main = post_info["soup"].find("div", {"id": "org-main"})
     if table_of_contents:
