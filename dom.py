@@ -280,7 +280,8 @@ def check_id(href, post_info):
         if os.path.basename(html) in post_info["html_map"]:
             href = post_info["html_map"][os.path.basename(html)] + "#" + org_id
             return href
-    return ""
+        return ""
+    return href
 
 
 def soup_decorate_per_html(post_info):
