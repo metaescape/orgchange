@@ -56,7 +56,8 @@ def publish_via_index(index_org, verbose=False, republish_all=False):
         for category in post_info.get("categories", []):
             if category == "":
                 continue
-            site_info["categories"][category].append(post_info)
+            # distinguish with categories in post_info
+            site_info["categories_map"][category].append(post_info)
         if post_info["need_update"]:
             publish_single_file(post_info, verbose)
         else:
@@ -126,7 +127,7 @@ def update_site_info(node, site_info: dict):
     site_info["id_map"] = {}
     # inverse map from theoritical org-export html path to real publish path
     site_info["html_map"] = {}
-    site_info["categories"] = defaultdict(list)
+    site_info["categories_map"] = defaultdict(list)
     site_info[
         "emacs_org_version"
     ] = []  # use list to share across all post_info
@@ -482,14 +483,14 @@ def generate_category_html(site_info):
     if not os.path.exists(categories_dir):
         os.makedirs(categories_dir)
 
-    for category in site_info["categories"]:
+    for category in site_info["categories_map"]:
         category_info = copy.copy(site_info)
         # Draft posts will be deemed as visible posts.
         category_info.update(
             {
                 "publish_offset": os.path.relpath(publish_folder, WWW),
                 "section": category,
-                "visible_posts": site_info["categories"][category],
+                "visible_posts": site_info["categories_map"][category],
             }
         )
 
@@ -502,7 +503,7 @@ def generate_category_html(site_info):
 
     template = env.get_template("categories.html")
     site_info["categories_len"] = [
-        (cate, len(lst)) for cate, lst in site_info["categories"].items()
+        (cate, len(lst)) for cate, lst in site_info["categories_map"].items()
     ]
     rendered_template = template.render(site_info)
     categories_index_html = os.path.join(
