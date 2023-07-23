@@ -116,7 +116,7 @@ def update_site_info(node, site_info: dict):
             variable_setting = get_bindings_from_text(content["body"])
             site_info.update(variable_setting)
         if language == "emacs-lisp":
-            site_info["setq"] = content["body"]
+            site_info["user_elisp"] = content["body"]
     # publish_folder is used for generate dynamic pages(e.g. categories, index.html, about.html)
     site_info["publish_folder"] = normalize_path(site_info["publish_folder"])
     site_info["index_template"] = normalize_path(site_info["index_template"])
@@ -194,7 +194,7 @@ def index_node_process(node, post_info):
             variable_setting = get_bindings_from_text(content["body"])
             post_info.update(variable_setting)
         if language == "emacs-lisp":
-            post_info["setq"] += content["body"]
+            post_info["user_elisp"] += content["body"]
 
     post_title_path_prepare(node, post_info)
 
@@ -215,6 +215,43 @@ def build_maps(post_info):
     )
     for heading in headings:
         post_info["id_map"][heading["id"]] = post_info["html_path_abs2www"]
+
+
+def bib_hook_parse(post_info):
+    """
+    insert #+bibliography and  #+cite_export into org buffer before export if user set bib_info variable
+    bib_info is a string, or a tuple with two or three elements, e.g.
+    ("~/org/lib/zotero.bib")
+    ("~/org/lib/zotero.bib", "acl")
+    ("~/org/lib/zotero.bib", "acl", "f")
+    """
+    bib_file, csl_style, cite_style = "", "acl", "f"
+    if "bib_info" in post_info:
+        bib_info = post_info["bib_info"]
+        if type(bib_info) == str:
+            bib_file = bib_info
+        else:
+            assert type(bib_info) in [
+                tuple,
+                list,
+            ], "bib_info should be a str or tuple/list with 2 or 3 elements"
+
+            if len(bib_info) == 2:
+                bib_file, csl_style = bib_info
+            elif len(bib_info) == 3:
+                bib_file, csl_style, cite_style = bib_info
+            else:
+                raise Exception(
+                    "bib_info should be a str or tuple/list with 2 or 3 elements"
+                )
+        csl_file = f"{ORG_CHANGE_DIR}/themes/static/{csl_style}.csl"
+
+        return f"""
+        (add-hook 'org-export-before-parsing-hook
+        (change/org-make-add-bibliography "{bib_file}" "{csl_file}" "{cite_style}"))
+        """
+
+    return ""
 
 
 def publish_single_file(
@@ -246,7 +283,8 @@ def publish_single_file(
     elisp_code = f"""
     (progn 
         (setq default-directory "{html_folder}") 
-        {post_info.get('setq')}
+        {post_info.get('user_elisp')}
+        {bib_hook_parse(post_info)}
         {final_export_elisp})
     """
 

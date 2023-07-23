@@ -1,3 +1,5 @@
+;;; -*- lexical-binding: t; -*-
+
 (require 'ox-html)
 (require 'org-id)
 (require 'oc)
@@ -157,14 +159,31 @@ Already existing files are overwritten."
 
 ;; https://orgmode.org/manual/Matching-tags-and-properties.html#Matching-tags-and-properties
 
-(defun my/org-modify-cite-links (backend)
+(defun change/org-modify-cite-links (backend)
   "Modify cite links in the current buffer for export."
   (goto-char (point-min))
   (while (re-search-forward "\\[\\[cite:&\\(.*?\\)\\]\\]" nil t)
     (unless (org-between-regexps-p "^#\\+begin_" "^#\\+end_")
       (replace-match "[cite:@\\1]" nil nil))))
 
-(add-hook 'org-export-before-parsing-hook 'my/org-modify-cite-links)
+(add-hook 'org-export-before-parsing-hook 'change/org-modify-cite-links)
+
+(defun change/org-make-add-bibliography (bib-file csl-file-path csl-style-option)
+  (lambda (backend)
+    (save-excursion
+      (goto-char (point-min))
+      (re-search-forward "^#\\+title:" nil t)
+      (forward-line)
+      (let ((current-point (point)))
+        (goto-char (point-min))
+        (unless (re-search-forward "^#\\+bibliography:" nil t)
+          (goto-char current-point)
+          (insert (concat "#+bibliography: " bib-file "\n"))
+          (insert (concat "#+cite_export: csl " csl-file-path " " csl-style-option "\n")))
+        (unless (re-search-forward "^#\\+print_bibliography:" nil t)
+          (goto-char (point-max))
+          (insert "\n* 参考文献\n#+print_bibliography:"))))
+          ))
 
 
 ;; https://emacs.stackexchange.com/questions/28301/export-javascript-source-block-to-script-tag-in-html-when-exporting-org-file-to
