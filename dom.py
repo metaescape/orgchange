@@ -132,35 +132,29 @@ def get_soups(html_files):
     return soups
 
 
-def merge_toc(html_files, soups):
-    # 创建一个字典，用于存储每个文件的table of contents元素
-
+def merge_toc(posts):
     tocs = []
 
     # 第一次遍历：获取每个文件的目录
-    for file, soup in zip(html_files, soups):
-        try:
-            title = soup.find("h1", {"class": "title"}).contents[0]
+    for post_info in posts:
+        title = post_info["title"]
+        html_path = post_info["html_path_abs2www"]
 
-        except AttributeError:
-            print(file)
-            raise AttributeError(
-                f"\n--> ERROR: you may need to add a #+title in your org file: {os.path.abspath(file)}\n"
-            )
-        title_li_str = f'<li> <a href="{file}">{title}</a></li>'
+        title_li_str = f'<li> <a href="{html_path}">{title}</a></li>'
         title_li = new_soup(title_li_str)
 
         local_toc = new_soup(title_li_str)
 
-        toc = soup.find("div", {"id": "text-table-of-contents"})
-        if toc:
-            local_toc.append(new_soup(toc.ul))
+        soup = post_info["soup"] if "soup" in post_info else None
+        if soup:
+            toc = soup.find("div", {"id": "text-table-of-contents"})
+            if toc:
+                local_toc.append(new_soup(toc.ul))
 
         # print(local_toc.prettify(), title_li.prettify())
         tocs.append((local_toc, title_li))
 
     # second pass, merage each tocs
-    global_tocs = []
     for i, (local_toc, title_li) in enumerate(tocs):
         global_toc_str = f"""
         <nav id="global-toc">   
@@ -173,20 +167,18 @@ def merge_toc(html_files, soups):
         global_toc.ul.extend([new_soup(x[-1]) for x in tocs[:i]])
         global_toc.ul.append(local_toc)
         global_toc.ul.extend([new_soup(x[-1]) for x in tocs[i + 1 :]])
-        global_tocs.append(global_toc)
+        posts[i]["global_toc"] = str(global_toc)
 
-    for file, soup, global_toc in zip(html_files, soups, global_tocs):
-        # print(global_toc)
+    # for file, soup, global_toc in zip(html_files, soups, global_tocs):
+    #     # print(global_toc)
 
-        container = soup.find("div", {"class": "container"})
-        old_global_toc = container.find("nav", {"id": "global-toc"})
-        if old_global_toc:
-            old_global_toc.replace_with(global_toc)
-        else:
-            container.insert(0, new_soup(global_toc))
-        # 如果不用 new_soup,  global_toc 会被清空，为什么？
-
-    return soups
+    #     container = soup.find("div", {"class": "container"})
+    #     old_global_toc = container.find("nav", {"id": "global-toc"})
+    #     if old_global_toc:
+    #         old_global_toc.replace_with(global_toc)
+    #     else:
+    #         container.insert(0, new_soup(global_toc))
+    #     # 如果不用 new_soup,  global_toc 会被清空，为什么？
 
 
 def insert_paginav(paginav, links, titles, i, cls="prev"):
@@ -338,25 +330,50 @@ def soup_decorate_per_html(post_info):
     )
 
 
-def extract_time_version(post_info):
-    soup = post_info["soup"]
-    post_info["created_timestamp"] = soup.find(
-        "span", {"id": "created-timestamp"}
-    ).text.strip()
-    post_info["last_modify_timestamp"] = soup.find(
-        "span", {"id": "last-modify-timestamp"}
-    ).text.strip()
-    if post_info["emacs_org_version"] == []:
-        post_info["emacs_org_version"].append(
-            soup.find("span", {"id": "emacs-org-version"}).text.strip()
-        )
-    # only with date, no weekday and time
-    if post_info["created_timestamp"]:
-        post_info["created"] = post_info["created_timestamp"].split()[0]
-    if post_info["last_modify_timestamp"]:
-        post_info["last_modify"] = post_info["last_modify_timestamp"].split()[
-            0
+def extract_time_version(post_info, cache={}):
+    html_path = post_info["html_path_abs2sys"]
+    if html_path not in cache and "soup" not in post_info:
+        post_info["soup"] = get_soups([post_info["html_path_abs2sys"]])[0]
+
+    if "soup" in post_info:
+        soup = post_info["soup"]
+        post_info["created_timestamp"] = soup.find(
+            "span", {"id": "created-timestamp"}
+        ).text.strip()
+        post_info["last_modify_timestamp"] = soup.find(
+            "span", {"id": "last-modify-timestamp"}
+        ).text.strip()
+        if post_info["emacs_org_version"] == []:
+            post_info["emacs_org_version"].append(
+                soup.find("span", {"id": "emacs-org-version"}).text.strip()
+            )
+        # only with date, no weekday and time
+        if post_info["created_timestamp"]:
+            post_info["created"] = post_info["created_timestamp"].split()[0]
+        if post_info["last_modify_timestamp"]:
+            post_info["last_modify"] = post_info[
+                "last_modify_timestamp"
+            ].split()[0]
+
+        cache[html_path] = {
+            "created": post_info["created"],
+            "last_modify": post_info["last_modify"],
+            "created_timestamp": post_info["created_timestamp"],
+            "last_modify_timestamp": post_info["last_modify_timestamp"],
+            "emacs_org_version": post_info["emacs_org_version"],
+        }
+
+        return
+
+    if html_path in cache:
+        post_info["created"] = cache[html_path]["created"]
+        post_info["last_modify"] = cache[html_path]["last_modify"]
+        post_info["created_timestamp"] = cache[html_path]["created_timestamp"]
+        post_info["last_modify_timestamp"] = cache[html_path][
+            "last_modify_timestamp"
         ]
+        post_info["emacs_org_version"] = cache[html_path]["emacs_org_version"]
+        return
 
 
 # deprecated

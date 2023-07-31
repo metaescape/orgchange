@@ -34,11 +34,17 @@ from utils import (
     print_yellow,
     print_red,
 )
+import pickle
 
 
 ORG_CHANGE_DIR = os.path.dirname(os.path.realpath(sys.argv[0]))
 os.chdir(ORG_CHANGE_DIR)
 WWW = os.path.dirname(ORG_CHANGE_DIR)
+CACHE_PATH = os.path.join(WWW, ".orgchange_cache")
+global_cache = {}
+if os.path.exists(CACHE_PATH):
+    with open(CACHE_PATH, "rb") as f:
+        global_cache = pickle.load(f)
 
 
 def publish_via_index(index_org, verbose=False, republish_all=False):
@@ -64,10 +70,11 @@ def publish_via_index(index_org, verbose=False, republish_all=False):
             print_green(f"no update, skip {post_info['html_path_abs2www']}")
 
     single_page_postprocessing(site_info)
-
-    generate_index_html(site_info)
-
-    generate_category_html(site_info)
+    if site_info["need_update"]:
+        generate_index_html(site_info)
+        generate_category_html(site_info)
+    else:
+        print_green("no update, skip index.html and category.html")
 
 
 def extract_site_info_from_index_org(orgfile, republish_all=False):
@@ -102,6 +109,8 @@ def extract_site_info_from_index_org(orgfile, republish_all=False):
                 post_info["draft"] = "draft" in node.tags
                 if republish_all:
                     post_info["need_update"] = True
+                if post_info["need_update"]:
+                    site_info["need_update"] = True
                 posts.append(post_info)
         site_info["posts"] = posts
 
@@ -123,6 +132,7 @@ def update_site_info(node, site_info: dict):
     site_info["org_prefixes"] = format_prefixes(site_info["org_prefixes"])
     site_info["theme"] = site_info.get("theme", "darkfloat")
     site_info["title"] = site_info.get("site_name", "Orgchange site")
+    site_info["need_update"] = False
     # inverse map from id to html path
     site_info["id_map"] = {}
     # inverse map from theoritical org-export html path to real publish path
@@ -339,7 +349,7 @@ def multipage_postprocessing(post_info, html_folder):
         html_files = ["index.html"] + sorted(html_files_without_index)
 
         soups = get_soups(html_files)
-        soups = merge_toc(html_files, soups)
+
         titles = get_titles(soups)
         # add_article_footer(html_files, soups, titles)
         posts = []
@@ -365,6 +375,7 @@ def multipage_postprocessing(post_info, html_folder):
             posts.append(sub_post_info)
             # soup = change_index_title(soup, post_info["title"])
 
+        merge_toc(posts)
         for i, sub_post_info in enumerate(posts):
             soup = sub_post_info["soup"]
             if file.endswith("index.html"):
@@ -386,7 +397,6 @@ def multipage_postprocessing(post_info, html_folder):
 
 
 def render_and_save_single_pages_soup(site_info):
-    # 保存所有 soup，无论是否可见
     posts = [p for p in site_info["posts"] if not p.get("draft", False)]
     for i, post_info in enumerate(posts):
         post_info["idx"] = i
@@ -403,6 +413,7 @@ def render_and_save_single_pages_soup(site_info):
         if post_info["need_update"]:
             generate_post_page(post_info)
 
+    # 生成 draft， 不加入 footer
     draft_posts = [p for p in site_info["posts"] if p.get("draft", False)]
     for post_info in draft_posts:
         post_info["prev"] = ("", "")
@@ -412,36 +423,32 @@ def render_and_save_single_pages_soup(site_info):
 
 
 def merge_anthology_toc(site_info):
-    anthologies_soup = defaultdict(list)
-    anthologies_path = defaultdict(list)
     anthologies = defaultdict(list)
     for i, post_info in enumerate(site_info["posts"]):
         if post_info.get("draft", False) or post_info.get(
             "multipage_index", False
         ):
             continue
-        anthology = post_info.get("anthology", f"sigle_{i}")
+        anthology = post_info.get("anthology", f"single_{i}")
         assert (
             type(anthology) != list
         ), f"{post_info['title']}'s anthology should be unique"
-        anthologies_soup[anthology].append(post_info["soup"])
-        anthologies_path[anthology].append(post_info["html_path_abs2www"])
+
         anthologies[anthology].append(post_info)
-    for anth in anthologies_soup.keys():
-        soups = merge_toc(anthologies_path[anth], anthologies_soup[anth])
-        for post_info, soup in zip(anthologies[anth], soups):
-            post_info["soup"] = soup
+    for anth in anthologies.keys():
+        merge_toc(anthologies[anth])
 
 
 def single_page_postprocessing(site_info):
     for post_info in site_info["posts"]:
-        if "soup" not in post_info:
-            # 对所有 post 都要读取 soup，用于提供合并 toc 的上下文
-            post_info["soup"] = get_soups([post_info["html_path_abs2sys"]])[0]
-        # 对所有 post 都提取时间信息，用于显示在 index list 和 category list 页面
-        extract_time_version(post_info)
+        # 对所有非 draft post 都提取时间信息（或者从缓存读取），用于显示在 index list 和 category list 页面
+        if not post_info.get("draft", False):
+            extract_time_version(post_info, cache=global_cache)
         if post_info["need_update"]:
             soup_decorate_per_html(post_info)
+    # dump cache
+    with open(CACHE_PATH, "wb") as f:
+        pickle.dump(global_cache, f)
     merge_anthology_toc(site_info)
     # merge_single_pages_footer(site_info)
     render_and_save_single_pages_soup(site_info)
@@ -456,9 +463,6 @@ def generate_post_page(post_info):
     env = Environment(loader=FileSystemLoader(os.path.dirname(index)))
     article_template = "article.html"
     template = env.get_template(article_template)
-    global_toc = post_info["soup"].find("nav", {"id": "global-toc"})
-    if global_toc:
-        post_info["global_toc"] = str(global_toc)
 
     header_titles = post_info["soup"].find(
         "header", {"class": "header-titles"}
@@ -492,9 +496,9 @@ def generate_index_html(site_info):
     """
     generate index.html from index.org
     """
-    index = site_info["index_template"]
-    env = Environment(loader=FileSystemLoader(os.path.dirname(index)))
-    template = env.get_template(os.path.basename(index))
+    index_template = site_info["index_template"]
+    env = Environment(loader=FileSystemLoader(os.path.dirname(index_template)))
+    template = env.get_template(os.path.basename(index_template))
     visible_posts = [
         x for x in site_info["posts"] if not x.get("draft", False)
     ]
