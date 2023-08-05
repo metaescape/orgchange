@@ -148,7 +148,7 @@ Already existing files are overwritten."
           
           (activate-mark)
           ;;Export the region to a html file.
-		  (setq user-settings-blog-title title) ;; used in export.el
+		  (setq user-settings-blog-title title)
       (with-current-buffer (org-html-export-as-html)
         ;; Save the buffer to file and kill it.
         (write-file filename)
@@ -269,14 +269,14 @@ holding export options."
 	 (let* ((origin-title (org-export-data (plist-get info :title) info))
          (title (and (plist-get info :with-title)
 	 				;; (plist-get info :title) ;;original
-                       (or (and user-settings-blog-title (format "%s:%s" origin-title user-settings-blog-title))
+                       (or (and user-settings-blog-title (format "%s:%s" origin-title multi-page-index))
                            (plist-get info :title))
 					   ))
-		;;    (subtitle (plist-get info :subtitle)) ;;original
-		   (subtitle
-				(if (null multi-page-index)
-					(plist-get info :subtitle)
-				(format "%s %s" (plist-get info :title) multi-page-index)))
+		   (subtitle (plist-get info :subtitle)) ;;original
+		  ;;  (subtitle
+			;; 	(if (null multi-page-index)
+			;; 		(plist-get info :subtitle)
+			;; 	(format "%s" multi-page-index)))
 
 		   (html5-fancy (org-html--html5-fancy-p info)))
 	   (when title
@@ -351,6 +351,7 @@ holding export options."
 
 ;; (prin1 "Ok , this publish system don't need htmlize.el\n")
 
+;; use ID as org-id, use fixed id instead of random id
 (defun org-html--reference (datum info &optional named-only)
   "Return an appropriate reference for DATUM.
 

@@ -201,8 +201,11 @@ def insert_paginav(paginav, links, titles, i, cls="prev"):
     nav_tag["href"] = links[alt_idx]
 
 
-def get_titles(soups):
-    return [soup.find("h1", {"class": "title"}).string for soup in soups]
+def get_multipages_titles(soups):
+    return [
+        soup.find("section", {"class": "outline-2"}).find("h2").string
+        for soup in soups
+    ]
 
 
 def add_article_footer(html_files, soups, titles=[]):

@@ -13,7 +13,7 @@ from dom import (
     merge_toc,
     get_soups,
     soup_decorate_per_html,
-    get_titles,
+    get_multipages_titles,
     extract_time_version,
 )
 from typing import List, Union
@@ -356,7 +356,7 @@ def multipages_prepare(post_info, html_folder):
         html_files = ["index.html"] + sorted(html_files_without_index)
         soups = get_soups(html_files)
 
-        titles = get_titles(soups)
+        titles = get_multipages_titles(soups)
         # add_article_footer(html_files, soups, titles)
         posts = []
         for file, soup, title in zip(html_files, soups, titles):
@@ -409,23 +409,28 @@ def collect_prev_next_and_generate(posts):
             generate_post_page(post_info)
 
 
-def render_and_save_single_pages_soup(site_info):
-    visible_posts = []
-    draft_posts = []
-    for i, post in enumerate(site_info["posts"]):
+def separate_draft_posts(site_info):
+    """
+    最细粒度的 post
+    """
+    all_visible_posts = []
+    all_draft_posts = []
+
+    for post in site_info["posts"]:
         if "multipages" not in post:
             if not post.get("draft", False):
-                visible_posts.append(post)
+                all_visible_posts.append(post)
             else:
-                draft_posts.append(post)
+                all_draft_posts.append(post)
         else:
             for p in post["multipages"]:
                 if not p.get("draft", False):
-                    visible_posts.append(p)
+                    all_visible_posts.append(p)
                 else:
-                    draft_posts.append(p)
-    collect_prev_next_and_generate(visible_posts)
-    collect_prev_next_and_generate(draft_posts)
+                    all_draft_posts.append(p)
+    site_info["all_draft_posts"] = all_draft_posts
+    site_info["all_visible_posts"] = all_visible_posts
+    return all_draft_posts + all_visible_posts
 
 
 def merge_anthology_toc(site_info):
@@ -444,8 +449,9 @@ def merge_anthology_toc(site_info):
 
 
 def single_page_postprocessing(site_info):
-    for post_info in site_info["posts"]:
-        # 对所有非 post 都提取时间信息（或者从缓存读取），用于显示在 index list 和 category list 页面
+    all_posts = separate_draft_posts(site_info)
+    for post_info in all_posts:
+        # 对所有 post 都提取时间信息（或者从缓存读取），用于显示在 post ，index list 和 category list 页面
         extract_time_version(post_info, cache=global_cache)
         if post_info["need_update"]:
             soup_decorate_per_html(post_info)
@@ -453,8 +459,8 @@ def single_page_postprocessing(site_info):
     with open(CACHE_PATH, "wb") as f:
         pickle.dump(global_cache, f)
     merge_anthology_toc(site_info)
-    # merge_single_pages_footer(site_info)
-    render_and_save_single_pages_soup(site_info)
+    collect_prev_next_and_generate(site_info["all_draft_posts"])
+    collect_prev_next_and_generate(site_info["all_visible_posts"])
 
 
 def generate_post_page(post_info):
@@ -506,6 +512,8 @@ def generate_index_html(site_info):
         x for x in site_info["posts"] if not x.get("draft", False)
     ]
 
+    # the diffenece between visible_posts and all_visible_posts is that visible_posts
+    # only contain index post in multipages
     site_info["visible_posts"] = visible_posts
 
     rendered_template = template.render(site_info)
