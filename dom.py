@@ -348,12 +348,16 @@ def extract_time_version(post_info, cache={}):
                 soup.find("span", {"id": "emacs-org-version"}).text.strip()
             )
         # only with date, no weekday and time
-        if post_info["created_timestamp"]:
-            post_info["created"] = post_info["created_timestamp"].split()[0]
-        if post_info["last_modify_timestamp"]:
-            post_info["last_modify"] = post_info[
-                "last_modify_timestamp"
-            ].split()[0]
+        post_info["created"] = (
+            post_info["created_timestamp"].split()[0]
+            if post_info["created_timestamp"]
+            else "chaos"
+        )
+        post_info["last_modify"] = (
+            post_info["last_modify_timestamp"].split()[0]
+            if post_info["last_modify_timestamp"]
+            else "chaos"
+        )
 
         cache[html_path] = {
             "created": post_info["created"],

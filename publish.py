@@ -66,6 +66,7 @@ def publish_via_index(index_org, verbose=False, republish_all=False):
             site_info["categories_map"][category].append(post_info)
         if post_info["need_update"]:
             publish_single_file(post_info, verbose)
+            post_info["soup"] = get_soups([post_info["html_path_abs2sys"]])[0]
         else:
             print_green(f"no update, skip {post_info['html_path_abs2www']}")
 
@@ -92,6 +93,7 @@ def extract_site_info_from_index_org(orgfile, republish_all=False):
         site_info = {
             "year": datetime.datetime.now().year,
         }
+        i = 0
 
         for node in org:
             if "noexport" in node.tags:
@@ -107,6 +109,9 @@ def extract_site_info_from_index_org(orgfile, republish_all=False):
                 if post_info is None:  # wrong path
                     continue
                 post_info["draft"] = "draft" in node.tags
+                if not "draft" in node.tags:
+                    i += 1
+                    post_info["idx"] = i
                 if republish_all:
                     post_info["need_update"] = True
                 if post_info["need_update"]:
@@ -304,7 +309,7 @@ def publish_single_file(
 
     _export_to_html(theme_path, orgfile, elisp_code, verbose=verbose)
     if multipage_index:
-        multipage_postprocessing(post_info, html_folder)
+        multipages_prepare(post_info, html_folder)
     print("published to {}".format(html_path_abs2sys))
 
 
@@ -340,14 +345,15 @@ def _export_to_html(theme_path, orgfile, elisp_code, verbose=False):
         print_yellow(error.decode("utf-8"))
 
 
-def multipage_postprocessing(post_info, html_folder):
+def multipages_prepare(post_info, html_folder):
+    html_folder_rel2www = extract_suffix_from_prefix(html_folder, WWW)
+    html_folder_abs2www = "/" + html_folder_rel2www
     with change_dir(html_folder):
         html_files = glob.glob("*.html")
         html_files_without_index = [
             html for html in html_files if not html.endswith("index.html")
         ]
         html_files = ["index.html"] + sorted(html_files_without_index)
-
         soups = get_soups(html_files)
 
         titles = get_titles(soups)
@@ -367,7 +373,9 @@ def multipage_postprocessing(post_info, html_folder):
             if header_titles:
                 sub_post_info["header_titles"] = str(header_titles)
 
-            sub_post_info["html_path_abs2www"] = file
+            sub_post_info["html_path_abs2www"] = os.path.join(
+                html_folder_abs2www, file
+            )
             sub_post_info["html_path_abs2sys"] = os.path.join(
                 html_folder, file
             )
@@ -376,58 +384,54 @@ def multipage_postprocessing(post_info, html_folder):
             # soup = change_index_title(soup, post_info["title"])
 
         merge_toc(posts)
-        for i, sub_post_info in enumerate(posts):
-            soup = sub_post_info["soup"]
-            if file.endswith("index.html"):
-                continue  #  index.html will be decorated in single_page_postprocessing
-            soup_decorate_per_html(sub_post_info)
-            sub_post_info["next"] = (
-                (posts[i + 1]["html_path_abs2www"], posts[i + 1]["title"])
-                if i < len(posts) - 1
-                else ("", "")
-            )
-            sub_post_info["prev"] = (
-                (posts[i - 1]["html_path_abs2www"], posts[i - 1]["title"])
-                if i > 0
-                else ("", "")
-            )
-            generate_post_page(sub_post_info)
-            # with open(file, "w") as f:
-            #     f.write(soup.prettify())
+        post_info["multipages"] = posts
 
 
-def render_and_save_single_pages_soup(site_info):
-    posts = [p for p in site_info["posts"] if not p.get("draft", False)]
+def collect_prev_next_and_generate(posts):
     for i, post_info in enumerate(posts):
-        post_info["idx"] = i
         post_info["next"] = (
-            (posts[i + 1]["html_path_abs2www"], posts[i + 1]["title"])
+            (
+                posts[i + 1]["html_path_abs2www"],
+                posts[i + 1]["title"],
+            )
             if i < len(posts) - 1
             else ("", "")
         )
         post_info["prev"] = (
-            (posts[i - 1]["html_path_abs2www"], posts[i - 1]["title"])
+            (
+                posts[i - 1]["html_path_abs2www"],
+                posts[i - 1]["title"],
+            )
             if i > 0
             else ("", "")
         )
         if post_info["need_update"]:
             generate_post_page(post_info)
 
-    # 生成 draft， 不加入 footer
-    draft_posts = [p for p in site_info["posts"] if p.get("draft", False)]
-    for post_info in draft_posts:
-        post_info["prev"] = ("", "")
-        post_info["next"] = ("", "")
-        if post_info["need_update"]:
-            generate_post_page(post_info)
+
+def render_and_save_single_pages_soup(site_info):
+    visible_posts = []
+    draft_posts = []
+    for i, post in enumerate(site_info["posts"]):
+        if "multipages" not in post:
+            if not post.get("draft", False):
+                visible_posts.append(post)
+            else:
+                draft_posts.append(post)
+        else:
+            for p in post["multipages"]:
+                if not p.get("draft", False):
+                    visible_posts.append(p)
+                else:
+                    draft_posts.append(p)
+    collect_prev_next_and_generate(visible_posts)
+    collect_prev_next_and_generate(draft_posts)
 
 
 def merge_anthology_toc(site_info):
     anthologies = defaultdict(list)
     for i, post_info in enumerate(site_info["posts"]):
-        if post_info.get("draft", False) or post_info.get(
-            "multipage_index", False
-        ):
+        if post_info.get("multipage_index", False):
             continue
         anthology = post_info.get("anthology", f"single_{i}")
         assert (
@@ -441,9 +445,8 @@ def merge_anthology_toc(site_info):
 
 def single_page_postprocessing(site_info):
     for post_info in site_info["posts"]:
-        # 对所有非 draft post 都提取时间信息（或者从缓存读取），用于显示在 index list 和 category list 页面
-        if not post_info.get("draft", False):
-            extract_time_version(post_info, cache=global_cache)
+        # 对所有非 post 都提取时间信息（或者从缓存读取），用于显示在 index list 和 category list 页面
+        extract_time_version(post_info, cache=global_cache)
         if post_info["need_update"]:
             soup_decorate_per_html(post_info)
     # dump cache

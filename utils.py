@@ -135,7 +135,6 @@ def rsync_copy(file_suffix, target_folder):
     target_file = os.path.join(target_folder, file_suffix)
 
     target_folder = os.path.dirname(target_file)
-
     # Create the folder if it doesn't exist
     if not os.path.exists(target_folder):
         os.makedirs(target_folder)
