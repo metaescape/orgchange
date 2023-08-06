@@ -3,8 +3,6 @@
 :END:
 #+TITLE: Demo for Org Change
 #+DATE: [2022-06-14]
-#+bibliography: ~/org/lib/zotero.bib
-#+cite_export: csl ~/org/lib/acl.csl
 
 
 * 如何查看本网页

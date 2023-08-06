@@ -9,7 +9,7 @@
 publish_folder = "./www"
 org_prefixes = ["~/org/", "."]
 # 可以指定不同 index 模版
-index_template = "~/codes/hugchangelife/orgchange/themes/darkfloat/index.html"
+index_template = "../themes/darkfloat/index.html"
 
 beian = "京ICP备2021000000号"
 github_url = "https://github.com/metaescape"
