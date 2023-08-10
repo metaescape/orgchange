@@ -388,23 +388,24 @@ def multipages_prepare(post_info, html_folder):
 
 
 def collect_prev_next_and_generate(posts):
+    """
+    if not draft, chain each post with prev and next post
+    """
     for i, post_info in enumerate(posts):
-        post_info["next"] = (
-            (
-                posts[i + 1]["html_path_abs2www"],
-                posts[i + 1]["title"],
-            )
-            if i < len(posts) - 1
-            else ("", "")
-        )
-        post_info["prev"] = (
-            (
-                posts[i - 1]["html_path_abs2www"],
-                posts[i - 1]["title"],
-            )
-            if i > 0
-            else ("", "")
-        )
+        post_info["next"] = ("", "")
+        post_info["prev"] = ("", "")
+        if not post_info.get("draft", False):
+            if i < len(posts) - 1:
+                post_info["next"] = (
+                    posts[i + 1]["html_path_abs2www"],
+                    posts[i + 1]["title"],
+                )
+            if i > 0:
+                post_info["prev"] = (
+                    posts[i - 1]["html_path_abs2www"],
+                    posts[i - 1]["title"],
+                )
+
         if post_info["need_update"]:
             generate_post_page(post_info)
 
