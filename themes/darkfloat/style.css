@@ -330,6 +330,7 @@ body a {
 
 #table-of-contents ul {
   margin-left: 1.6rem;
+  margin-bottom: 0rem;
 }
 
 #table-of-contents li {
@@ -384,6 +385,11 @@ nav a:hover {
 
 #global-toc li {
   padding: 0;
+}
+
+#global-toc ul {
+  margin-left: 1.2rem;
+  margin-bottom: 0rem;
 }
 
 .open h2::before {
