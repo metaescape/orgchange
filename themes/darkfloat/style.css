@@ -29,7 +29,7 @@ html {
   --change-decorate8: #09f8;
   --change-decorate-table: #09f1;
   --main-background: #292a2d;
-  --header-background: #252627;
+  --header-background: #272527;
   --content-background: #2f3032;
   --content-color: #c7c7d3;
   --hover-color: #3f3f3f;
@@ -889,7 +889,7 @@ footer .beian {
 
   .paginav,
   .comment {
-    font-size: 1rem;
+    font-size: 1.2rem;
   }
   .comment a svg {
     height: 1.2rem;

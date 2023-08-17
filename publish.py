@@ -449,8 +449,21 @@ def merge_anthology_toc(site_info):
         merge_toc(anthologies[anth])
 
 
+def save_draft_html_path_to_file(draft_posts):
+    """
+    save absolute html path of draft post in posts to a file
+    .orgchange.draft
+    """
+    draft_html_paths = [post["html_path_abs2www"][1:] for post in draft_posts]
+    draft_file_path = os.path.join(WWW, ".orgchange.draft")
+    with open(draft_file_path, "w") as f:
+        f.write("\n".join(draft_html_paths))
+    print_yellow(f"draft html paths saved at {draft_file_path}")
+
+
 def single_page_postprocessing(site_info):
     all_posts = separate_draft_posts(site_info)
+
     for post_info in all_posts:
         # 对所有 post 都提取时间信息（或者从缓存读取），用于显示在 post ，index list 和 category list 页面
         extract_time_version(post_info, cache=global_cache)
@@ -462,6 +475,7 @@ def single_page_postprocessing(site_info):
     merge_anthology_toc(site_info)
     collect_prev_next_and_generate(site_info["all_draft_posts"])
     collect_prev_next_and_generate(site_info["all_visible_posts"])
+    save_draft_html_path_to_file(site_info["all_draft_posts"])
 
 
 def generate_post_page(post_info):
