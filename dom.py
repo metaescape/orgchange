@@ -221,19 +221,9 @@ def add_article_footer(html_files, soups, titles=[]):
             insert_paginav(paginav, html_files, titles, i, cls="next")
 
 
-def remove_prefix(path, prefixes):
-    # if path is a http link, then skip
-    if path.startswith("http") or path.startswith("#"):
-        return path
+def remove_user_prefix(path, prefixes):
     # Remove the .. and . parts directly
-    path = os.path.normpath(path.replace("..", "").replace("./", ""))
-    for prefix in prefixes:
-        # Expand the user directory symbol (~) in the prefix
-        prefix = os.path.expanduser(prefix)
-        # Check if the path starts with the prefix
-        if path.startswith(prefix):
-            # Remove the prefix from the path
-            return path[len(prefix) :]
+
     return path
 
 
@@ -311,11 +301,21 @@ def soup_decorate_per_html(post_info):
                 continue
             href = a["href"]
 
-            for src, target in link_replace.items():
-                src = r"file://" + os.path.expanduser(src)
-                href = href.replace(src, target)
+            if href.startswith("file:"):
+                href = os.path.normpath(href)
+                for src, target in link_replace.items():
+                    src = r"file:" + os.path.expanduser(src)
+                    href = href.replace(src, target)
 
-            href = remove_prefix(href, prefixes)
+                href = (
+                    href.replace("..", "")
+                    .replace("./", "")
+                    .replace(os.path.expanduser("~"), "local")
+                )
+
+            # if path is a http link, then skip, this is comment-like code
+            elif href.startswith("http") or href.startswith("#"):
+                pass
 
             href = check_id(href, post_info)
 
