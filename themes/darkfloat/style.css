@@ -636,6 +636,7 @@ pre.example {
   align-self: flex-end;
 }
 
+/* End of dialogue code */
 details {
   border-radius: 1rem;
   border: 0.2px inset var(--pre-text);
@@ -643,7 +644,27 @@ details {
   margin-top: 1rem;
   margin-bottom: 2rem;
 }
-/* End of dialogue code */
+
+/* 设置 summary 和 p 元素为行内块级元素 */
+summary,
+summary p {
+  display: inline-block;
+  margin: 0; /* 移除默认的 margin，避免可能的间距问题 */
+}
+
+/* 为 summary 内的 p 标签的文本开头添加一个 "➤" 符号，并确保它与文本垂直对齐 */
+summary p::before {
+  content: "➤ ";
+  display: inline-block;
+  vertical-align: middle; /* 使符号与文本垂直对齐 */
+  transition: transform 0.3s ease; /* 可选的过渡效果 */
+}
+
+/* 当 details 元素展开时，隐藏 "➤" 符号 */
+details[open] > summary p::before {
+  content: ""; /* 清除内容，从而隐藏符号 */
+  display: none; /* 隐藏伪元素 */
+}
 
 hr {
   background: #4a4b50;
