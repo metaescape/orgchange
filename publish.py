@@ -271,7 +271,7 @@ def bib_hook_parse(post_info):
 
 def publish_single_file(
     post_info, verbose=False
-) -> Union[BeautifulSoup, List[BeautifulSoup]]:
+) -> Union[None, List[BeautifulSoup]]:
     """
     publish a single org file:
     - call export_to_html to generate html file

@@ -500,6 +500,7 @@ table {
 
 table thead {
   border-bottom: 1px solid var(--change-decorate8);
+  margin: -1px 0px;
 }
 
 tr {

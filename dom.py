@@ -4,7 +4,9 @@ from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 from bs4 import BeautifulSoup, NavigableString
 import html
-from utils import change_dir, rsync_copy, print_yellow
+from utils import change_dir, print_green, rsync_copy, print_yellow, print_red
+from datetime import datetime, timedelta
+import traceback
 
 lisp_family = [
     "scheme",
@@ -325,12 +327,38 @@ def soup_decorate_per_html(post_info):
             # 更新 href 属性
             a["href"] = href
 
+    soup = self_apply(soup)
     soup = pygment_and_paren_match_all(soup)
     post_info["soup"] = soup
 
     post_info["mermaid_script"] = mermaid_process(
         soup, post_info.get("mermaid_theme", "neutral")
     )
+
+
+def self_apply(soup):
+    # find the h1 header with content self-apply
+    h2 = soup.find("h2", string="self-apply")
+    if h2 is not None:
+        print_yellow("find self-apply python code, executing")
+        # get the parent of h2
+        parent = h2.parent
+        python_blocks = parent.find_all("code", {"class": "python"})
+
+        for block in python_blocks:
+            # execute python code
+            try:
+                exec(block.string)
+                print_yellow("self-apply success")
+            except Exception as e:
+                # print traceback
+
+                print_red(f"self-apply failed with error: {e}")
+                print_red(traceback.format_exc())
+                pass
+        # delete the h1 header
+        parent.decompose()
+    return soup
 
 
 def extract_time_version(post_info, cache={}):
