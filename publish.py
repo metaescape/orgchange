@@ -454,7 +454,11 @@ def save_draft_html_path_to_file(draft_posts):
     save absolute html path of draft post in posts to a file
     .orgchange.draft
     """
-    draft_html_paths = [post["html_path_abs2www"][1:] for post in draft_posts]
+    draft_html_paths = [
+        post["html_path_abs2www"][1:]
+        for post in draft_posts
+        if post.get("categories", []) == []
+    ]
     draft_file_path = os.path.join(WWW, ".orgchange.draft")
     with open(draft_file_path, "w") as f:
         f.write("\n".join(draft_html_paths))
