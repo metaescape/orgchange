@@ -567,7 +567,7 @@ code {
   margin: 0 0;
 }
 
-.org-src-container button {
+.copy-code {
   display: none;
   position: absolute;
   top: 1.4rem;
@@ -589,6 +589,25 @@ pre.example {
 
 .org-src-container:hover button {
   display: block;
+}
+
+summary p {
+  display: inline-block;
+  margin: 0; /* 移除默认的 margin，避免可能的间距问题 */
+}
+
+/* 为 summary 内的 p 标签的文本开头添加一个 "➤" 符号，并确保它与文本垂直对齐 */
+summary p::before {
+  /* content: "➤ "; */
+  display: inline-block;
+  vertical-align: middle; /* 使符号与文本垂直对齐 */
+  transition: transform 0.3s ease; /* 可选的过渡效果 */
+}
+
+/* 当 details 元素展开时，隐藏 "➤" 符号 */
+details[open] > summary p::before {
+  content: ""; /* 清除内容，从而隐藏符号 */
+  display: none; /* 隐藏伪元素 */
 }
 /* End of copy code */
 
@@ -644,27 +663,6 @@ details {
   padding: 5px;
   margin-top: 1rem;
   margin-bottom: 2rem;
-}
-
-/* 设置 summary 和 p 元素为行内块级元素 */
-summary,
-summary p {
-  display: inline-block;
-  margin: 0; /* 移除默认的 margin，避免可能的间距问题 */
-}
-
-/* 为 summary 内的 p 标签的文本开头添加一个 "➤" 符号，并确保它与文本垂直对齐 */
-summary p::before {
-  content: "➤ ";
-  display: inline-block;
-  vertical-align: middle; /* 使符号与文本垂直对齐 */
-  transition: transform 0.3s ease; /* 可选的过渡效果 */
-}
-
-/* 当 details 元素展开时，隐藏 "➤" 符号 */
-details[open] > summary p::before {
-  content: ""; /* 清除内容，从而隐藏符号 */
-  display: none; /* 隐藏伪元素 */
 }
 
 hr {

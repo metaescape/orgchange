@@ -20,13 +20,13 @@ function addCopyCodeButtons() {
     let button = document.createElement("button");
     button.innerText = copyLabel;
     button.classList.add("copy-code");
-    let details = block.closest("details");
-    let summary = details && details.querySelector("summary");
-    if (summary) {
-      summary.appendChild(button);
-    } else {
-      block.appendChild(button);
-    }
+    // let details = block.closest("details");
+    // let summary = details && details.querySelector("summary");
+    // if (summary) {
+    //   summary.appendChild(button);
+    // } else {
+    block.appendChild(button);
+    // }
     button.addEventListener("click", async () => {
       await copyCode(block, button);
     });
