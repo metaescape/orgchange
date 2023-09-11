@@ -119,7 +119,25 @@ def extract_site_info_from_index_org(orgfile, republish_all=False):
                 posts.append(post_info)
         site_info["posts"] = posts
 
+    need_update_propagate(site_info)
     return site_info
+
+
+def need_update_propagate(site_info):
+    """
+    if a post need to be updated, all its neighobr post which is not draft should be updated too
+    """
+    need_update_ids = []
+    for i, post_info in enumerate(site_info["posts"]):
+        if post_info["need_update"]:
+            if i > 0 and not site_info["posts"][i - 1].get("draft", False):
+                need_update_ids.append(i - 1)
+            if i < len(site_info["posts"]) - 1 and not site_info["posts"][
+                i + 1
+            ].get("draft", False):
+                need_update_ids.append(i + 1)
+    for i in need_update_ids:
+        site_info["posts"][i]["need_update"] = True
 
 
 def update_site_info(node, site_info: dict):
