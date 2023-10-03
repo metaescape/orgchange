@@ -503,6 +503,10 @@ table thead {
   margin: -1px 0px;
 }
 
+table thead th {
+  text-align: center;
+}
+
 tr {
   display: table-row;
   vertical-align: inherit;
