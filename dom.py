@@ -287,6 +287,10 @@ def soup_decorate_per_html(post_info):
     img_tags = soup.find_all("img")
     # Extract the image URLs from the image tags using regular expressions
     img_urls = [img["src"] for img in img_tags if "src" in img.attrs]
+
+    # filter out the images with http prefix
+    img_urls = [url for url in img_urls if not url.startswith("http")]
+
     # e.g. ~/org/posts/
     org_folder = os.path.dirname(post_info["org_path_abs2sys"])
     # e.g. /www/posts/
