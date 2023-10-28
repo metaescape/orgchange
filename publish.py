@@ -182,6 +182,9 @@ def post_title_path_prepare(node, post_info):
 
     prefixes = post_info.get("org_prefixes", [])
     heading = node.get_heading(format="raw")
+    title = get_title_from_orglink(heading)
+    is_force_update = title.startswith("-")
+    title = title.strip("-")
 
     org_path_abs2sys = normalize_path(get_path_from_orglink(heading))
     if not is_valid_orgpath(org_path_abs2sys):
@@ -201,15 +204,19 @@ def post_title_path_prepare(node, post_info):
     html_path_rel2www = extract_suffix_from_prefix(html_path_abs2sys, WWW)
     html_path_abs2www = "/" + html_path_rel2www
 
-    post_info["need_update"] = do_need_modified(
+    # 是否强制更新
+
+    is_modified = do_need_modified(
         post_info["theme"],
         org_path_abs2sys,
         html_path_abs2sys,
     )
 
+    post_info["need_update"] = is_force_update or is_modified
+
     post_info.update(
         {
-            "title": get_title_from_orglink(heading),
+            "title": title,
             "html_path_theoritical": html_path_theoritical,
             "html_path_abs2sys": html_path_abs2sys,
             "html_path_abs2www": html_path_abs2www,
@@ -492,6 +499,7 @@ def single_page_postprocessing(site_info):
         if post_info["need_update"]:
             soup_decorate_per_html(post_info)
     # dump cache
+
     with open(CACHE_PATH, "wb") as f:
         pickle.dump(global_cache, f)
     merge_anthology_toc(site_info)
