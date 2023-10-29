@@ -188,7 +188,7 @@ def post_title_path_prepare(node, post_info):
 
     org_path_abs2sys = normalize_path(get_path_from_orglink(heading))
     if not is_valid_orgpath(org_path_abs2sys):
-        print_yellow(f"invalid org path: {org_path_abs2sys}, skip")
+        print_red(f"invalid org path: {org_path_abs2sys}, skip")
 
         return None
     org_path_rel2prefix = extract_suffix(org_path_abs2sys, prefixes)

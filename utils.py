@@ -254,12 +254,23 @@ def do_need_modified(theme_dir, org_path, html_path):
     #     get_timestamp_of_orgfile(org_path),
     # ) # 暂时不检查框架文件修改，如要重新发布所有，用 --all 选项
     latest_timestamp = get_timestamp_of_orgfile(org_path)
-    if (
-        os.path.exists(html_path)
-        and os.path.getmtime(html_path) > latest_timestamp
-    ):
-        return False
-    return True
+
+    # 不存在 html 文件，需要重新生成
+    if not os.path.exists(html_path):
+        return True
+
+    # html 文件存在，但是时间戳比 org 文件旧，需要重新生成
+    if os.path.getmtime(html_path) < latest_timestamp:
+        return True
+
+    # html 文件存在，但没有被 jinja 渲染，需要重新生成
+    # 判断依据是检查 html 文件中是否包含主题文件路径 “/orgchange/themes"
+    with open(html_path, "r") as f:
+        content = f.read()
+        if "/orgchange/themes" not in content:
+            return True
+
+    return False
 
 
 def cache(html="index.html"):
