@@ -225,6 +225,7 @@ def post_title_path_prepare(node, post_info):
         }
     )
     post_info["html_map"][html_path_theoritical] = html_path_abs2www
+    return post_info
 
 
 def index_node_process(node, post_info):
@@ -236,9 +237,7 @@ def index_node_process(node, post_info):
         if language == "emacs-lisp":
             post_info["user_elisp"] += content["body"]
 
-    post_title_path_prepare(node, post_info)
-
-    return post_info
+    return post_title_path_prepare(node, post_info)
 
 
 def build_maps(post_info):
@@ -498,8 +497,8 @@ def single_page_postprocessing(site_info):
         extract_time_version(post_info, cache=global_cache)
         if post_info["need_update"]:
             soup_decorate_per_html(post_info)
-    # dump cache
 
+    # dump cache
     with open(CACHE_PATH, "wb") as f:
         pickle.dump(global_cache, f)
     merge_anthology_toc(site_info)
