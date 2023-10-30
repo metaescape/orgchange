@@ -318,6 +318,9 @@ def publish_single_file(
             f'(org-export-each-headline-to-html "{html_folder}")'
         )
         for file in glob.glob(os.path.join(html_folder, "*")):
+            # if file is a folder , skip
+            if os.path.isdir(file):
+                continue
             os.remove(file)
     elisp_code = f"""
     (progn 
@@ -448,11 +451,11 @@ def separate_draft_posts(site_info):
             else:
                 all_draft_posts.append(post)
         else:
-            for p in post["multipages"]:
-                if not p.get("draft", False):
-                    all_visible_posts.append(p)
-                else:
-                    all_draft_posts.append(p)
+            if not post.get("draft", False):
+                # 把 post 做为 multipage index 的代表
+                all_visible_posts.extend([post] + post["multipages"][1:])
+            else:
+                all_draft_posts.extend([post] + post["multipages"][1:])
     site_info["all_draft_posts"] = all_draft_posts
     site_info["all_visible_posts"] = all_visible_posts
     return all_draft_posts + all_visible_posts
@@ -559,7 +562,6 @@ def generate_index_html(site_info):
     # the diffenece between visible_posts and all_visible_posts is that visible_posts
     # only contain index post in multipages
     site_info["visible_posts"] = visible_posts
-
     rendered_template = template.render(site_info)
     index_html = os.path.join(site_info["publish_folder"], "index.html")
     with open(index_html, "w") as f:
