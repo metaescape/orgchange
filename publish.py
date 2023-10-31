@@ -387,12 +387,14 @@ def multipages_prepare(post_info, html_folder):
         # add_article_footer(html_files, soups, titles)
         posts = []
         for file, soup, title in zip(html_files, soups, titles):
-            sub_post_info = copy.copy(post_info)
-            sub_post_info["title"] = str(title)
+            if file.endswith("index.html"):
+                # index.html is the first page of multipages
+                sub_post_info = post_info
+            else:
+                sub_post_info = copy.copy(post_info)
+                sub_post_info["title"] = str(title)
 
             sub_post_info["soup"] = soup
-            if file.endswith("index.html"):
-                post_info["soup"] = soup
 
             header_titles = sub_post_info["soup"].find(
                 "header", {"class": "header-titles"}
@@ -452,10 +454,9 @@ def separate_draft_posts(site_info):
                 all_draft_posts.append(post)
         else:
             if not post.get("draft", False):
-                # 把 post 做为 multipage index 的代表
-                all_visible_posts.extend([post] + post["multipages"][1:])
+                all_visible_posts.extend(post["multipages"])
             else:
-                all_draft_posts.extend([post] + post["multipages"][1:])
+                all_draft_posts.extend(post["multipages"])
     site_info["all_draft_posts"] = all_draft_posts
     site_info["all_visible_posts"] = all_visible_posts
     return all_draft_posts + all_visible_posts

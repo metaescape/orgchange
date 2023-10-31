@@ -8,6 +8,11 @@ from utils import change_dir, print_green, rsync_copy, print_yellow, print_red
 from datetime import datetime, timedelta
 import traceback
 
+# 防止 debug 时，soup 会被打印出来，导致 terminal 内容过多
+BeautifulSoup.__repr__ = (
+    lambda self: "use .decode() or .prettify() to view the content"
+)
+
 lisp_family = [
     "scheme",
     "lisp",
