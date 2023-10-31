@@ -384,7 +384,7 @@ nav a:hover {
   bottom: 0;
   right: 0;
   writing-mode: vertical-lr;
-  color: var(--content-color);
+  color: rgb(211, 209, 209);
   background-color: var(--change-decorate);
   width: 1.5rem;
   display: flex;
