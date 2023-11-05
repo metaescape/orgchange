@@ -365,6 +365,7 @@ nav a:hover {
   position: fixed;
   bottom: 2%;
   background-color: var(--content-background);
+  border-right: 0.1rem solid var(--change-decorate);
   color: var(--content-color);
   max-width: 80vw;
   transition: all 0.3s ease-in-out;
@@ -375,14 +376,15 @@ nav a:hover {
   z-index: 10;
   margin: 0;
   font-size: 1.2rem;
+  border-radius: 0 10px 10px 0;
 }
 
 #global-toc::after {
   content: "目  录";
-  position: absolute;
+  position: fixed;
   top: 0;
-  bottom: 0;
-  right: 0;
+  right: -2px;
+  bottom: 0px;
   writing-mode: vertical-lr;
   color: rgb(211, 209, 209);
   background-color: var(--change-decorate);
@@ -392,6 +394,10 @@ nav a:hover {
   justify-content: center;
   padding: 3px;
   border-radius: 0 5px 5px 0;
+}
+
+#global-toc.hide-after::after {
+  content: none;
 }
 
 #global-toc::-webkit-scrollbar {

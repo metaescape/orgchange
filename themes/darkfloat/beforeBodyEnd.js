@@ -7,9 +7,12 @@ if (global_toc) {
       // 判断点击的元素是否是按钮元素或者按钮元素的子元素
       global_toc.style.transform = "translate(calc(-100% + 1.5rem), 0)";
       global_toc.style.maxHeight = "12vh";
+      global_toc.scrollTop = 0;
+      global_toc.classList.remove("hide-after");
     } else {
       global_toc.style.transform = "translate(0, 0)";
       global_toc.style.maxHeight = "50vh";
+      global_toc.classList.add("hide-after");
     }
   });
 }
