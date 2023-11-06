@@ -359,48 +359,58 @@ nav a:hover {
 }
 
 #global-toc {
-  padding: 1rem 3rem 1rem 1rem;
   box-sizing: border-box;
-  transform: translate(calc(-100% + 1.5rem), 0);
   position: fixed;
   bottom: 2%;
   background-color: var(--content-background);
-  border-right: 0.1rem solid var(--change-decorate);
+  padding: 1rem 2rem 1rem 0rem;
+  transform: translate(calc(-100% + 1.5rem), 0);
+  /* border-right: 1.5rem solid var(--change-decorate); */
   color: var(--content-color);
-  max-width: 80vw;
   transition: all 0.3s ease-in-out;
-  text-align: left;
-  overflow-x: hidden;
-  overflow-y: scroll;
   max-height: 12vh;
-  z-index: 10;
   margin: 0;
-  font-size: 1.2rem;
-  border-radius: 0 10px 10px 0;
+  border-radius: 0 5px 5px 0;
+  z-index: 9;
+  max-width: 80vw;
 }
 
-#global-toc::after {
-  content: "目  录";
+#global-toc-container {
+  max-height: inherit;
+  position: relative;
+}
+
+#global-toc-content {
+  max-height: inherit;
+  text-align: left;
+  font-size: 1.2rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+#global-toc-fringe {
   position: fixed;
   top: 0;
-  right: -2px;
-  bottom: 0px;
-  writing-mode: vertical-lr;
+  right: 0;
+  bottom: 0;
+  margin: 0;
   color: rgb(211, 209, 209);
   background-color: var(--change-decorate);
   width: 1.5rem;
+  border-radius: 0 5px 5px 0;
+  font-size: 1.2rem;
   display: flex;
+  flex-direction: column;
+  gap: 5%;
   align-items: center;
   justify-content: center;
-  padding: 3px;
-  border-radius: 0 5px 5px 0;
 }
 
-#global-toc.hide-after::after {
+/* #global-toc.hide-after::after {
   content: none;
-}
+} */
 
-#global-toc::-webkit-scrollbar {
+#global-toc-content::-webkit-scrollbar {
   display: none;
 }
 
