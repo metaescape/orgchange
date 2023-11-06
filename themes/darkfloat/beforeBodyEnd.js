@@ -61,16 +61,23 @@ document.addEventListener("DOMContentLoaded", (event) => {
   ];
 
   const fringe = document.getElementById("global-toc-fringe");
+  if (fringe) {
+    let randomNum = Math.random();
+    let cumulativeProbability = 0;
 
-  let randomNum = Math.random();
-  let cumulativeProbability = 0;
-
-  for (let option of fringeOptions) {
-    cumulativeProbability += option.probability;
-    if (randomNum < cumulativeProbability) {
-      fringe.innerHTML = option.content;
-      fringe.style.fontSize = option.fontSize;
-      break;
+    for (let option of fringeOptions) {
+      cumulativeProbability += option.probability;
+      if (randomNum < cumulativeProbability) {
+        fringe.innerHTML = option.content;
+        fringe.style.fontSize = option.fontSize;
+        break;
+      }
     }
+  }
+
+  const categoryLink = document.getElementById("header-category");
+  if (categoryLink) {
+    categoryLink.textContent = "🗁";
+    categoryLink.style.fontSize = "1.8rem";
   }
 });
