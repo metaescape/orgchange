@@ -361,9 +361,8 @@ nav a:hover {
 #global-toc {
   box-sizing: border-box;
   position: fixed;
-  bottom: 2%;
+  bottom: 3%;
   background-color: var(--content-background);
-  padding: 1rem 2rem 0rem 0rem;
   transform: translate(calc(-100% + 1.5rem), 0);
   /* border-right: 1.5rem solid var(--change-decorate); */
   color: var(--content-color);
@@ -373,20 +372,22 @@ nav a:hover {
   border-radius: 0 5px 5px 0;
   z-index: 9;
   max-width: 80vw;
+  /* border-top: 0.1px solid var(--change-decorate); */
 }
 
 #global-toc-container {
+  padding: 0rem 2rem 0rem 0rem;
   max-height: inherit;
   position: relative;
 }
 
 #global-toc-content {
-  padding: 0.5rem 0rem 2rem 1rem;
+  padding: 0.5rem 0rem 0.5rem 0.2rem;
   max-height: inherit;
   text-align: left;
   font-size: 1.2rem;
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: scroll;
 }
 
 #global-toc-fringe {
@@ -406,10 +407,6 @@ nav a:hover {
   align-items: center;
   justify-content: center;
 }
-
-/* #global-toc.hide-after::after {
-  content: none;
-} */
 
 #global-toc-content::-webkit-scrollbar {
   display: none;

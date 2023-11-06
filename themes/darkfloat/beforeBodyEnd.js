@@ -49,12 +49,12 @@ if (toc) {
 document.addEventListener("DOMContentLoaded", (event) => {
   const fringeOptions = [
     {
-      content: '<span>目</span><span">录</span>',
+      content: "<span>目</span><span>录</span>",
       probability: 0.5,
       fontSize: "1.2rem",
     },
     {
-      content: '<span>𖡎</span><span">🀤</span>',
+      content: "<span>𖡎</span><span>🀤</span>",
       probability: 0.3,
       fontSize: "1.5rem",
     },
@@ -78,6 +78,6 @@ document.addEventListener("DOMContentLoaded", (event) => {
   const categoryLink = document.getElementById("header-category");
   if (categoryLink) {
     categoryLink.textContent = "🗁";
-    categoryLink.style.fontSize = "1.8rem";
+    categoryLink.style.fontSize = "1.6rem";
   }
 });
