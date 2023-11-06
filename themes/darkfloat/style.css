@@ -363,7 +363,7 @@ nav a:hover {
   position: fixed;
   bottom: 2%;
   background-color: var(--content-background);
-  padding: 1rem 2rem 1rem 0rem;
+  padding: 1rem 2rem 0rem 0rem;
   transform: translate(calc(-100% + 1.5rem), 0);
   /* border-right: 1.5rem solid var(--change-decorate); */
   color: var(--content-color);
@@ -381,6 +381,7 @@ nav a:hover {
 }
 
 #global-toc-content {
+  padding: 0.5rem 0rem 2rem 1rem;
   max-height: inherit;
   text-align: left;
   font-size: 1.2rem;
@@ -438,6 +439,7 @@ nav a:hover {
   color: var(--content-color);
   background: var(--content-background);
   box-shadow: 0 calc(var(--shadow) / 2) var(--shadow) 0 rgb(0 0 0 / 40%);
+  border-radius: 4px;
 }
 
 p {

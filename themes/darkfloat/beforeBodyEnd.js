@@ -45,3 +45,32 @@ if (toc) {
   );
   obs.observe(toc);
 }
+
+document.addEventListener("DOMContentLoaded", (event) => {
+  const fringeOptions = [
+    {
+      content: '<span>目</span><span">录</span>',
+      probability: 0.5,
+      fontSize: "1.2rem",
+    },
+    {
+      content: '<span>𖡎</span><span">🀤</span>',
+      probability: 0.3,
+      fontSize: "1.5rem",
+    },
+  ];
+
+  const fringe = document.getElementById("global-toc-fringe");
+
+  let randomNum = Math.random();
+  let cumulativeProbability = 0;
+
+  for (let option of fringeOptions) {
+    cumulativeProbability += option.probability;
+    if (randomNum < cumulativeProbability) {
+      fringe.innerHTML = option.content;
+      fringe.style.fontSize = option.fontSize;
+      break;
+    }
+  }
+});

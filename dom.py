@@ -163,23 +163,16 @@ def merge_toc(posts):
 
     # second pass, merage each tocs
     for i, (local_toc, title_li) in enumerate(tocs):
-        global_toc_str = f"""
-        <nav id="global-toc">  
-            <div id="global-toc-container">
-                <div id="global-toc-content">
-                    <ul>
-                    </ul>
-                </div> 
-                <p id="global-toc-fringe"><span>目</span><span>录</span></p>
-            </div>
-        </nav>
+        global_toc_ul_str = f"""
+        <ul>
+        </ul>    
         """
 
-        global_toc = BeautifulSoup(global_toc_str, "html.parser")
-        global_toc.div.div.ul.extend([new_soup(x[-1]) for x in tocs[:i]])
-        global_toc.div.div.ul.append(local_toc)
-        global_toc.div.div.ul.extend([new_soup(x[-1]) for x in tocs[i + 1 :]])
-        posts[i]["global_toc"] = str(global_toc)
+        global_toc_ul = BeautifulSoup(global_toc_ul_str, "html.parser")
+        global_toc_ul.extend([new_soup(x[-1]) for x in tocs[:i]])
+        global_toc_ul.append(local_toc)
+        global_toc_ul.extend([new_soup(x[-1]) for x in tocs[i + 1 :]])
+        posts[i]["global_toc"] = str(global_toc_ul)
 
     # for file, soup, global_toc in zip(html_files, soups, global_tocs):
     #     # print(global_toc)

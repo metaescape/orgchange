@@ -14,7 +14,7 @@
       setTheme(localStorage.getItem("theme"));
     </script>
     <div class="container">
-      {{ global_toc }}
+      {% block globalToc %} {% endblock %}
       <header class="top-header">
         <div class="header-inner">
           <div class="header-left">

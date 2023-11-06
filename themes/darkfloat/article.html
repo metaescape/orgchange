@@ -1,4 +1,15 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %} {% block globalToc %}
+<nav id="global-toc">
+  <div id="global-toc-container">
+    <div id="global-toc-content">
+      <ul>
+        {{ global_toc }}
+      </ul>
+    </div>
+    <p id="global-toc-fringe"><span>目</span><span>录</span></p>
+  </div>
+</nav>
+{% endblock %} {% block content %}
 <main id="content">
   {{header_titles}}
   <header class="status" id="preamble">
