@@ -43,6 +43,7 @@ WWW = os.path.dirname(ORG_CHANGE_DIR)
 CACHE_PATH = os.path.join(WWW, ".orgchange_cache")
 global_cache = {}
 if os.path.exists(CACHE_PATH):
+    print_yellow(f"load cache from {CACHE_PATH}")
     with open(CACHE_PATH, "rb") as f:
         global_cache = pickle.load(f)
 
@@ -128,13 +129,21 @@ def need_update_propagate(site_info):
     if a post need to be updated, all its neighobr post which is not draft should be updated too
     """
     need_update_ids = []
+    n = len(site_info["posts"]) - 1
     for i, post_info in enumerate(site_info["posts"]):
-        if post_info["need_update"]:
-            if i > 0 and not site_info["posts"][i - 1].get("draft", False):
+        if not post_info["need_update"]:
+            continue
+
+        path, title = post_info["html_path_abs2www"], post_info["title"]
+        if i > 0 and not site_info["posts"][i - 1].get("draft", False):
+            prev_path = site_info["posts"][i - 1]["html_path_abs2sys"]
+            prev_cache = global_cache.get(prev_path, {})
+            if prev_cache.get("next", None) != (path, title):
                 need_update_ids.append(i - 1)
-            if i < len(site_info["posts"]) - 1 and not site_info["posts"][
-                i + 1
-            ].get("draft", False):
+        if i < n and not site_info["posts"][i + 1].get("draft", False):
+            next_path = site_info["posts"][i + 1]["html_path_abs2sys"]
+            next_cache = global_cache.get(next_path, {})
+            if next_cache.get("prev", None) != (path, title):
                 need_update_ids.append(i + 1)
     for i in need_update_ids:
         site_info["posts"][i]["need_update"] = True
@@ -416,24 +425,27 @@ def multipages_prepare(post_info, html_folder):
         post_info["multipages"] = posts
 
 
-def collect_prev_next_and_generate(posts):
+def collect_prev_next_and_generate(posts, cache):
     """
     if not draft, chain each post with prev and next post
     """
     for i, post_info in enumerate(posts):
         post_info["next"] = ("", "")
         post_info["prev"] = ("", "")
+        path = post_info["html_path_abs2sys"]
         if not post_info.get("draft", False):
             if i < len(posts) - 1:
                 post_info["next"] = (
                     posts[i + 1]["html_path_abs2www"],
                     posts[i + 1]["title"],
                 )
+                cache[path]["next"] = post_info["next"]
             if i > 0:
                 post_info["prev"] = (
                     posts[i - 1]["html_path_abs2www"],
                     posts[i - 1]["title"],
                 )
+                cache[path]["prev"] = post_info["prev"]
 
         if post_info["need_update"]:
             generate_post_page(post_info)
@@ -502,12 +514,16 @@ def single_page_postprocessing(site_info):
         if post_info["need_update"]:
             soup_decorate_per_html(post_info)
 
-    # dump cache
-    with open(CACHE_PATH, "wb") as f:
-        pickle.dump(global_cache, f)
     merge_anthology_toc(site_info)
-    collect_prev_next_and_generate(site_info["all_draft_posts"])
-    collect_prev_next_and_generate(site_info["all_visible_posts"])
+    collect_prev_next_and_generate(site_info["all_draft_posts"], global_cache)
+    collect_prev_next_and_generate(
+        site_info["all_visible_posts"], global_cache
+    )
+
+    with open(CACHE_PATH, "wb") as f:
+        print_yellow(f"dump cache to {CACHE_PATH}")
+        pickle.dump(global_cache, f)
+
     save_draft_html_path_to_file(site_info["all_draft_posts"])
 
 
