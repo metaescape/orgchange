@@ -67,7 +67,6 @@ body {
   text-align: center;
   background: var(--main-background);
   background-blend-mode: multiply;
-
   margin: 0;
   padding: 0;
   font-family: "Inter UI", -apple-system, BlinkMacSystemFont, "Roboto",
@@ -75,6 +74,7 @@ body {
 
   font-size: var(--main-font-size);
   line-height: 1.6;
+  word-break: break-all;
 }
 
 h1,
@@ -512,6 +512,10 @@ ul ul ul {
 
 li {
   padding: 0.2rem 0;
+}
+
+.MathJax_Display {
+  overflow-x: auto;
 }
 
 table {
