@@ -142,7 +142,7 @@ def need_update_propagate(site_info):
     need_update_ids = []
     n = len(site_info["posts"]) - 1
     for i, post_info in enumerate(site_info["posts"]):
-        if not post_info["need_update"]:
+        if not post_info["need_update"] or post_info.get("draft", False):
             continue
         path, title = post_info["html_path_abs2www"], post_info["title"]
         if i > 0 and not site_info["posts"][i - 1].get("draft", False):

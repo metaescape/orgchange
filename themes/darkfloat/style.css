@@ -683,11 +683,16 @@ pre.example {
 
 /* End of dialogue code */
 details {
-  border-radius: 1rem;
-  border: 0.2px dotted var(--secondary-text-color);
-  padding: 0.2rem;
+  /* border-radius: 1rem; */
+  /* border: 0.2px dotted var(--secondary-text-color); */
+  border-right: 3px solid;
+  padding-right: 1rem;
   margin-top: 1rem;
   margin-bottom: 2rem;
+}
+
+details p {
+  margin: 0;
 }
 
 summary p {
@@ -718,12 +723,23 @@ hr {
 }
 
 blockquote {
-  border-left: 3px solid;
   padding-left: 1rem;
 
   margin: 2rem 4rem;
   color: var(--quote-color);
   font-weight: bold;
+  position: relative;
+}
+
+blockquote:before {
+  margin-right: 0.25em;
+  content: "\201C";
+  vertical-align: -0.4em;
+  font-size: 2.5em;
+  line-height: 0.1em;
+  position: absolute;
+  left: -1.6rem;
+  top: 1rem;
 }
 
 blockquote p {
@@ -735,7 +751,7 @@ blockquote p:last-of-type {
   margin-bottom: 0;
 }
 
-blockquote p:last-child {
+blockquote p:not(:only-child):last-child {
   text-align: right;
   font-weight: normal;
   font-style: italic;
