@@ -57,6 +57,14 @@ def publish_via_index(index_org, verbose=False, republish_all=False):
         index_org, republish_all=republish_all
     )
 
+    last_index_modified = global_cache.get(index_org, None)
+    index_time = os.path.getmtime(index_org)
+    global_cache[index_org] = index_time
+
+    if last_index_modified is not None:
+        if index_time > last_index_modified:
+            site_info["need_update"] = True
+
     # collect categories and publish
     for post_info in site_info["posts"]:
         # e.g. ./posts/a.org
@@ -91,9 +99,7 @@ def extract_site_info_from_index_org(orgfile, republish_all=False):
     with change_dir(os.path.dirname(orgfile)):
         org = orgparse.load(orgfile)
         posts = []
-        site_info = {
-            "year": datetime.datetime.now().year,
-        }
+        site_info = {"year": datetime.datetime.now().year, "abouts": []}
         i = 0
 
         for node in org:
@@ -118,6 +124,11 @@ def extract_site_info_from_index_org(orgfile, republish_all=False):
                 if post_info["need_update"]:
                     site_info["need_update"] = True
                 posts.append(post_info)
+            if "about" in node.tags and node.level == 2:
+                heading = node.get_heading(format="raw")
+                body = node.get_body()
+                site_info["abouts"].append((heading, body))
+
         site_info["posts"] = posts
 
     need_update_propagate(site_info)
@@ -133,7 +144,6 @@ def need_update_propagate(site_info):
     for i, post_info in enumerate(site_info["posts"]):
         if not post_info["need_update"]:
             continue
-
         path, title = post_info["html_path_abs2www"], post_info["title"]
         if i > 0 and not site_info["posts"][i - 1].get("draft", False):
             prev_path = site_info["posts"][i - 1]["html_path_abs2sys"]
@@ -170,9 +180,9 @@ def update_site_info(node, site_info: dict):
     # inverse map from theoritical org-export html path to real publish path
     site_info["html_map"] = {}
     site_info["categories_map"] = defaultdict(list)
-    site_info[
-        "emacs_org_version"
-    ] = []  # use list to share across all post_info
+    site_info["emacs_org_version"] = [
+        "Emacs 28.2(Org mode 9.5.5)"
+    ]  # use list to share across all post_info ,default
     publish_folder_abs2www = "/" + extract_suffix_from_prefix(
         site_info["publish_folder"], WWW
     )

@@ -54,8 +54,13 @@ document.addEventListener("DOMContentLoaded", (event) => {
       fontSize: "1.2rem",
     },
     {
-      content: "<span>𖡎</span><span>🀤</span>",
+      content: "<span>⢘</span>",
       probability: 0.3,
+      fontSize: "1.5rem",
+    },
+    {
+      content: "<span>𖡎</span><span>🀤</span>",
+      probability: 0.2,
       fontSize: "1.5rem",
     },
   ];
@@ -77,7 +82,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
   const categoryLink = document.getElementById("header-category");
   if (categoryLink) {
-    categoryLink.textContent = "🗁";
+    categoryLink.textContent = "...";
     categoryLink.style.fontSize = "1.6rem";
   }
 });

@@ -29,8 +29,9 @@ html {
   --change-decorate8: #09f8;
   --change-decorate-table: #09f1;
   --main-background: #292a2d;
-  --header-background: #272527;
+  --header-background: #2a2b2c;
   --content-background: #2f3032;
+  /* --content-background: #232830; */
   --content-color: #c7c7d3;
   --hover-color: #3f3f3f;
   --secondary-text-color: #999;
@@ -38,13 +39,14 @@ html {
   --pre-text: #bfbfbf;
   --pre-background: #282c34;
   --main-font-size: 1.4rem;
+  --quote-color: #d08770;
 }
 
 :root.light {
   --heading-color: #0c0c0c;
   /* --main-background: #c7b28a; */
-  --main-background: #c7b28a84 url(paperTexture.webp);
-  --header-background: #c8b185;
+  --main-background: #b7a17684 url(paperTexture.webp);
+  --header-background: #b9a278;
   --content-background: #c1ac86;
 
   --content-color: #131313;
@@ -58,6 +60,7 @@ html {
   --shadow: 4px;
   --pre-text: #363c69;
   --pre-background: #b7a68e;
+  --quote-color: #bc4b25;
 }
 
 body {
@@ -75,6 +78,7 @@ body {
   font-size: var(--main-font-size);
   line-height: 1.6;
   word-break: break-all;
+  color: var(--content-color);
 }
 
 h1,
@@ -433,7 +437,7 @@ nav a:hover {
   text-align: left;
   padding: 20px;
   margin: 20px auto;
-  color: var(--content-color);
+
   background: var(--content-background);
   box-shadow: 0 calc(var(--shadow) / 2) var(--shadow) 0 rgb(0 0 0 / 40%);
   border-radius: 4px;
@@ -729,8 +733,10 @@ hr {
 blockquote {
   border-left: 3px solid;
   padding-left: 1rem;
-  font-style: italic;
+
   margin: 2rem 4rem;
+  color: var(--quote-color);
+  font-weight: bold;
 }
 
 blockquote p {
@@ -744,6 +750,8 @@ blockquote p:last-of-type {
 
 blockquote p:last-child {
   text-align: right;
+  font-weight: normal;
+  font-style: italic;
 }
 
 blockquote p:first-of-type {
@@ -761,21 +769,35 @@ blockquote p:first-of-type {
   gap: 1rem;
 }
 
+.about-container {
+  padding: 10px;
+  max-width: 820px;
+  margin: 0 auto;
+}
+
+.about-container .about {
+  text-align: center;
+}
+
+.about-container h2 {
+  text-align: center;
+  margin: 5rem;
+}
+
 .categories {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.6rem;
+  gap: 1rem;
 }
 
 .categories a:link,
 .categories a:visited {
   color: var(--heading-color);
   text-decoration: none;
-  padding-left: 1.2rem;
   background-color: var(--content-background);
   line-height: 3rem;
   border-radius: 8px;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.4rem;
 }
 
 .categories a:hover,
@@ -1003,5 +1025,13 @@ footer .beian {
   .highlight {
     letter-spacing: -0.1px;
     word-spacing: -1px;
+  }
+
+  .about-container {
+    font-size: 1rem;
+  }
+
+  #postamble {
+    font-size: 0.8rem;
   }
 }

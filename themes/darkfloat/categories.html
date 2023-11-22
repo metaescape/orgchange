@@ -1,5 +1,9 @@
 {% extends "base.html" %} {% block content %}
-<div id="content">
+<!-- <div id="content"> -->
+<!-- if abouts exists -->
+
+<div class="about-container">
+  <h2>文章分类</h2>
   <div class="categories">
     {% for category, count in categories_len %}
 
@@ -9,4 +13,11 @@
     {% endfor %}
   </div>
 </div>
+{% if abouts %} {% for section,content in abouts %}
+<div class="about-container">
+  <h2>{{section}}</h2>
+  <div class="about">{{content}}</div>
+</div>
+{% endfor %} {% endif %}
+<!-- </div> -->
 {% endblock %}
