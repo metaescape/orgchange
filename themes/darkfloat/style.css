@@ -518,8 +518,9 @@ li {
   padding: 0.2rem 0;
 }
 
-.MathJax_Display {
+.MathJax {
   overflow-x: auto;
+  overflow-y: hidden;
 }
 
 table {

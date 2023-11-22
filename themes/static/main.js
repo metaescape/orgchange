@@ -110,4 +110,42 @@ document.addEventListener("DOMContentLoaded", function (e) {
       current_paren.style = "";
     }
   });
+
+  // 检查是否存在 ID 为 'need-mathjax' 的元素
+  var needMathJax = document.getElementById("need-mathjax");
+  if (needMathJax) {
+    // 如果存在，设置 MathJax 配置
+    window.MathJax = {
+      // ... MathJax 的配置 ...
+      tex: {
+        inlineMath: [
+          ["$", "$"],
+          ["\\(", "\\)"],
+        ],
+        displayMath: [
+          ["$$", "$$"],
+          ["\\[", "\\]"],
+        ],
+        processEscapes: true,
+        tags: "ams",
+      },
+      svg: {
+        fontCache: "global",
+      },
+      options: {
+        renderActions: {
+          addMenu: [0, "", ""],
+        },
+      },
+      displayAlign: "center",
+      displayIndent: "0em",
+    };
+
+    // 创建并插入 MathJax CDN 脚本标签
+    var script = document.createElement("script");
+    script.src =
+      "https://cdn.bootcdn.net/ajax/libs/mathjax/3.0.1/es5/tex-chtml.js";
+    script.async = true;
+    document.head.appendChild(script);
+  }
 });

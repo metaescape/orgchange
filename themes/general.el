@@ -185,6 +185,15 @@ Already existing files are overwritten."
           (insert "\n* 参考文献\n#+print_bibliography:"))))
           ))
 
+;; just set a placeholder for mathjax, the real <script> will add dynamically in front-end js loading
+(defun org-html--build-mathjax-config (info)
+  "Insert the user setup into the mathjax template.
+INFO is a plist used as a communication channel."
+  (when (and (memq (plist-get info :with-latex) '(mathjax t))
+	     (org-element-map (plist-get info :parse-tree)
+		 '(latex-fragment latex-environment) #'identity info t nil t))
+    "<script id=\"need-mathjax\"></script>"))
+
 
 ;; https://emacs.stackexchange.com/questions/28301/export-javascript-source-block-to-script-tag-in-html-when-exporting-org-file-to
 (add-to-list 'org-src-lang-modes '("inline-js" . javascript)) ;; js2 if you're fancy
