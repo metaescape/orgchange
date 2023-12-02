@@ -85,4 +85,32 @@ document.addEventListener("DOMContentLoaded", (event) => {
     categoryLink.textContent = "...";
     categoryLink.style.fontSize = "1.6rem";
   }
+
+  // highlight recent modified posts' last modified time
+  const postListContainer = document.querySelector(".post-list");
+  const currentDate = new Date();
+  const oneMonthAgo = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() - 1,
+    currentDate.getDate()
+  );
+  const twoWeeksAgo = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    currentDate.getDate() - 14
+  );
+  if (postListContainer) {
+    const lastModifiedElements =
+      postListContainer.querySelectorAll(".index-last-modify");
+
+    lastModifiedElements.forEach((element) => {
+      const dateText = element.textContent;
+      const date = new Date(dateText);
+
+      if (date > twoWeeksAgo && date <= currentDate) {
+        element.style.fontWeight = "bold"; // 加粗显示
+        element.style.textShadow = `0px 0px 0.5px var(--change-decorate8)`;
+      }
+    });
+  }
 });

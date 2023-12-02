@@ -32,6 +32,7 @@ html {
   --header-background: #2a2b2c;
   --content-background: #2f3032;
   /* --content-background: #232830; */
+  --detail-color: #7a97ba;
   --content-color: #c7c7d3;
   --hover-color: #3f3f3f;
   --secondary-text-color: #999;
@@ -48,6 +49,7 @@ html {
   --main-background: #b7a17684 url(paperTexture.webp);
   --header-background: #b9a278;
   --content-background: #c1ac86;
+  --detail-color: #334c71;
 
   --content-color: #131313;
   --secondary-text-color: #4e4e4e;
@@ -689,6 +691,7 @@ details {
   padding-right: 1rem;
   margin-top: 1rem;
   margin-bottom: 2rem;
+  color: var(--detail-color);
 }
 
 details p {
