@@ -79,6 +79,11 @@ def publish_via_index(index_org, verbose=False, republish_all=False):
         else:
             print_green(f"no update, skip {post_info['html_path_abs2www']}")
 
+    # https://emojicombos.com/deco-ascii-art
+    line = """
+     ✯¸.•´*¨`*•✿ Org Change ✿•*`¨*`•.¸✯
+    """
+    print(line)
     single_page_postprocessing(site_info)
     if site_info["need_update"]:
         generate_index_html(site_info)
