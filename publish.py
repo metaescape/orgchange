@@ -205,6 +205,7 @@ def post_title_path_prepare(node, post_info):
     publish_folder = post_info.get("publish_folder", "./example/www")
 
     prefixes = post_info.get("org_prefixes", [])
+    html_folder_rel2publish = post_info.get("target_dir", "")
     heading = node.get_heading(format="raw")
     title = get_title_from_orglink(heading)
     is_force_update = title.startswith("-")
@@ -218,7 +219,7 @@ def post_title_path_prepare(node, post_info):
     org_path_rel2prefix = extract_suffix(org_path_abs2sys, prefixes)
 
     html_path_rel2publish = org_path_rel2prefix.replace(".org", ".html")
-    html_path_abs2sys = os.path.join(publish_folder, html_path_rel2publish)
+    html_path_abs2sys = os.path.join(publish_folder, html_folder_rel2publish, html_path_rel2publish)
 
     multipage_index = post_info.get("multipage_index", False)
     html_path_theoritical = os.path.basename(html_path_abs2sys)
