@@ -316,6 +316,16 @@ body a {
   color: inherit;
 }
 
+/* only links in org-mian/about use dotted style underline */
+#org-main a,
+.about a {
+  text-decoration: none;
+  border-color: var(--secondary-text-color);
+  border-width: 0 0 1px;
+  border-style: none none dotted none;
+  padding: 3px 0 1px;
+}
+
 #table-of-contents {
   font-size: 1.2rem;
   border: none;
