@@ -40,12 +40,14 @@ document.addEventListener("DOMContentLoaded", function (event) {
 function setTheme(targetTheme) {
   targetTheme = targetTheme || "dark";
   let oppsiteTheme = targetTheme === "light" ? "dark" : "light";
-  document
-    .querySelector(`link[title="${targetTheme}"]`)
-    .removeAttribute("disabled");
-  document
-    .querySelector(`link[title="${oppsiteTheme}"]`)
-    .setAttribute("disabled", "disabled");
+
+  var codeThemeCss = document.getElementById("code-theme-css");
+  if (targetTheme === "dark") {
+    codeThemeCss.href = "/orgchange/themes/static/dark.css";
+  } else {
+    codeThemeCss.href = "/orgchange/themes/static/light.css";
+  }
+
   const html = document.documentElement;
   if (targetTheme === "dark") {
     html.classList.remove("light");
