@@ -554,8 +554,8 @@ table tbody td {
   padding: 10px 20px;
 }
 
-p code,
-li code {
+p code:not(pre code),
+li code:not(pre code) {
   display: inline-block;
   white-space: no-wrap;
   background-color: var(--pre-background);
@@ -585,11 +585,6 @@ pre {
 
 .highlight {
   background-color: inherit;
-}
-
-code {
-  border-radius: 5px;
-  font-size: 1.3rem;
 }
 
 /* Start of copy code */
