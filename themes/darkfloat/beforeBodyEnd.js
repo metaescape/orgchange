@@ -1,5 +1,3 @@
-themeBtnHandler(localStorage.getItem("theme"));
-
 const global_toc = document.querySelector("#global-toc");
 if (global_toc) {
   document.addEventListener("click", function (event) {
@@ -113,4 +111,5 @@ document.addEventListener("DOMContentLoaded", (event) => {
       }
     });
   }
+  themeBtnHandler(localStorage.getItem("theme"));
 });

@@ -404,7 +404,8 @@ nav h2::before {
 }
 
 #global-toc li {
-  padding: 0;
+  padding: 1px;
+  margin-left: 0.4rem;
 }
 
 #global-toc ul {
@@ -835,8 +836,8 @@ body a:visited {
 }
 
 /* only links in org-mian/about use dotted style underline */
-#org-main a,
-.about a {
+#org-main a:link,
+.about a:link {
   text-decoration: none;
   border-color: var(--secondary-text-color);
   border-width: 0 0 1px;
@@ -850,25 +851,27 @@ body a:visited {
   border: none;
 }
 
-#table-of-contents a:link {
+#table-of-contents a:link,
+#global-toc a:link {
   text-decoration: none;
   border: none;
   font-weight: normal;
 }
 
-#table-of-contents a:hover {
+#table-of-contents a:hover,
+#global-toc a:hover {
   color: inherit;
   border-color: var(--secondary-text-color);
   border-width: 0 0 1px;
   border-style: none none solid none;
 }
 
-nav a {
-  font-weight: 200;
+.paginav a:link {
+  font-weight: normal;
   text-decoration: none;
 }
 
-nav a:hover {
+.paginav a:hover {
   text-decoration: none;
 }
 

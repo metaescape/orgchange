@@ -67,7 +67,7 @@
     (insert-file-contents filename)
     (buffer-string)))
 
-(setq org-html-scripts "") ;; disable default js for code highlght
+(setq org-html-scripts "") ;; disable default js for code highlight
 ;; add an inner <code> element for code block
 (defun org-html-src-block (src-block _contents info)
   "Transcode a SRC-BLOCK element from Org to HTML.

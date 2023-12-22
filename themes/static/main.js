@@ -144,7 +144,7 @@ document.addEventListener("DOMContentLoaded", function (e) {
     // 创建并插入 MathJax CDN 脚本标签
     var script = document.createElement("script");
     script.src =
-      "https://cdn.bootcdn.net/ajax/libs/mathjax/3.0.1/es5/tex-chtml.js";
+      "https://cdn.bootcdn.net/ajax/libs/mathjax/3.2.2/es5/tex-chtml-full.min.js";
     script.async = true;
     document.head.appendChild(script);
   }
