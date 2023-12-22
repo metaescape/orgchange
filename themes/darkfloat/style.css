@@ -310,22 +310,6 @@ h3 {
   opacity: 0.6;
 }
 
-body a {
-  transition: all 0.2s;
-  font-weight: bold;
-  color: inherit;
-}
-
-/* only links in org-mian/about use dotted style underline */
-#org-main a,
-.about a {
-  text-decoration: none;
-  border-color: var(--secondary-text-color);
-  border-width: 0 0 1px;
-  border-style: none none dotted none;
-  padding: 3px 0 1px;
-}
-
 #table-of-contents {
   font-size: 1.2rem;
   border: none;
@@ -363,15 +347,6 @@ body a {
 
 nav h2::before {
   content: "► ";
-}
-
-nav a {
-  font-weight: 200;
-  text-decoration: none;
-}
-
-nav a:hover {
-  text-decoration: underline;
 }
 
 #global-toc {
@@ -816,11 +791,6 @@ blockquote p:first-of-type {
   padding: 0.5rem 0.4rem;
 }
 
-.categories a:hover,
-.categories a:active {
-  background-color: var(--hover-color);
-}
-
 .paginav .prev,
 .paginav .next {
   width: 50%;
@@ -853,6 +823,72 @@ blockquote p:first-of-type {
   color: var(--pre-text);
 }
 
+/* link setting */
+
+body a:link {
+  transition: all 0.2s;
+  font-weight: bold;
+  color: inherit;
+}
+body a:visited {
+  color: inherit;
+}
+
+/* only links in org-mian/about use dotted style underline */
+#org-main a,
+.about a {
+  text-decoration: none;
+  border-color: var(--secondary-text-color);
+  border-width: 0 0 1px;
+  border-style: none none dotted none;
+  padding: 3px 0 1px;
+}
+
+#org-main a:hover,
+.about a:hover {
+  color: var(--quote-color);
+  border: none;
+}
+
+#table-of-contents a:link {
+  text-decoration: none;
+  border: none;
+  font-weight: normal;
+}
+
+#table-of-contents a:hover {
+  color: inherit;
+  border-color: var(--secondary-text-color);
+  border-width: 0 0 1px;
+  border-style: none none solid none;
+}
+
+nav a {
+  font-weight: 200;
+  text-decoration: none;
+}
+
+nav a:hover {
+  text-decoration: none;
+}
+
+.categories a:hover,
+.categories a:active {
+  background-color: var(--hover-color);
+}
+
+.comment a {
+  align-items: center;
+  text-decoration: none;
+}
+
+.comment a svg {
+  height: 1.4rem;
+  width: 1.4rem;
+}
+
+/* link setting  end*/
+
 .tooltip {
   position: relative;
   display: inline-block;
@@ -880,16 +916,6 @@ blockquote p:first-of-type {
 .tooltip:hover .tooltiptext {
   visibility: visible;
   opacity: 1;
-}
-
-.comment a {
-  align-items: center;
-  text-decoration: none;
-}
-
-.comment a svg {
-  height: 1.4rem;
-  width: 1.4rem;
 }
 
 #postamble {
