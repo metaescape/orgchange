@@ -782,7 +782,7 @@ blockquote p:first-of-type {
   margin: 5rem;
 }
 
-.categories {
+.about-container .categories {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
@@ -797,6 +797,21 @@ blockquote p:first-of-type {
   border-radius: 8px;
   padding: 0.5rem 0.4rem;
   text-align: center;
+}
+
+.categories a:hover,
+.categories a:active {
+  background-color: var(--hover-color);
+}
+
+main .categories {
+  display: flex;
+  gap: 2rem;
+}
+
+main .categories a:link,
+main .categories a:visited {
+  padding: 0rem 1rem;
 }
 
 .paginav .prev,
@@ -880,11 +895,6 @@ body a:visited {
 
 .paginav a:hover {
   text-decoration: none;
-}
-
-.categories a:hover,
-.categories a:active {
-  background-color: var(--hover-color);
 }
 
 .comment a {
