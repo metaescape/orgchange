@@ -28,12 +28,16 @@ def pygment_and_paren_match_all(soup, class_filters=[]):
         # if div has a <code> child
         if not pre.code:
             continue
-        lang = "example"
+        src = "demo" # showed in the html <code>
         jupyter_python = False
         try:
-            lang = pre.code["class"][0]
-            if lang == "jupyter-python":
+            src = pre.code["class"][0]
+            lang = src
+            if src == "jupyter-python":
                 jupyter_python = True
+                lang = "python"
+                src = "python"
+            if src == "org":
                 lang = "python"
             lexer = get_lexer_by_name(lang)
         except:
@@ -54,7 +58,7 @@ def pygment_and_paren_match_all(soup, class_filters=[]):
             paren_matched_pre = paren_match(normalize_pre, paren=paren)
             soup_code.pre.replace_with(paren_matched_pre)
 
-        soup_code.pre["class"] = [lang]
+        soup_code.pre["class"] = [src]
         pre.replace_with(soup_code)
 
     return soup

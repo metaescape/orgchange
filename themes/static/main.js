@@ -1,15 +1,15 @@
 /* Start of copy code */
 // based on https://www.roboleary.net/2022/01/13/copy-code-to-clipboard-blog.html
-const copyLabel = "Copy";
+const copyLabel = "⎘ ";
 let rootStyle;
 
 async function copyCode(block, button) {
-  let code = block.querySelector("pre");
-  let text = code.innerText;
+  let pre = block.querySelector("pre");
+  let text = pre.innerText;
   await navigator.clipboard.writeText(text);
-  button.innerText = "Copied";
+  button.innerText = "copied";
   setTimeout(() => {
-    button.innerText = copyLabel;
+    button.innerText = copyLabel + " " + pre.className;
   }, 500);
 }
 
@@ -18,7 +18,13 @@ function addCopyCodeButtons() {
   let blocks = document.querySelectorAll(".org-src-container");
   blocks.forEach((block) => {
     let button = document.createElement("button");
-    button.innerText = copyLabel;
+    pre = block.querySelector("pre");
+    if (pre) {
+      button.innerText = copyLabel + " " + pre.className;
+    } else {
+      button.innerText = copyLabel;
+    }
+
     button.classList.add("copy-code");
     // let details = block.closest("details");
     // let summary = details && details.querySelector("summary");

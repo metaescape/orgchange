@@ -610,8 +610,8 @@ pre {
 .copy-code {
   display: none;
   position: absolute;
-  top: 1.4rem;
-  right: 1.2rem;
+  top: 1rem;
+  right: 1rem;
   background-color: #0000;
   border: none;
   border-radius: 5px;
