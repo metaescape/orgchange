@@ -104,6 +104,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
     lastModifiedElements.forEach((element) => {
       const dateText = element.textContent;
       const date = new Date(dateText);
+      date.setDate(date.getDate() - 1); // 将日期向前调整一天
 
       if (date > twoWeeksAgo && date <= currentDate) {
         element.style.fontWeight = "bold"; // 加粗显示
