@@ -77,6 +77,7 @@ contextual information."
       (org-html--textarea-block src-block)
     (let* ((lang (org-element-property :language src-block))
 	       (code (org-html-format-code src-block info))
+         (name (org-element-property :name src-block))
 	       (label (let ((lbl (org-html--reference src-block info t)))
 		            (if lbl (format " id=\"%s\"" lbl) "")))
 	       (klipsify  (and  (plist-get info :html-klipsify-src)
@@ -107,8 +108,10 @@ contextual information."
 			                  "")
 			                code)
                   ;; code add
-                  (format "<pre><code class=\"%s\"%s>%s</code></pre>"
-                          lang label code)))))))
+                  (format "%s<pre><code class=\"%s\"%s>%s</code></pre>"
+                          (if name (format "<div class=\"pre-name\">#+name: %s </div>" name) "")
+                          lang label code 
+                          )))))))
 
 
 (defun org-export-each-headline-to-html (&optional dir scope)

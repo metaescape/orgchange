@@ -601,6 +601,12 @@ pre {
   background-color: inherit;
 }
 
+.pre-name {
+  color: var(--secondary-text-color);
+  font-size: 1.2rem;
+  transform: translate(1rem, 0.8rem);
+}
+
 /* Start of copy code */
 .org-src-container {
   position: relative;
