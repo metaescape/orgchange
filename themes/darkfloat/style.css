@@ -28,9 +28,9 @@ html {
   --change-decorate2: rgba(0, 86, 143, 0.527);
   --change-decorate8: #09f8;
   --change-decorate-table: #09f1;
-  --main-background: #292a2d;
+  --main-background: #26272c;
   --header-background: #2a2b2c;
-  --content-background: #2f3032f0;
+  --content-background: #292a2bf0;
   --textures-gradients: url(french-stucco.png),
     linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, transparent 60px),
     linear-gradient(to bottom, rgba(0, 0, 0, 0.6) 0%, transparent 80px),
@@ -42,8 +42,8 @@ html {
   --secondary-text-color: #999;
   --shadow: 8px;
   --pre-text: #bfbfbf;
-  --pre-background: #282c34;
-  --main-font-size: 1.4rem;
+  --pre-background: #20242b;
+  --main-font-size: 1.5rem;
   --quote-color: #d08770;
 }
 
@@ -86,7 +86,8 @@ body {
     "Segoe UI", Helvetica, Arial, sans-serif;
 
   font-size: var(--main-font-size);
-  line-height: 1.6;
+  font-weight: 400;
+  line-height: 1.8;
   word-break: break-all;
   color: var(--content-color);
 }
@@ -156,7 +157,7 @@ h3 {
 .header-left a span {
   position: relative;
   color: var(--heading-color);
-  font-size: 1rem;
+  font-size: 1.2rem;
   font-family: Arial;
   letter-spacing: 6px;
   z-index: 1;
@@ -576,6 +577,7 @@ li code:not(pre code) {
   line-height: 1.5rem;
   font-size: inherit;
   border: 0.5px solid var(--hover-color);
+  border-radius: 5px;
   padding: 2px 4px;
   margin: -1px 0px;
 }
@@ -626,7 +628,7 @@ pre {
 
 pre.example {
   padding: 1rem;
-  border-radius: 0;
+  border-radius: 2px;
   margin: 0 auto;
   margin-top: -0.6rem;
   margin-bottom: 1rem;
@@ -968,7 +970,7 @@ body a:visited {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   line-height: 1.6;
   margin: 0.6rem 0.8rem;
   text-indent: 0rem;
@@ -1040,6 +1042,9 @@ footer .beian {
 }
 
 @media (max-width: 460px) {
+  body {
+    font-size: 1.4rem;
+  }
   .back-top svg {
     width: 4.8rem;
     height: 4.8rem;
