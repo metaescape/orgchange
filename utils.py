@@ -125,16 +125,28 @@ def check_modified_time_hook(file1, file2, f):
     """
     check if file1 is modified after file2, if so, call f(file1, file2)
     """
-    if not os.path.exists(file2) or os.path.getmtime(file1) > os.path.getmtime(
+    if not os.path.exists(file1):
+        print_red(f"Warning: {file1} is not exist")
+    elif not os.path.exists(file2) or os.path.getmtime(file1) > os.path.getmtime(
         file2
     ):
         f(file1, file2)
 
 
-def rsync_copy(file_suffix, target_folder):
+def rsync_copy(file_suffix, target_folder, root):
+
     target_file = os.path.join(target_folder, file_suffix)
+    target_file = normalize_path(target_file)
 
     target_folder = os.path.dirname(target_file)
+
+    # assert target_folder is under the root dir
+
+    if not target_folder.startswith(root):
+        raise ValueError(
+            f"target folder {target_folder} is not under root {root}"
+        )
+
     # Create the folder if it doesn't exist
     if not os.path.exists(target_folder):
         os.makedirs(target_folder)

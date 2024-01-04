@@ -302,10 +302,12 @@ def soup_decorate_per_html(post_info):
     org_folder = os.path.dirname(post_info["org_path_abs2sys"])
     # e.g. /www/posts/
     html_folder = os.path.dirname(post_info["html_path_abs2sys"])
+    publish_folder = post_info["publish_folder"]
+
     for img_url in img_urls:
         with change_dir(org_folder):
             # mv url from ~/org/posts/imgs/... to /www/posts/imgs/...
-            rsync_copy(img_url, html_folder)
+            rsync_copy(img_url, html_folder, root=publish_folder)
 
     for p in soup.find_all("p"):
         # 在每个 <p> 标签中找到所有的 <a> 标签
