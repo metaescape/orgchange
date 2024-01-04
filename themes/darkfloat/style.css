@@ -92,6 +92,17 @@ body {
   color: var(--content-color);
 }
 
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background: var(--content-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--hover-color);
+  border-radius: 3px;
+}
+
 h1,
 h2,
 h3,
@@ -609,6 +620,11 @@ pre {
   transform: translate(1rem, 0.8rem);
 }
 
+/* 自定义 <pre> 元素的水平滚动条 */
+pre::-webkit-scrollbar {
+  height: 1px;
+}
+
 /* Start of copy code */
 .org-src-container {
   position: relative;
@@ -953,17 +969,6 @@ body a:visited {
   font-size: 1rem;
   justify-self: flex-end;
   text-align: center;
-}
-
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-  background: var(--content-background);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--hover-color);
-  border-radius: 3px;
 }
 
 .post-list .post-line {
