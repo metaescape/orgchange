@@ -70,7 +70,6 @@ html {
   --change-decorate-table: #0001;
   --shadow: 4px;
   --pre-text: #363c69;
-  --pre-background: #ab997e;
   --pre-background: #c8b38b;
   --quote-color: #b9461f;
 }
@@ -622,7 +621,17 @@ pre {
 
 /* 自定义 <pre> 元素的水平滚动条 */
 pre::-webkit-scrollbar {
-  height: 1px;
+  height: 8px;
+}
+
+pre::-webkit-scrollbar-thumb {
+  background-color: var(--pre-background); /* 滚动条滑块的颜色 */
+  border-bottom: 1px dashed var(--secondary-text-color);
+}
+
+pre::-webkit-scrollbar-thumb:hover {
+  background-color: var(--change-decorate); /* 滚动条滑块在悬停时的颜色 */
+  border-bottom: none;
 }
 
 /* Start of copy code */
