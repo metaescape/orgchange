@@ -111,11 +111,7 @@ h5 {
 }
 
 h2 {
-  font-size: 2.6rem;
-}
-
-h3 {
-  font-size: 2.4rem;
+  font-size: 2.8rem;
 }
 
 h3 {
@@ -463,6 +459,7 @@ p {
 
 li p {
   margin-top: 0rem;
+  margin-bottom: 0.4rem;
 }
 
 p,
@@ -479,6 +476,10 @@ main h6 {
   font-weight: bold;
   margin-bottom: 0.8rem;
   margin-top: 1.5rem;
+}
+
+main h2 {
+  margin-bottom: 1.2rem;
 }
 
 .outline-2,
@@ -626,7 +627,7 @@ pre::-webkit-scrollbar {
 
 pre::-webkit-scrollbar-thumb {
   background-color: var(--pre-background); /* 滚动条滑块的颜色 */
-  border-bottom: 1px dashed var(--secondary-text-color);
+  /* border-bottom: 1px dashed var(--secondary-text-color); */
 }
 
 pre::-webkit-scrollbar-thumb:hover {
@@ -808,6 +809,7 @@ blockquote p:first-of-type {
 
 .about-container .about {
   text-align: center;
+  font-size: 1.1rem;
 }
 
 .about-container h2 {
@@ -1115,7 +1117,8 @@ footer .beian {
     word-spacing: -1px;
   }
 
-  .about-container {
+  .about-container .about,
+  .about-container .categories {
     font-size: 1rem;
   }
 
