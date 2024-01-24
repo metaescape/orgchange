@@ -33,6 +33,7 @@ from utils import (
     print_green,
     print_yellow,
     print_red,
+    get_emacs_org_version
 )
 import pickle
 
@@ -179,15 +180,16 @@ def update_site_info(node, site_info: dict):
     site_info["org_prefixes"] = format_prefixes(site_info["org_prefixes"])
     site_info["theme"] = site_info.get("theme", "darkfloat")
     site_info["title"] = site_info.get("site_name", "Orgchange site")
+    site_info["emacs"] = site_info.get("emacs", "emacs")
+    if site_info["emacs"].startswith("~"):
+        site_info["emacs"] = os.path.expanduser(site_info["emacs"])
     site_info["need_update"] = False
     # inverse map from id to html path
     site_info["id_map"] = {}
     # inverse map from theoritical org-export html path to real publish path
     site_info["html_map"] = {}
     site_info["categories_map"] = defaultdict(list)
-    site_info["emacs_org_version"] = [
-        "Emacs 28.2(Org mode 9.5.5)"
-    ]  # use list to share across all post_info ,default
+    site_info["emacs_org_version"] = get_emacs_org_version(site_info["emacs"])
     publish_folder_abs2www = "/" + extract_suffix_from_prefix(
         site_info["publish_folder"], WWW
     )
@@ -238,6 +240,10 @@ def post_title_path_prepare(node, post_info):
     )
 
     post_info["need_update"] = is_force_update or is_modified
+
+    if post_info["emacs"].startswith("~"):
+        post_info["emacs"] = os.path.expanduser(post_info["emacs"])
+    post_info["emacs_org_version"] = get_emacs_org_version(post_info["emacs"])
 
     post_info.update(
         {
@@ -358,19 +364,19 @@ def publish_single_file(
     theme = post_info.get("theme")
     theme_path = f"{ORG_CHANGE_DIR}/themes/{theme}"
     orgfile = post_info["org_path_abs2sys"]
-
-    _export_to_html(theme_path, orgfile, elisp_code, verbose=verbose)
+    emacs = post_info.get("emacs", "emacs")
+    _export_to_html(emacs, theme_path, orgfile, elisp_code, verbose=verbose)
     if multipage_index:
         multipages_prepare(post_info, html_folder)
     print("published to {}".format(html_path_abs2sys))
 
 
-def _export_to_html(theme_path, orgfile, elisp_code, verbose=False):
+def _export_to_html(emacs, theme_path, orgfile, elisp_code, verbose=False):
     """
     a wrapper of org-html-export-to-html
     """
     cmd = [
-        "emacs",
+        f"{emacs}",
         "--batch",
         f"--chdir={theme_path}",
         "--load",

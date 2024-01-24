@@ -5,6 +5,8 @@ import json
 import os
 import re
 import shutil
+from functools import lru_cache
+import subprocess
 
 # get path of current file
 ORG_CHANGE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -368,3 +370,18 @@ def update_node_property_list(node):
     property_keys = list(node._properties.keys())
     for key in property_keys:
         node._properties[key.lower()] = node._properties[key]
+
+        
+@lru_cache()
+def get_emacs_org_version(emacs):
+    
+    # 构建您的 Emacs 命令
+    emacs_command = f"{emacs} --batch --eval \"(progn (require 'org) (princ (format \\\"Emacs %s(Org %s)\\\" emacs-version org-version)))\""
+
+    # 使用 subprocess 运行命令
+    result = subprocess.run(emacs_command, shell=True, capture_output=True, text=True)
+
+    # 获取输出字符串
+    output = result.stdout.strip()
+
+    return output

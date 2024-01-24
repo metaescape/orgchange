@@ -23,7 +23,7 @@ lisp_family = [
 ]
 
 
-def pygment_and_paren_match_all(soup, class_filters=[]):
+def pygment_and_paren_match_all(soup, rainbow=True, class_filters=[]):
     for pre in list(soup.find_all("pre")):
         # if div has a <code> child
         if not pre.code:
@@ -52,7 +52,7 @@ def pygment_and_paren_match_all(soup, class_filters=[]):
         highlighted_code = highlight(escaped_code, lexer, formatter)
 
         soup_code = BeautifulSoup(highlighted_code, "html.parser")
-        if lang in lisp_family or jupyter_python:
+        if rainbow and (lang in lisp_family or jupyter_python):
             normalize_pre = normalize_span(soup_code.pre)
             paren = "[]" if jupyter_python else "()"
             paren_matched_pre = paren_match(normalize_pre, paren=paren)
@@ -341,7 +341,7 @@ def soup_decorate_per_html(post_info):
             a["href"] = href
 
     soup = self_apply(soup)
-    soup = pygment_and_paren_match_all(soup)
+    soup = pygment_and_paren_match_all(soup, post_info.get("rainbow", True))
     post_info["soup"] = soup
 
     post_info["mermaid_script"] = mermaid_process(
