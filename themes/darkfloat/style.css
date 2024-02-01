@@ -962,7 +962,7 @@ body a:visited {
   position: absolute;
   z-index: 1;
   bottom: 125%; /* Position the tooltip above the text */
-  left: 50%;
+  right: 0;
   margin-left: -60px; /* Use negative margin to center the tooltip */
   opacity: 0;
   transition: opacity 0.3s;
