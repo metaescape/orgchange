@@ -225,13 +225,14 @@
         else keyLinks.push("<a href='#'>" + key.name + "</a>");
       });
 
-      var $this = $(this);
+      var $block = $(this);
       var keysHtml = $("<div class='transpose-keys'></div>");
       keysHtml.html(keyLinks.join(""));
       $("a", keysHtml).click(function (e) {
         e.preventDefault();
-        transposeSong($this, $(this).text());
-        $(".transpose-keys a").removeClass("selected");
+        transposeSong($block, $(this).text());
+        // $(".transpose-keys a").removeClass("selected");
+        $(this).parent().find("a").removeClass("selected");
         $(this).addClass("selected");
         return false;
       });
