@@ -1057,6 +1057,44 @@ footer .beian {
   animation: typing 3s steps(30, end);
 }
 
+/*!
+ * from jQuery Chord Transposer plugin v1.0
+ * http://codegavin.com/projects/transposer
+ *
+ * Copyright 2010, Jesse Gavin
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://codegavin.com/license
+ *
+ * Date: Sat Jun 26 21:27:00 2010 -0600
+ */
+span.c {
+  font-weight: bold;
+  color: #2159d6;
+}
+
+.transpose-keys {
+  margin: 10px 0;
+  overflow: auto;
+  font-size: 1.2rem;
+}
+
+.transpose-keys a {
+  display: block;
+  float: left;
+  width: 2.25em;
+  text-align: center;
+  margin: 0 0.25em 0.25em 0;
+  color: #333;
+  background: var(--pre-background);
+  text-decoration: none;
+  padding: 0.4em 0;
+}
+
+.transpose-keys a.selected {
+  background: #2159d6;
+  color: #fff;
+}
+
 @media (max-width: 460px) {
   body {
     font-size: 1.4rem;
