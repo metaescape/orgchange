@@ -7,12 +7,15 @@
  * http://codegavin.com/license
  *
  * Date: Sat Jun 26 21:27:00 2010 -0600
+ *
+ * modified: 20240222 by orgchange
+ * support multiple tablature in one page
+ * make currentKey to be a block local variable
  */
+
 (function ($) {
   $.fn.transpose = function (options) {
     var opts = $.extend({}, $.fn.transpose.defaults, options);
-
-    var currentKey = null;
 
     var keys = [
       { name: "Ab", value: 0, type: "F" },
@@ -123,7 +126,17 @@
       else return 0;
     };
 
+    var getLocalKey = function (target) {
+      var key = $(target).attr("data-key");
+      if (!key || $.trim(key) === "") {
+        key = $(target).attr("data-key");
+      }
+      return key;
+    };
+
     var transposeSong = function (target, key) {
+      var currentKey = getKeyByName(getLocalKey(target));
+
       var newKey = getKeyByName(key);
 
       if (currentKey.name == newKey.name) {
@@ -136,7 +149,7 @@
         transposeChord(el, delta, newKey);
       });
 
-      currentKey = newKey;
+      $(target).attr("data-key", newKey.name);
     };
 
     var transposeChord = function (selector, delta, targetKey) {
@@ -223,7 +236,9 @@
         return false;
       });
 
-      $(this).before(keysHtml);
+      if (!$(this).prev().hasClass("transpose-keys")) {
+        $(this).before(keysHtml);
+      }
 
       var output = [];
       var lines = $(this)

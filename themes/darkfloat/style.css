@@ -1078,19 +1078,20 @@ span.c {
   font-size: 1.2rem;
 }
 
-.transpose-keys a {
+#org-main .transpose-keys a:link,
+#org-main .transpose-keys a:visited {
   display: block;
   float: left;
   width: 2.25em;
   text-align: center;
   margin: 0 0.25em 0.25em 0;
-  color: #333;
   background: var(--pre-background);
-  text-decoration: none;
-  padding: 0.4em 0;
+  padding: 0.2em 0;
+  border-radius: 1.5rem;
+  border-style: none;
 }
 
-.transpose-keys a.selected {
+#org-main .transpose-keys a.selected {
   background: #2159d6;
   color: #fff;
 }
