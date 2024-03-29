@@ -33,7 +33,7 @@ from utils import (
     print_green,
     print_yellow,
     print_red,
-    get_emacs_org_version
+    get_emacs_org_version,
 )
 import pickle
 
@@ -221,7 +221,9 @@ def post_title_path_prepare(node, post_info):
     org_path_rel2prefix = extract_suffix(org_path_abs2sys, prefixes)
 
     html_path_rel2publish = org_path_rel2prefix.replace(".org", ".html")
-    html_path_abs2sys = os.path.join(publish_folder, html_folder_rel2publish, html_path_rel2publish)
+    html_path_abs2sys = os.path.join(
+        publish_folder, html_folder_rel2publish, html_path_rel2publish
+    )
 
     multipage_index = post_info.get("multipage_index", False)
     html_path_theoritical = os.path.basename(html_path_abs2sys)
@@ -638,6 +640,16 @@ def generate_category_html(site_info):
             os.path.join(publish_folder, "categories", f"{category}.html"), "w"
         ) as f:
             f.write(rendered_template)
+
+    # delete htmls that not in categories_map
+    for file in os.listdir(os.path.join(publish_folder, "categories")):
+        if (
+            file.endswith(".html")
+            and file.split(".")[0] not in site_info["categories_map"]
+            and file != "index.html"
+        ):
+            os.remove(os.path.join(publish_folder, "categories", file))
+            print_yellow(f"delete extra {file}")
 
     template = env.get_template("categories.html")
     site_info["categories_len"] = [
