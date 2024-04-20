@@ -406,6 +406,12 @@ def _export_to_html(emacs, theme_path, orgfile, elisp_code, verbose=False):
 
 
 def multipages_prepare(post_info, html_folder):
+    def _sort_by_end_num(filename):
+        # remove suffix
+        basename = os.path.basename(filename)[: -len(".html")]
+
+        return int(basename.split("_")[-1])
+
     html_folder_rel2www = extract_suffix_from_prefix(html_folder, WWW)
     html_folder_abs2www = "/" + html_folder_rel2www
     with change_dir(html_folder):
@@ -413,7 +419,9 @@ def multipages_prepare(post_info, html_folder):
         html_files_without_index = [
             html for html in html_files if not html.endswith("index.html")
         ]
-        html_files = ["index.html"] + sorted(html_files_without_index)
+        html_files = ["index.html"] + sorted(
+            html_files_without_index, key=_sort_by_end_num
+        )
         soups = get_soups(html_files)
 
         titles = get_multipages_titles(soups)
