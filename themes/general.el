@@ -60,7 +60,6 @@
       (verbatim . "<code>%s</code>")))
 ;; end of html5 sematic tags
 
-
 (defun read-file-content (filename)
   "Return the contents of FILENAME."
   (with-temp-buffer
