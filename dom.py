@@ -23,12 +23,12 @@ lisp_family = [
 ]
 
 
-def pygment_and_paren_match_all(soup, rainbow=True, class_filters=[]):
+def pygment_and_paren_match_all(soup, rainbow=True):
     for pre in list(soup.find_all("pre")):
         # if div has a <code> child
         if not pre.code:
             continue
-        src = "demo" # showed in the html <code>
+        src = "demo"  # showed in the html <code>
         jupyter_python = False
         try:
             src = pre.code["class"][0]
@@ -54,8 +54,11 @@ def pygment_and_paren_match_all(soup, rainbow=True, class_filters=[]):
         soup_code = BeautifulSoup(highlighted_code, "html.parser")
         if rainbow and (lang in lisp_family or jupyter_python):
             normalize_pre = normalize_span(soup_code.pre)
-            paren = "[]" if jupyter_python else "()"
-            paren_matched_pre = paren_match(normalize_pre, paren=paren)
+            parens = ["[]"] if jupyter_python else ["()"]
+            if type(rainbow) == dict:
+                parens = rainbow.get(src, parens)
+
+            paren_matched_pre = paren_match(normalize_pre, parens)
             soup_code.pre.replace_with(paren_matched_pre)
 
         soup_code.pre["class"] = [src]
@@ -64,32 +67,34 @@ def pygment_and_paren_match_all(soup, rainbow=True, class_filters=[]):
     return soup
 
 
-def paren_match(pre, paren="()"):
+def paren_match(pre, parens=["[]", "()"]):
     """
     div is a <pre> tag, and we want to wrap parentheses in spans
     all children of div are <span> tags thanks to pygments
     """
+    if type(parens) == str:
+        parens = [parens]
     soup = BeautifulSoup("", "html.parser")
+
+    paren_map = {p[0]: p[1] for p in parens}
 
     stack = []
     # open_index is the index of previous open parenthesis
     open_index_stack = []
+    paren_stack = []
 
     for child in list(pre.children):
         # Check if both parentheses are in the same tag
 
         stack.append(child)
-        # 不考虑 （）或 [] 情况
-        # if child.string in [paren, paren+":"]:
-        #     wrapper = soup.new_tag("span")
-        #     wrapper["class"] = "paren"
-        #     child.wrap(wrapper)
-        if child.string == paren[0]:
+        if child.string in paren_map:
+            paren_stack.append(child.string)
             # push the span tag onto the stack
             open_index_stack.append(len(stack) - 1)
 
-        elif child.string == paren[1]:
-            if open_index_stack:
+        elif child.string in paren_map.values():
+            if open_index_stack and paren_map[paren_stack[-1]] == child.string:
+                paren_stack.pop()
                 open_index = open_index_stack.pop()
 
                 wrapper = soup.new_tag("span")
@@ -341,6 +346,7 @@ def soup_decorate_per_html(post_info):
             a["href"] = href
 
     soup = self_apply(soup)
+    post_info.get("")
     soup = pygment_and_paren_match_all(soup, post_info.get("rainbow", True))
     post_info["soup"] = soup
 
