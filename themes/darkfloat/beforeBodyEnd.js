@@ -64,6 +64,8 @@ class RadioLinkPreview {
     // 遍历所有触发元素并分别绑定事件
     this.triggerElements.forEach((element) => {
       element.addEventListener("mouseenter", (event) => {
+        // clear previous content
+        this.previewPopup.innerHTML = "";
         this.loadContentAndShow(event, element); // 传递事件对象和当前元素
       });
 
@@ -73,29 +75,74 @@ class RadioLinkPreview {
     });
   }
 
-  loadContentAndShow(event, element) {
-    const targetId = element.getAttribute("href").substring(1);
-    const targetElement = document.getElementById(targetId);
-    const parentElement = targetElement.parentElement.parentElement;
-
-    if (targetElement) {
-      let content = parentElement.textContent;
-      // get fist 100 characters, if it is more than 100 characters
-      // ending with ...
-      if (content.length > 1000) {
-        content = content.substring(0, 1000) + "...";
-      }
-      this.previewPopup.innerHTML = content;
-      this.previewPopup.style.display = "block";
-
-      // 获取触发链接元素的位置信息
-      const linkRect = element.getBoundingClientRect();
-
-      // 设置预览窗口的位置
-      // 例如，放置在链接的正下方，并稍微向右偏移
-      this.previewPopup.style.left = `${linkRect.left + window.scrollX}px`;
-      this.previewPopup.style.top = `${linkRect.bottom + window.scrollY}px`;
+  solveLinkedTargetElement(link) {
+    let href = link.getAttribute("href");
+    // get first character of href
+    if (href[0] !== "#") {
+      // this is a remote link, do nothing
+      return;
     }
+    // this is a local link, solve its context and preview it
+    let targetId = link.getAttribute("href").substring(1);
+    let targetElement = document.getElementById(targetId);
+    let previewElement = targetElement;
+    // check if targetElement is a <a id=xxx> tag
+    if (targetElement.tagName === "A") {
+      // this is a <a> tag, probably a radio link, so check its parent
+      targetElement = targetElement.parentElement;
+    }
+
+    // check if targetElement is a <h_> tag
+    if (targetElement.tagName[0] === "H") {
+      // this is a <h_> tag, so it is heading, get its next sibling
+      let textSection = targetElement.nextElementSibling;
+
+      // find the first BLOCKQUOTE or <pre class="example"> block in the children of targetElement
+      let children = textSection.children;
+      for (let child of children) {
+        if (child.tagName === "PRE" && child.className === "example") {
+          return child;
+        } else if (child.tagName === "BLOCKQUOTE") {
+          return child;
+        }
+      }
+    }
+    return previewElement;
+  }
+
+  adjustPopupPosition(element, previewPopup) {
+    const linkRect = element.getBoundingClientRect();
+
+    // 基本定位在元素的右下角, absolute定位需要加上滚动距离
+    let left = linkRect.left + window.scrollX;
+    let top = linkRect.bottom + window.scrollY;
+
+    // 检查是否会溢出屏幕右侧
+    const rightEdge = window.innerWidth; // 非滚动宽度
+    if (linkRect.left + previewPopup.offsetWidth > rightEdge) {
+      // 如果溢出，向左调整位置
+      left = linkRect.right + window.scrollX - previewPopup.offsetWidth; // 直接设置left为屏幕宽度减去弹窗宽度
+    }
+
+    // 检查是否会溢出屏幕底部
+    const bottomEdge = window.innerHeight;
+    if (linkRect.bottom + previewPopup.offsetHeight > bottomEdge) {
+      // 如果溢出，向上调整位置
+      top = linkRect.top + window.scrollY - previewPopup.offsetHeight; // 直接设置top为屏幕高度减去弹窗高度
+    }
+
+    // 应用调整后的位置
+    previewPopup.style.left = `${left}px`;
+    previewPopup.style.top = `${top}px`;
+  }
+
+  loadContentAndShow(event, element) {
+    const previewElement = this.solveLinkedTargetElement(element);
+
+    this.previewPopup.innerHTML = previewElement.innerHTML;
+    this.previewPopup.style.display = "block";
+
+    this.adjustPopupPosition(element, this.previewPopup);
   }
 }
 
