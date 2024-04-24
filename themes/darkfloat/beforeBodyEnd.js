@@ -136,10 +136,22 @@ class RadioLinkPreview {
     previewPopup.style.top = `${top}px`;
   }
 
+  trimInnerText(element) {
+    let html = element.innerHTML;
+    // if the last few lines of html is <p> contains only whitespace or one char, remove it
+    let lastP = html.lastIndexOf("<p>");
+    let lastPend = html.lastIndexOf("</p>");
+    let lastPContent = html.substring(lastP + 3, lastPend);
+    if (lastPContent.trim().length <= 1) {
+      html = html.substring(0, lastP);
+    }
+    return html;
+  }
+
   loadContentAndShow(event, element) {
     const previewElement = this.solveLinkedTargetElement(element);
 
-    this.previewPopup.innerHTML = previewElement.innerHTML;
+    this.previewPopup.innerHTML = this.trimInnerText(previewElement);
     this.previewPopup.style.display = "block";
 
     this.adjustPopupPosition(element, this.previewPopup);
