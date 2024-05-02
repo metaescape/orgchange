@@ -86,19 +86,34 @@ class RadioLinkPreview {
     let targetId = link.getAttribute("href").substring(1);
     let targetElement = document.getElementById(targetId);
     let previewElement = targetElement;
+    let container;
     // check if targetElement is a <a id=xxx> tag
     if (targetElement.tagName === "A") {
       // this is a <a> tag, probably a radio link, so check its parent
       targetElement = targetElement.parentElement;
     }
 
-    // check if targetElement is a <h_> tag
-    if (targetElement.tagName[0] === "H") {
-      // this is a <h_> tag, so it is heading, get its next sibling
-      let textSection = targetElement.nextElementSibling;
+    // three conditions to check:
 
-      // find the first BLOCKQUOTE or <pre class="example"> block in the children of targetElement
-      let children = textSection.children;
+    // 1. if targetElement is a <p> tag in a <summary> tag
+    // go to its parent <detail> tag to find the first <pre> or <blockquote> tag
+
+    if (
+      targetElement.tagName === "P" &&
+      targetElement.parentElement.tagName === "SUMMARY"
+    ) {
+      // this is a <p> tag, probably in a summary, so check its parent
+      container = targetElement.parentElement.parentElement;
+    }
+
+    // 2. if targetElement is a <h> tag
+    // so it is heading,  its next sibling is the outline content
+    else if (targetElement.tagName[0] === "H") {
+      container = targetElement.nextElementSibling;
+    }
+
+    if (container) {
+      let children = container.children;
       for (let child of children) {
         if (child.tagName === "PRE" && child.className === "example") {
           return child;
@@ -106,6 +121,22 @@ class RadioLinkPreview {
           return child;
         }
       }
+    }
+
+    // 3. if targetElement is a regular <p> tag
+    // we shold find its first next sibling <pre> or <blockquote> tag
+
+    let nextElement = targetElement.nextElementSibling;
+    while (nextElement) {
+      if (
+        nextElement.tagName === "PRE" &&
+        nextElement.className === "example"
+      ) {
+        return nextElement;
+      } else if (nextElement.tagName === "BLOCKQUOTE") {
+        return nextElement;
+      }
+      nextElement = nextElement.nextElementSibling;
     }
     return previewElement;
   }
