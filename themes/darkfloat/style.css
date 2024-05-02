@@ -716,15 +716,18 @@ pre.example {
 details {
   /* border-radius: 1rem; */
   /* border: 0.2px dotted var(--secondary-text-color); */
-  border-right: 3px solid;
+  border-right: 3px solid var(--detail-color);
   padding-right: 1rem;
   margin-top: 1rem;
   margin-bottom: 2rem;
-  color: var(--detail-color);
 }
 
 details p {
   margin: 0;
+}
+
+summary {
+  color: var(--detail-color);
 }
 
 summary p {

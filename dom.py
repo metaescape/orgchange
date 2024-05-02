@@ -390,9 +390,10 @@ def extract_time_version(post_info, cache={}):
         post_info["created_timestamp"] = soup.find(
             "span", {"id": "created-timestamp"}
         ).text.strip()
-        post_info["last_modify_timestamp"] = soup.find(
-            "span", {"id": "last-modify-timestamp"}
-        ).text.strip()
+        if "last-modify-timestamp" not in post_info:
+            post_info["last_modify_timestamp"] = soup.find(
+                "span", {"id": "last-modify-timestamp"}
+            ).text.strip()
         if post_info["emacs_org_version"] == []:
             post_info["emacs_org_version"].append(
                 soup.find("span", {"id": "emacs-org-version"}).text.strip()
