@@ -314,36 +314,35 @@ def soup_decorate_per_html(post_info):
             # mv url from ~/org/posts/imgs/... to /www/posts/imgs/...
             rsync_copy(img_url, html_folder, root=publish_folder)
 
-    for p in soup.find_all("p"):
-        # 在每个 <p> 标签中找到所有的 <a> 标签
-        for a in p.find_all("a"):
-            if not a.has_attr("href"):
-                continue
-            href = a["href"]
+    for a in soup.find_all("a"):
 
-            if href.startswith("file:"):
-                href = os.path.normpath(href)
-                for src, target in link_replace.items():
-                    src = r"file:" + os.path.expanduser(src)
-                    href = href.replace(src, target)
+        if not a.has_attr("href"):
+            continue
+        href = a["href"]
 
-                href = (
-                    href.replace("..", "")
-                    .replace("./", "")
-                    .replace(os.path.expanduser("~"), "local")
-                )
+        if href.startswith("file:"):
+            href = os.path.normpath(href)
+            for src, target in link_replace.items():
+                src = r"file:" + os.path.expanduser(src)
+                href = href.replace(src, target)
 
-            # if path is a http link, then skip, this is comment-like code
-            elif href.startswith("http") or href.startswith("#"):
-                pass
+            href = (
+                href.replace("..", "")
+                .replace("./", "")
+                .replace(os.path.expanduser("~"), "local")
+            )
 
-            href = check_id(href, post_info)
+        # if path is a http link, then skip, this is comment-like code
+        elif href.startswith("http") or href.startswith("#"):
+            pass
 
-            # 删除 "#MissingReference"
-            href = href.replace("#MissingReference", "")
+        href = check_id(href, post_info)
 
-            # 更新 href 属性
-            a["href"] = href
+        # 删除 "#MissingReference"
+        href = href.replace("#MissingReference", "")
+
+        # 更新 href 属性
+        a["href"] = href
 
     soup = self_apply(soup)
     post_info.get("")
