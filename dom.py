@@ -289,7 +289,9 @@ def soup_decorate_per_html(post_info):
     prune the cross reference links in href
     add code highlight with pygments
     """
-    soup = post_info["soup"]
+    soup = post_info.get("soup", None)
+    if soup is None:
+        return
     link_replace, prefixes = (
         post_info.get("link_replace", {}),
         post_info["org_prefixes"],
@@ -379,55 +381,66 @@ def self_apply(soup):
     return soup
 
 
-def extract_time_version(post_info, cache={}):
+def extract_and_cache_time(
+    post_info, stamp_id="created_timestamp", date_id="created", cache={}
+):
+    # 如果已经有用户在 post python post 里面设置了时间戳，那么就不需要再去解析 html 里面的时间戳
+    # 但是如果用户没有设置时间戳，那么就需要解析 html 里面的时间戳
+    # 如果没有 html 或者 html 里面没有时间戳，那么就读取 cache 里面的时间戳
+    # 最后更新 cache 里面的时间戳
+    html_path = post_info["html_path_abs2sys"]
+    if stamp_id in post_info:
+        timestamp = post_info[stamp_id]
+    else:
+        soup = post_info.get("soup", None)
+        timestamp = get_element_by_id(soup, stamp_id)
+    if not timestamp:
+        timestamp = (
+            cache[html_path][stamp_id] if html_path in cache else "chaos"
+        )
+    if html_path not in cache:
+        cache[html_path] = {}
+
+    date = timestamp.split()[0] if timestamp else "chaos"
+
+    post_info[stamp_id] = timestamp
+    cache[html_path][stamp_id] = timestamp
+    post_info[date_id] = date
+    cache[html_path][date_id] = date
+
+
+def extract_and_cache_emacs_org_version(post_info, cache={}):
+    html_path = post_info["html_path_abs2sys"]
+    soup = post_info.get("soup", None)
+    version = get_element_by_id(soup, "emacs-org-version")
+    post_info["emacs_org_version"] = version
+    if html_path not in cache:
+        cache[html_path] = {}
+    cache[html_path]["emacs_org_version"] = version
+
+
+def get_element_by_id(soup, id):
+    if soup is None:
+        return None
+    ele = soup.find("span", {"id": id})
+    if ele is None:
+        return None
+    return ele.text.strip()
+
+
+def extract_and_cache_time_version(post_info, cache={}):
+    """
+    prioirity: user setting > html > cache
+    """
     html_path = post_info["html_path_abs2sys"]
     if html_path not in cache and "soup" not in post_info:
         post_info["soup"] = get_soups([post_info["html_path_abs2sys"]])[0]
 
-    if "soup" in post_info:
-        soup = post_info["soup"]
-        post_info["created_timestamp"] = soup.find(
-            "span", {"id": "created-timestamp"}
-        ).text.strip()
-        if "last-modify-timestamp" not in post_info:
-            post_info["last_modify_timestamp"] = soup.find(
-                "span", {"id": "last-modify-timestamp"}
-            ).text.strip()
-        if post_info["emacs_org_version"] == []:
-            post_info["emacs_org_version"].append(
-                soup.find("span", {"id": "emacs-org-version"}).text.strip()
-            )
-        # only with date, no weekday and time
-        post_info["created"] = (
-            post_info["created_timestamp"].split()[0]
-            if post_info["created_timestamp"]
-            else "chaos"
-        )
-        post_info["last_modify"] = (
-            post_info["last_modify_timestamp"].split()[0]
-            if post_info["last_modify_timestamp"]
-            else "chaos"
-        )
-
-        cache[html_path] = {
-            "created": post_info["created"],
-            "last_modify": post_info["last_modify"],
-            "created_timestamp": post_info["created_timestamp"],
-            "last_modify_timestamp": post_info["last_modify_timestamp"],
-            "emacs_org_version": post_info["emacs_org_version"],
-        }
-
-        return
-
-    if html_path in cache:
-        post_info["created"] = cache[html_path]["created"]
-        post_info["last_modify"] = cache[html_path]["last_modify"]
-        post_info["created_timestamp"] = cache[html_path]["created_timestamp"]
-        post_info["last_modify_timestamp"] = cache[html_path][
-            "last_modify_timestamp"
-        ]
-        post_info["emacs_org_version"] = cache[html_path]["emacs_org_version"]
-        return
+    extract_and_cache_time(post_info, "created_timestamp", "created", cache)
+    extract_and_cache_time(
+        post_info, "last_modify_timestamp", "last_modify", cache
+    )
+    extract_and_cache_emacs_org_version(post_info, cache)
 
 
 # deprecated

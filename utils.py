@@ -129,9 +129,9 @@ def check_modified_time_hook(file1, file2, f):
     """
     if not os.path.exists(file1):
         print_red(f"Warning: {file1} is not exist")
-    elif not os.path.exists(file2) or os.path.getmtime(file1) > os.path.getmtime(
-        file2
-    ):
+    elif not os.path.exists(file2) or os.path.getmtime(
+        file1
+    ) > os.path.getmtime(file2):
         f(file1, file2)
 
 
@@ -277,6 +277,9 @@ def do_need_modified(theme_dir, org_path, html_path):
     if os.path.getmtime(html_path) < latest_timestamp:
         return True
 
+    if os.path.isdir(html_path):
+        return True
+
     # html 文件存在，但没有被 jinja 渲染，需要重新生成
     # 判断依据是检查 html 文件中是否包含主题文件路径 “/orgchange/themes"
     with open(html_path, "r") as f:
@@ -371,17 +374,105 @@ def update_node_property_list(node):
     for key in property_keys:
         node._properties[key.lower()] = node._properties[key]
 
-        
+
 @lru_cache()
 def get_emacs_org_version(emacs):
-    
+
     # 构建您的 Emacs 命令
-    emacs_command = f"{emacs} --batch --eval \"(progn (require 'org) (princ (format \\\"Emacs %s(Org %s)\\\" emacs-version org-version)))\""
+    emacs_command = f'{emacs} --batch --eval "(progn (require \'org) (princ (format \\"Emacs %s(Org %s)\\" emacs-version org-version)))"'
 
     # 使用 subprocess 运行命令
-    result = subprocess.run(emacs_command, shell=True, capture_output=True, text=True)
+    result = subprocess.run(
+        emacs_command, shell=True, capture_output=True, text=True
+    )
 
     # 获取输出字符串
     output = result.stdout.strip()
 
     return output
+
+
+import fnmatch
+import filecmp
+
+
+def should_exclude(path, exclude_patterns):
+    """判断路径是否应排除"""
+    for pattern in exclude_patterns:
+        if fnmatch.fnmatch(path, pattern) or fnmatch.fnmatch(
+            os.path.basename(path), pattern
+        ):
+            return True
+    return False
+
+
+def sync_project(post_info):
+    """
+    sync all files in project folder to publish folder
+    """
+
+    target_path = post_info["html_path_abs2sys"]
+    target_folder = os.path.dirname(target_path)
+    src_path = post_info["org_path_abs2sys"]
+    src_folder = os.path.dirname(src_path)
+    exclude_patterns = post_info.get("ignores", [])
+    sync_directories(
+        src_folder, target_folder, exclude_patterns=exclude_patterns
+    )
+    if "last_modify_timestamp" not in post_info:
+        import time
+
+        mtime = os.path.getmtime(src_path)
+        # convert to format to 2024-06-13 Thu 18:20
+        formatted_time = time.strftime(
+            "%Y-%m-%d %a %H:%M", time.localtime(mtime)
+        )
+        post_info["last_modify_timestamp"] = formatted_time
+
+
+def sync_directories(src_dir, dest_dir, exclude_patterns):
+    """
+    同步 src_dir 到 dest_dir，排除 exclude_patterns 中的文件和目录。
+
+    :param src_dir: 源目录
+    :param dest_dir: 目标目录
+    :param exclude_patterns: 用于排除文件和目录的模式列表
+    """
+    if not os.path.exists(dest_dir):
+        os.makedirs(dest_dir)
+
+    for root, dirs, files in os.walk(src_dir):
+        # 计算相对路径
+        rel_path = os.path.relpath(root, src_dir)
+        dest_root = os.path.join(dest_dir, rel_path)
+
+        # 排除目录
+        dirs[:] = [
+            d
+            for d in dirs
+            if not should_exclude(os.path.join(rel_path, d), exclude_patterns)
+        ]
+
+        # 创建不存在的目录
+        for dir_name in dirs:
+            dest_dir_path = os.path.join(dest_root, dir_name)
+            if not os.path.exists(dest_dir_path):
+                os.makedirs(dest_dir_path)
+
+        # 复制文件
+        for file_name in files:
+            src_file_path = os.path.join(root, file_name)
+            dest_file_path = os.path.join(dest_root, file_name)
+
+            if should_exclude(
+                os.path.join(rel_path, file_name), exclude_patterns
+            ):
+                print_yellow(f"   ignore {src_file_path}")
+                continue
+
+            # 检查文件是否需要复制
+            if not os.path.exists(dest_file_path) or not filecmp.cmp(
+                src_file_path, dest_file_path, shallow=False
+            ):
+                shutil.copy2(src_file_path, dest_file_path)
+                print(f"   Copied {src_file_path} to {dest_file_path}")

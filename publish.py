@@ -14,7 +14,7 @@ from dom import (
     get_soups,
     soup_decorate_per_html,
     get_multipages_titles,
-    extract_time_version,
+    extract_and_cache_time_version,
 )
 from typing import List, Union
 
@@ -49,6 +49,13 @@ if os.path.exists(CACHE_PATH):
         global_cache = pickle.load(f)
 
 
+def is_project(post_info):
+    return post_info.get("project", False)
+
+
+from utils import sync_project
+
+
 def publish_via_index(index_org, verbose=False, republish_all=False):
     """
     publish all valid posts mentioned in index.org
@@ -74,7 +81,9 @@ def publish_via_index(index_org, verbose=False, republish_all=False):
                 continue
             # distinguish with categories in post_info
             site_info["categories_map"][category].append(post_info)
-        if post_info["need_update"]:
+        if is_project(post_info):
+            sync_project(post_info)
+        elif post_info["need_update"]:
             publish_single_file(post_info, verbose)
             post_info["soup"] = get_soups([post_info["html_path_abs2sys"]])[0]
         else:
@@ -99,7 +108,8 @@ def extract_site_info_from_index_org(orgfile, republish_all=False):
     get all child nodes from a level1 1 node with tag 'post'
 
     >>> extract_meta_from_index_org('tests/index.org')
-    {'posts': [{'path': '/home/pipz/codes/orgpost/tests/demo.org', 'theme': 'darkfloat', 'categories': ['sample', 'test']}, {'path': '/home/pipz/codes/orgpost/tests/index.org', 'theme': 'darkfloat', 'categories': ['']}]}
+    {'posts': [{'path': '/home/pipz/codes/orgpost/tests/demo.org', 'theme': 'darkfloat', 'categories': ['sample', 'test']},
+               {'path': '/home/pipz/codes/orgpost/tests/index.org', 'theme': 'darkfloat', 'categories': ['']}]}
     """
 
     with change_dir(os.path.dirname(orgfile)):
@@ -116,7 +126,7 @@ def extract_site_info_from_index_org(orgfile, republish_all=False):
                 assert (
                     site_info != {}
                 ), f"please define site level config in python src block under {node.heading}"
-            if "post" in node.tags and node.level == 2:
+            elif "post" in node.tags and node.level == 2:
                 # use shallow copy, make it like inheritance
                 post_info = index_node_process(node, copy.copy(site_info))
                 if post_info is None:  # wrong path
@@ -130,7 +140,7 @@ def extract_site_info_from_index_org(orgfile, republish_all=False):
                 if post_info["need_update"]:
                     site_info["need_update"] = True
                 posts.append(post_info)
-            if "about" in node.tags and node.level == 2:
+            elif "about" in node.tags and node.level == 2:
                 heading = node.get_heading(format="raw")
                 body = node.get_body()
                 site_info["abouts"].append((heading, body))
@@ -215,9 +225,25 @@ def post_title_path_prepare(node, post_info):
 
     org_path_abs2sys = normalize_path(get_path_from_orglink(heading))
     if not is_valid_orgpath(org_path_abs2sys):
-        print_red(f"invalid org path: {org_path_abs2sys}, skip")
+        # if is folder
+        if os.path.isdir(org_path_abs2sys):
+            index = f"{org_path_abs2sys}/index.html"
+            if os.path.exists(index):
+                post_info["project"] = True
+                print_yellow(
+                    f"{org_path_abs2sys} is a project folder with index.html"
+                )
+                org_path_abs2sys = index
+            else:
+                print_yellow(
+                    f"orgchange will publish all org files under this directory, without recursion"
+                )
+        else:
 
-        return None
+            print_red(f"invalid org path: {org_path_abs2sys}, skip")
+
+            return None
+
     org_path_rel2prefix = extract_suffix(org_path_abs2sys, prefixes)
 
     html_path_rel2publish = org_path_rel2prefix.replace(".org", ".html")
@@ -479,7 +505,7 @@ def collect_prev_next_and_generate(posts, cache):
                 )
                 cache[path]["prev"] = post_info["prev"]
 
-        if post_info["need_update"]:
+        if post_info["need_update"] and not is_project(post_info):
             generate_post_page(post_info)
 
 
@@ -542,7 +568,7 @@ def single_page_postprocessing(site_info):
 
     for post_info in all_posts:
         # 对所有 post 都提取时间信息（或者从缓存读取），用于显示在 post ，index list 和 category list 页面
-        extract_time_version(post_info, cache=global_cache)
+        extract_and_cache_time_version(post_info, cache=global_cache)
         if post_info["need_update"]:
             soup_decorate_per_html(post_info)
 
@@ -561,7 +587,7 @@ def single_page_postprocessing(site_info):
 
 def generate_post_page(post_info):
     """
-    generate index.html from index.org
+    generate articles using jinja2 template
     """
 
     index = post_info["index_template"]
