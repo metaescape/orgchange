@@ -25,6 +25,7 @@
       org-html-html5-fancy 't
       org-html-doctype "html5"
       org-export-use-babel nil
+
       org-export-with-sub-superscripts nil
       org-html-container-element "section"
       org-export-with-broken-links 'mark

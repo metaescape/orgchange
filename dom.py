@@ -389,11 +389,16 @@ def extract_and_cache_time(
     # 如果没有 html 或者 html 里面没有时间戳，那么就读取 cache 里面的时间戳
     # 最后更新 cache 里面的时间戳
     html_path = post_info["html_path_abs2sys"]
+
+    # if "orgchange" in post_info["title"]:
+    #     breakpoint()
     if stamp_id in post_info:
         timestamp = post_info[stamp_id]
     else:
         soup = post_info.get("soup", None)
-        timestamp = get_element_by_id(soup, stamp_id)
+        html_id = stamp_id.replace("_", "-")
+        timestamp = get_element_by_id(soup, html_id)
+
     if not timestamp:
         timestamp = (
             cache[html_path][stamp_id] if html_path in cache else "chaos"

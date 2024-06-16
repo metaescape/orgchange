@@ -398,6 +398,12 @@ import filecmp
 
 def should_exclude(path, exclude_patterns):
     """判断路径是否应排除"""
+    # 如果是 .gitignore, .vscode .git 则直接排除
+
+    base_name = os.path.basename(path)
+    if base_name.startswith(".git") or base_name.startswith(".vscode"):
+        return True
+
     for pattern in exclude_patterns:
         if fnmatch.fnmatch(path, pattern) or fnmatch.fnmatch(
             os.path.basename(path), pattern
