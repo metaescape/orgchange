@@ -93,6 +93,7 @@ def publish_via_index(index_org, verbose=False, republish_all=False):
     line = """
      ✯¸.•´*¨`*•✿ Org Change ✿•*`¨*`•.¸✯
     """
+    # breakpoint()
     print(line)
     single_page_postprocessing(site_info)
     if site_info["need_update"]:
@@ -607,11 +608,11 @@ def generate_post_page(post_info):
     if table_of_contents:
         post_info["table_of_contents"] = str(table_of_contents)
 
-    emacs_scripts = post_info["soup"].find_all("script")
-    if emacs_scripts:
-        post_info["emacs_scripts"] = "\n".join(
-            [str(script) for script in emacs_scripts]
-        )
+    # emacs_scripts = post_info["soup"].find_all("script")
+    # if emacs_scripts:
+    #     post_info["emacs_scripts"] = "\n".join(
+    #         [str(script) for script in emacs_scripts]
+    #     )
 
     org_main = post_info["soup"].find("div", {"id": "org-main"})
     if table_of_contents:

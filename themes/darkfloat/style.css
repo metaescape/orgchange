@@ -19,7 +19,7 @@ html {
 }
 
 :root {
-  --heading-color: #e8e8e8;
+  --heading-color: #e9e9e9;
   --toggle-width: 5rem;
   --toggle-height: 2rem;
   --change-decorate: rgb(0, 86, 143);
@@ -37,11 +37,11 @@ html {
     linear-gradient(to right, rgba(0, 0, 0, 0.5) 0%, transparent 20%),
     linear-gradient(to top, #00000080 0%, transparent 340px);
   --detail-color: #7a97ba;
-  --content-color: #c7c7d3;
+  --content-color: #c5c5d2;
   --hover-color: #3f3f3f;
   --secondary-text-color: #999;
   --shadow: 8px;
-  --pre-text: #bfbfbf;
+  --pre-text: #d6d6d6;
   --pre-background: #20242b;
   --main-font-size: 1.5rem;
   --quote-color: #d08770;
@@ -69,9 +69,9 @@ html {
   --change-decorate8: #000000a2;
   --change-decorate-table: #0001;
   --shadow: 4px;
-  --pre-text: #363c69;
+  --pre-text: #0c1139;
   --pre-background: #c8b38b;
-  --quote-color: #b9461f;
+  --quote-color: #c14921;
 }
 
 body {
@@ -1018,7 +1018,7 @@ body a:visited {
 .timestamp-block {
   font-size: 1rem;
   right: 0%;
-  opacity: 0.5;
+  opacity: 0.6;
 }
 
 footer .beian {
@@ -1087,9 +1087,9 @@ footer .beian {
  *
  * Date: Sat Jun 26 21:27:00 2010 -0600
  */
-span.c {
+span.chord {
   font-weight: bold;
-  color: #2159d6;
+  color: var(--quote-color);
 }
 
 .transpose-keys {
@@ -1112,8 +1112,8 @@ span.c {
 }
 
 #org-main .transpose-keys a.selected {
-  background: #2159d6;
-  color: #fff;
+  background: var(--quote-color);
+  color: #100f0f;
 }
 
 @media (max-width: 460px) {
