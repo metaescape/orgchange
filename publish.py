@@ -418,7 +418,6 @@ def _export_to_html(emacs, theme_path, orgfile, elisp_code, verbose=False):
     process = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
-
     output, error = process.communicate()
     if "Debugger" in error.decode("utf-8"):
         print(" ".join(cmd))
@@ -608,11 +607,11 @@ def generate_post_page(post_info):
     if table_of_contents:
         post_info["table_of_contents"] = str(table_of_contents)
 
-    # emacs_scripts = post_info["soup"].find_all("script")
-    # if emacs_scripts:
-    #     post_info["emacs_scripts"] = "\n".join(
-    #         [str(script) for script in emacs_scripts]
-    #     )
+    emacs_scripts = post_info["soup"].find("head").find_all("script")
+    if emacs_scripts:
+        post_info["emacs_scripts"] = "\n".join(
+            [str(script) for script in emacs_scripts]
+        )
 
     org_main = post_info["soup"].find("div", {"id": "org-main"})
     if table_of_contents:
