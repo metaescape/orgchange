@@ -381,6 +381,17 @@ def self_apply(soup):
     return soup
 
 
+def strip_org_timestamp(timestamp: str):
+    """
+    if stamp is wrapped in brace , e.g. "[2024-01-27 六 13:05]"
+    then strip the brace
+    """
+    timestamp = timestamp.strip()
+    if timestamp.startswith("[") and timestamp.endswith("]"):
+        return timestamp[1:-1]
+    return timestamp
+
+
 def extract_and_cache_time(
     post_info, stamp_id="created_timestamp", date_id="created", cache={}
 ):
@@ -393,7 +404,8 @@ def extract_and_cache_time(
     # if "orgchange" in post_info["title"]:
     #     breakpoint()
     if stamp_id in post_info:
-        timestamp = post_info[stamp_id]
+        # extract date in  in "[date]"
+        timestamp = strip_org_timestamp(post_info[stamp_id])
     else:
         soup = post_info.get("soup", None)
         html_id = stamp_id.replace("_", "-")
