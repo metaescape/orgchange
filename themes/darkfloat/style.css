@@ -37,6 +37,7 @@ html {
     linear-gradient(to right, rgba(0, 0, 0, 0.5) 0%, transparent 20%),
     linear-gradient(to top, #00000080 0%, transparent 340px);
   --detail-color: #7a97ba;
+  --detail-background: #2e2f2ff0;
   --content-color: #c5c5d2;
   --hover-color: #3f3f3f;
   --secondary-text-color: #999;
@@ -59,6 +60,7 @@ html {
     linear-gradient(to right, rgba(0, 0, 0, 0.5) 0%, transparent 20%),
     linear-gradient(to top, #000000c0 0%, transparent 340px);
   --detail-color: #334c71;
+  --detail-background: #c6ac85e3;
 
   --content-color: #131313;
   --secondary-text-color: #4e4e4e;
@@ -717,6 +719,7 @@ details {
   /* border-radius: 1rem; */
   /* border: 0.2px dotted var(--secondary-text-color); */
   border-right: 3px solid var(--detail-color);
+  background-color: var(--detail-background);
   padding-right: 1rem;
   margin-top: 1rem;
   margin-bottom: 2rem;
