@@ -588,3 +588,9 @@ INFO is a plist holding contextual information.  See
       (format "<i>%s</i>" desc)))))
 
 
+
+(defun org-export-deterministic-reference (references)
+    (let ((new (length references)))
+       (while (rassq new references) (setq new (+ new 1))) 
+       new))
+ (advice-add #'org-export-new-reference :override #'org-export-deterministic-reference)
