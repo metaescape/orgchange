@@ -29,6 +29,7 @@
       org-export-with-sub-superscripts nil
       org-html-container-element "section"
       org-export-with-broken-links 'mark
+	  org-html-self-link-headlines t
       )
 
 (setq org-html-checkbox-type 'unicode ;; ascii
