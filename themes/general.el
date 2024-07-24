@@ -70,6 +70,8 @@
 
 (setq org-html-scripts "") ;; disable default js for code highlight
 ;; add an inner <code> element for code block
+;; add pre-name 
+;; also collect attributes from code block
 (defun org-html-src-block (src-block _contents info)
   "Transcode a SRC-BLOCK element from Org to HTML.
 CONTENTS holds the contents of the item.  INFO is a plist holding
@@ -78,14 +80,17 @@ contextual information."
       (org-html--textarea-block src-block)
     (let* ((lang (org-element-property :language src-block))
 	       (code (org-html-format-code src-block info))
-         (name (org-element-property :name src-block))
+		   (name (org-element-property :name src-block))
+		   (class-tag (org-export-read-attribute :attr_html src-block :class))
 	       (label (let ((lbl (org-html--reference src-block info t)))
 		            (if lbl (format " id=\"%s\"" lbl) "")))
 	       (klipsify  (and  (plist-get info :html-klipsify-src)
                             (member lang '("javascript" "js"
 					                       "ruby" "scheme" "clojure" "php" "html")))))
       (if (not lang) (format "<pre class=\"example\"%s>\n%s</pre>" label code)
-	    (format "<div class=\"org-src-container\">\n%s%s\n</div>"
+	    (format "<div class=\"org-src-container %s\">\n%s%s\n</div>"
+				;; add custom class name
+				(if class-tag class-tag "")
 		        ;; Build caption.
 		        (let ((caption (org-export-get-caption src-block)))
 		          (if (not caption) ""
@@ -108,7 +113,7 @@ contextual information."
 				                " data-editor-type=\"html\""
 			                  "")
 			                code)
-                  ;; code add
+                  ;; add <pre> and pre-name
                   (format "%s<pre><code class=\"%s\"%s>%s</code></pre>"
                           (if name (format "<div class=\"pre-name\">#+name: %s </div>" name) "")
                           lang label code 
