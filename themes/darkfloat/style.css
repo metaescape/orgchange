@@ -908,6 +908,12 @@ body a:visited {
   padding: 3px 0 1px;
 }
 
+h4 a:link,
+h3 a:link,
+h2 a:link {
+  border-width: 0 0 0 !important;
+}
+
 #org-main a:hover,
 .about a:hover {
   color: var(--quote-color);
