@@ -562,6 +562,12 @@ def save_draft_html_path_to_file(draft_posts):
         f.write("\n".join(draft_html_paths))
     print_yellow(f"draft html paths saved at {draft_file_path}")
 
+    # also save to ".git/info/exclude"
+    git_exclude_path = os.path.join(WWW, ".git", "info", "exclude")
+    with open(git_exclude_path, "w") as f:
+        f.write("\n".join(draft_html_paths))
+    print_yellow(f"add .orgchange.draft to git exclude")
+
 
 def single_page_postprocessing(site_info):
     all_posts = separate_draft_posts(site_info)
@@ -614,8 +620,8 @@ def generate_post_page(post_info):
         )
 
     org_main = post_info["soup"].find("div", {"id": "org-main"})
-    if table_of_contents:
-        post_info["org_main"] = str(org_main)
+
+    post_info["org_main"] = str(org_main)
     rendered_template = template.render(post_info)
 
     with open(post_info["html_path_abs2sys"], "w") as f:
