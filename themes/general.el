@@ -82,15 +82,18 @@ contextual information."
 	       (code (org-html-format-code src-block info))
 		   (name (org-element-property :name src-block))
 		   (class-tag (org-export-read-attribute :attr_html src-block :class))
+		   (id-tag (org-export-read-attribute :attr_html src-block :id))
 	       (label (let ((lbl (org-html--reference src-block info t)))
 		            (if lbl (format " id=\"%s\"" lbl) "")))
 	       (klipsify  (and  (plist-get info :html-klipsify-src)
                             (member lang '("javascript" "js"
 					                       "ruby" "scheme" "clojure" "php" "html")))))
       (if (not lang) (format "<pre class=\"example\"%s>\n%s</pre>" label code)
-	    (format "<div class=\"org-src-container %s\">\n%s%s\n</div>"
+	    (format "<div class=\"org-src-container %s\" %s>\n%s%s\n</div>"
 				;; add custom class name
 				(if class-tag class-tag "")
+				;; add custom id 
+				(if id-tag (format "id=\"%s\"" id-tag) "")
 		        ;; Build caption.
 		        (let ((caption (org-export-get-caption src-block)))
 		          (if (not caption) ""
