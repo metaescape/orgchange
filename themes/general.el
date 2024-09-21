@@ -80,15 +80,22 @@ contextual information."
       (org-html--textarea-block src-block)
     (let* ((lang (org-element-property :language src-block))
 	       (code (org-html-format-code src-block info))
+		   (plain-code (car (org-export-unravel-code src-block)))
 		   (name (org-element-property :name src-block))
 		   (class-tag (org-export-read-attribute :attr_html src-block :class))
+		   (exports (org-export-read-attribute :attr_html src-block :exports))
 		   (id-tag (org-export-read-attribute :attr_html src-block :id))
 	       (label (let ((lbl (org-html--reference src-block info t)))
 		            (if lbl (format " id=\"%s\"" lbl) "")))
 	       (klipsify  (and  (plist-get info :html-klipsify-src)
                             (member lang '("javascript" "js"
 					                       "ruby" "scheme" "clojure" "php" "html")))))
-      (if (not lang) (format "<pre class=\"example\"%s>\n%s</pre>" label code)
+	  (cond 
+	  	((and (equal exports "js") (equal lang "js")) (format "<script>\n%s\n</script>" plain-code))
+		((and (equal exports "css") (equal lang "css")) (format "<style>\n%s\n</style>" plain-code))
+		(t 
+		(if (not lang) 
+	    (format "<pre class=\"example\"%s>\n%s</pre>" label code)
 	    (format "<div class=\"org-src-container %s\" %s>\n%s%s\n</div>"
 				;; add custom class name
 				(if class-tag class-tag "")
@@ -120,7 +127,8 @@ contextual information."
                   (format "%s<pre><code class=\"%s\"%s>%s</code></pre>"
                           (if name (format "<div class=\"pre-name\">#+name: %s </div>" name) "")
                           lang label code 
-                          )))))))
+                          ))))))									   
+		)))
 
 
 (defun org-export-each-headline-to-html (&optional dir scope)
