@@ -141,8 +141,8 @@ document.addEventListener("DOMContentLoaded", function (e) {
         fontCache: "global",
       },
       options: {
-        renderActions: {
-          addMenu: [0, "", ""],
+        options: {
+          enableMenu: true, // 确保上下文菜单启用
         },
       },
       displayAlign: "center",
