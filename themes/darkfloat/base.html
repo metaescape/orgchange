@@ -56,31 +56,34 @@
       </a>
       {% block content %}
 
-      <div class="post-list" id="content">
+      <section class="post-list" id="content">
         <div class="content-inner">
           {% if section %}
           <h2>{{section}}</h2>
           {% endif %} {% for item in visible_posts %}
 
-          <p class="post-line">
-            <a
-              href="{{ item['html_path_abs2www'] }}"
-              data-number="{{item['idx']}}. "
-              >{{ item["title"] }}</a
-            >
-            <span class="timestamp-block">
-              <span class="timestamp index-created">
-                {{ item["created"] }}-></span
+          <article class="post-line">
+            <header class="post-title-date">
+              <a
+                href="{{ item['html_path_abs2www'] }}"
+                data-number="{{item['idx']}}. "
+                >{{ item["title"] }}</a
               >
-              <span class="timestamp index-last-modify"
-                >{{ item["last_modify"] }}</span
-              >
-            </span>
-          </p>
+              <div class="timestamp-block">
+                <span class="timestamp index-created">
+                  {{ item["created"] }}-></span
+                >
+                <span class="timestamp index-last-modify"
+                  >{{ item["last_modify"] }}</span
+                >
+              </div>
+            </header>
+            <p class="description">{{item["description"]}}</p>
+          </article>
 
           {% endfor %}
         </div>
-      </div>
+      </section>
       {% endblock %}
 
       <footer id="postamble" class="status">

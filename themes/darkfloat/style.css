@@ -995,7 +995,19 @@ h2 a:link {
   text-align: center;
 }
 
-.post-list .post-line {
+.post-line {
+  display: flex;
+  flex-direction: column;
+}
+
+.post-line .description {
+  margin-left: 2rem;
+  font-size: 1.2rem;
+  display: none;
+  color: var(--quote-color);
+}
+
+.post-title-date {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1014,12 +1026,16 @@ h2 a:link {
   border-left: 1px solid var(--change-decorate8);
 }
 
+.post-title-date:hover + .description {
+  display: block;
+}
+
 .post-list a:hover,
 .post-list a:active {
   color: var(--change-decorate8);
 }
 
-.post-list p a:hover::before {
+.post-title-date a:hover::before {
   content: attr(data-number);
   padding: 0;
   margin: 0;
@@ -1173,7 +1189,7 @@ span.chord {
     width: 4.8rem;
     height: 4.8rem;
   }
-  .post-list .post-line {
+  .post-title-date {
     margin: 0.5rem 0rem;
     font-size: 1rem;
   }
