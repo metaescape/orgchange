@@ -62,6 +62,45 @@ if (toggleDescription) {
   });
 }
 
+const toggleTimeSort = document.getElementById("toggle-time-sort");
+if (toggleTimeSort) {
+  let originalPosts = document.querySelectorAll(".post-list .content-inner");
+  // backup original posts
+  console.log(originalPosts);
+  let backupPosts = Array.from(originalPosts[0].children);
+  let postListInner = document.querySelector(".post-list .content-inner");
+  toggleTimeSort.addEventListener("click", function () {
+    // get checked status
+    const checked = toggleTimeSort.checked;
+    // if not checked, sort by time
+    if (checked) {
+      const posts = Array.from(originalPosts[0].children);
+      // ignore first element
+      let first = posts.shift();
+
+      posts.sort(function (a, b) {
+        const aTime = new Date(
+          a.querySelector(".index-last-modify").textContent
+        );
+        const bTime = new Date(
+          b.querySelector(".index-last-modify").textContent
+        );
+        return bTime - aTime;
+      });
+
+      postListInner.appendChild(first);
+
+      posts.forEach((post) => {
+        postListInner.appendChild(post);
+      });
+    } else {
+      backupPosts.forEach((post) => {
+        postListInner.appendChild(post);
+      });
+    }
+  });
+}
+
 class RadioLinkPreview {
   constructor(classname) {
     // 使用querySelectorAll获取所有匹配的元素
