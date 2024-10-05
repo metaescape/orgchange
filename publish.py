@@ -14,7 +14,7 @@ from dom import (
     get_soups,
     soup_decorate_per_html,
     get_multipages_titles,
-    extract_and_cache_time_version,
+    extract_and_cache_time_vers_des,
 )
 from typing import List, Union
 
@@ -36,6 +36,7 @@ from utils import (
     get_emacs_org_version,
 )
 import pickle
+from feeds import generate_feed
 
 
 ORG_CHANGE_DIR = os.path.dirname(os.path.realpath(sys.argv[0]))
@@ -93,9 +94,12 @@ def publish_via_index(index_org, verbose=False, republish_all=False):
     line = """
      ✯¸.•´*¨`*•✿ Org Change ✿•*`¨*`•.¸✯
     """
-    # breakpoint()
+
     print(line)
+    # get timestamp, merge toc, save draft list
     single_page_postprocessing(site_info)
+
+    generate_feed(site_info)
     if site_info["need_update"]:
         generate_index_html(site_info)
         generate_category_html(site_info)
@@ -221,7 +225,7 @@ def post_title_path_prepare(node, post_info):
     html_folder_rel2publish = post_info.get("target_dir", "")
     heading = node.get_heading(format="raw")
     title = get_title_from_orglink(heading)
-    is_force_update = title.startswith("-")
+    is_force_update = title.startswith("-") or post_info.get("force", False)
     title = title.strip("-")
 
     org_path_abs2sys = normalize_path(get_path_from_orglink(heading))
@@ -574,7 +578,7 @@ def single_page_postprocessing(site_info):
 
     for post_info in all_posts:
         # 对所有 post 都提取时间信息（或者从缓存读取），用于显示在 post ，index list 和 category list 页面
-        extract_and_cache_time_version(post_info, cache=global_cache)
+        extract_and_cache_time_vers_des(post_info, cache=global_cache)
         if post_info["need_update"]:
             soup_decorate_per_html(post_info)
 

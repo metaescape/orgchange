@@ -36,6 +36,12 @@
 pip install orgparse jinja2 bs4 pygments
 ```
 
+如果需要生成 rss 或 atom feed, 需要安装 feedgen
+
+````bash
+pip install feedgen
+```
+
 ## 使用方法
 
 假设个人网页发布的目录是 `~/mysite`, 那么首先把 orgchange 移动到该目录下, 路径为 `~/mysite/orgchange`. (后文出现的相对目录，都是相对 `~/mysite` 而言的)
@@ -45,7 +51,7 @@ pip install orgparse jinja2 bs4 pygments
 ```bash
 cd ~/mysite
 python orgchange/publish.py --index orgchange/example/index.org --verbose --all
-```
+````
 
 通过以下命令启动简单的 web server 进行预览
 

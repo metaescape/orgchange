@@ -436,6 +436,16 @@ def extract_and_cache_emacs_org_version(post_info, cache={}):
     cache[html_path]["emacs_org_version"] = version
 
 
+def extract_and_cache_description(post_info, cache={}):
+    html_path = post_info["html_path_abs2sys"]
+    soup = post_info.get("soup", None)
+    version = get_element_by_id(soup, "emacs-org-version")
+    post_info["description"] = version
+    if html_path not in cache:
+        cache[html_path] = {}
+    cache[html_path]["emacs_org_version"] = version
+
+
 def get_element_by_id(soup, id):
     if soup is None:
         return None
@@ -445,7 +455,7 @@ def get_element_by_id(soup, id):
     return ele.text.strip()
 
 
-def extract_and_cache_time_version(post_info, cache={}):
+def extract_and_cache_time_vers_des(post_info, cache={}):
     """
     prioirity: user setting > html > cache
     """
@@ -458,6 +468,7 @@ def extract_and_cache_time_version(post_info, cache={}):
         post_info, "last_modify_timestamp", "last_modify", cache
     )
     extract_and_cache_emacs_org_version(post_info, cache)
+    # extract_and_cache_description(post_info, cache)
 
 
 # deprecated

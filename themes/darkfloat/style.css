@@ -89,7 +89,7 @@ body {
 
   font-size: var(--main-font-size);
   line-height: 1.8;
-  word-break: break-all;
+  /* word-break: break-all; */
   color: var(--content-color);
 }
 
@@ -820,7 +820,8 @@ blockquote p:first-of-type {
 
 .about-container h2 {
   text-align: center;
-  margin: 5rem;
+  margin-top: 2rem;
+  margin-bottom: 3rem;
 }
 
 .about-container .categories {
