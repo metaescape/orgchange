@@ -44,6 +44,24 @@ if (toc) {
   obs.observe(toc);
 }
 
+const toggleDescription = document.getElementById("toggle-description");
+
+if (toggleDescription) {
+  toggleDescription.addEventListener("click", function () {
+    const descriptions = document.querySelectorAll(".post-line .description");
+    descriptions.forEach((description) => {
+      if (
+        description.style.display === "none" ||
+        description.style.display === ""
+      ) {
+        description.style.display = "block";
+      } else {
+        description.style.display = "none";
+      }
+    });
+  });
+}
+
 class RadioLinkPreview {
   constructor(classname) {
     // 使用querySelectorAll获取所有匹配的元素

@@ -398,6 +398,7 @@ nav h2::before {
   font-size: 1.2rem;
   overflow-x: hidden;
   overflow-y: scroll;
+  min-height: 16rem;
 }
 
 #global-toc-fringe {
@@ -1002,6 +1003,7 @@ h2 a:link {
 
 .post-line .description {
   margin-left: 2rem;
+  margin-right: 4rem;
   font-size: 1.2rem;
   display: none;
   color: var(--quote-color);
@@ -1025,10 +1027,10 @@ h2 a:link {
   padding-left: 1.2rem;
   border-left: 1px solid var(--change-decorate8);
 }
-
+/* 
 .post-title-date:hover + .description {
   display: block;
-}
+} */
 
 .post-list a:hover,
 .post-list a:active {

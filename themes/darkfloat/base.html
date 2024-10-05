@@ -60,7 +60,20 @@
         <div class="content-inner">
           {% if section %}
           <h2>{{section}}</h2>
-          {% endif %} {% for item in visible_posts %}
+          {% endif %}
+          <article class="post-line">
+            <header class="post-title-date">
+              <div>
+                <input type="checkbox" id="toggle-description" />
+                <label for="toggle-description" class="btn">显示描述</label>
+              </div>
+              <div class="timestamp-block">
+                <span class="timestamp index-created"></span>
+                <span class="timestamp index-last-modify"></span>
+              </div>
+            </header>
+          </article>
+          {% for item in visible_posts %}
 
           <article class="post-line">
             <header class="post-title-date">
@@ -78,7 +91,9 @@
                 >
               </div>
             </header>
+            {% if item["description"] %}
             <p class="description">{{item["description"]}}</p>
+            {% endif %}
           </article>
 
           {% endfor %}
