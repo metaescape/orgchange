@@ -297,6 +297,13 @@ def index_node_process(node, post_info):
     for language, content in src_blocks:
         if language == "python":
             variable_setting = get_bindings_from_text(content["body"])
+            # if value is a path starts with ~, expand it
+            for key, value in variable_setting.items():
+                if key == "org_prefixes":
+                    variable_setting[key] = [
+                        os.path.expanduser(p) for p in value
+                    ]
+
             post_info.update(variable_setting)
         if language == "emacs-lisp":
             post_info["user_elisp"] += content["body"]
