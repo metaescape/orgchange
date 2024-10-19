@@ -364,9 +364,7 @@ def bib_hook_parse(post_info):
     return ""
 
 
-def publish_single_file(
-    post_info, verbose=False
-) -> Union[None, List[BeautifulSoup]]:
+def publish_single_file(post_info, verbose=False):
     """
     publish a single org file:
     - call export_to_html to generate html file
@@ -430,7 +428,7 @@ def _export_to_html(emacs, theme_path, orgfile, elisp_code, verbose=False):
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     output, error = process.communicate()
-    if "Debugger" in error.decode("utf-8"):
+    if any(x in output.decode("utf-8") for x in ["error", "Error"]):
         print(" ".join(cmd))
         print(output.decode("utf-8"))
         print_red(error.decode("utf-8"))
