@@ -535,6 +535,10 @@ li {
   padding: 0.2rem 0;
 }
 
+li > p:first-child {
+  display: inline;
+}
+
 .MathJax {
   overflow-x: auto;
   overflow-y: hidden;
