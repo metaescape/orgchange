@@ -46,8 +46,13 @@ def add_feed_entry(fg, site_url, feed_posts):
         last_modify_timestamp = post["last_modify_timestamp"]
         created_timestamp = post["created_timestamp"]
         description = post.get("description", "")
-        last_modfiy_datetime = to_datetime(last_modify_timestamp)
-        created_datetime = to_datetime(created_timestamp)
+        try:
+            last_modfiy_datetime = to_datetime(last_modify_timestamp)
+            created_datetime = to_datetime(created_timestamp)
+        except ValueError:
+            print_yellow(
+                f"Invalid date format: {last_modify_timestamp} or {created_timestamp}"
+            )
         categories = post.get("categories", [])
         category = [{"term": c} for c in categories]
 
