@@ -996,7 +996,7 @@ h2 a:link {
   flex-grow: 0;
   color: var(--secondary-text-color);
   font-size: 1rem;
-  justify-self: flex-end;
+  /* justify-self: flex-end; */
   text-align: center;
 }
 
